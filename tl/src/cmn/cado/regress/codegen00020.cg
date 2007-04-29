@@ -1,0 +1,5 @@
+#test :freq operator:
+
+%readtemplate FOO ${TESTNAME}.txt
+foo2 = $FOO:freq
+%echo $foo2

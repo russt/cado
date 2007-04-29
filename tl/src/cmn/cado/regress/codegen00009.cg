@@ -1,0 +1,338 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+# 
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)test9.cg - ver 1.1 - 01/04/2006
+#
+# Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
+# 
+# END_HEADER - DO NOT EDIT
+#
+
+#test postfix operators on rhs
+
+#we need a private dir for some of these tests:
+TSTTMPDIR=$CG_ROOT/codegen00009.dir
+%shell rm -rf "$TSTTMPDIR"
+%shell mkdir -p "$TSTTMPDIR"
+
+anum=0
+%echo +200=$anum:plus200:assign
+%echo -100=$anum:minus100:assign
+%echo  *10=$anum:times10:assign
+%echo  /10=$anum:div10:assign
+%echo   %3=$anum:rem3:assign
+
+anum=10.3
+%echo  /10=$anum:div10:assign
+%echo   %3=$anum:rem3:assign
+
+FOOVAR= << EOF
+   	abc
+
+EOF
+ltrimmed=${FOOVAR:ltrim}
+rtrimmed=${FOOVAR:rtrim}
+trimmed=${FOOVAR:trim}
+toupper=${trimmed:toupper}
+tolower=${toupper:tolower}
+
+%echo FOOVAR is >$FOOVAR<
+%echo ltrimmed is >$ltrimmed<
+%echo rtrimmed is >$rtrimmed<
+%echo trimmed is >$trimmed<
+%echo toupper is >$toupper<
+%echo tolower is >$tolower<
+
+FOOVAR=${FOOVAR:trim}.$FOOVAR:trim:toupper.$FOOVAR:trim:tolower
+%echo FOOVAR is >$FOOVAR<
+
+%echo #### TEST bogus ops
+FOOVAR=${FOOVAR:trim::Bogus::}
+%echo FOOVAR is >$FOOVAR<
+
+%echo #### TEST rspace
+FOOVAR =
+%echo 1. '$FOOVAR'
+
+FOOVAR = $FOOVAR:rspace:rspace
+#should still be empty string:
+%echo 2. '$FOOVAR'
+
+%echo #### TEST lspace
+#this is how to add space to an empty string:
+FOOVAR = $FOOVAR:lspace:lspace:lspace
+%echo 3. '$FOOVAR'
+
+%echo #### TEST tab
+FOOVAR =
+FOOVAR = $FOOVAR:tab
+%echo 3a. '$FOOVAR'
+
+%echo #### TEST 4: oneline
+#test the "oneline" op, which does a trim and then replaces \s*EOL\s* sequences
+#with a single space:
+FOOVAR = << EOF
+
+line1
+   leading space
+trailing space   
+line2
+
+
+EOF
+
+%echo 4a. '$FOOVAR'
+%echo 4b. '$FOOVAR:oneline'
+
+%echo #### TEST 5: onecol
+FOOVAR = one two three
+%echo 5. '$FOOVAR:onecol'
+
+%echo #### TEST 6: method2rec
+FOOVAR = << EOF
+    public static
+    String [] foulUpAString2Times (int blah, boolean [] beboop, String lala)
+        throws StupidException, ReallyStupidException,
+        QuiteReasonableException;
+EOF
+%echo 6a. '$FOOVAR:method2rec'
+
+FOOVAR = String totally_trivial_method(((()))) ; ;;
+%echo 6b. '$FOOVAR:method2rec'
+
+FOOVAR = public synchronized String [] [] foomethod () { impl }
+%echo 6c. '$FOOVAR:method2rec'
+
+
+#test 7:  valueof postfix operator:
+ds:=$
+fooptr = foo1
+foo1 = foo1_value
+%echo 7a. ${ds}fooptr:valueof=$fooptr:valueof' 
+
+fooptr = foo1
+foo1 = foo2
+foo2 = foo2_value
+%echo 7b. ${ds}fooptr:valueof:valueof=$fooptr:valueof:valueof' 
+
+fooptr = foo1
+%undef foo1
+%echo 7c. ${ds}fooptr:valueof=$fooptr:valueof' 
+
+#test 8:  test lhs of definition (assignment) statement is an expression:
+%undef foo1
+fooptr = foo1
+
+#this should assign to foo1:
+$fooptr = foo1_value
+%echo 8a. ${ds}fooptr = foo1_value => fooptr='$fooptr' foo1='$foo1'
+
+#now create an invalid lhs:
+%echo 8b. EXPECT WARNING: variable reference '$blah' on left-hand side of assignement is INVALID - ignored.
+$blah = blah_value
+
+
+#assign to an expression that evaluates to a valid variable name:
+num=00
+var_base_$num:incr:assign = XXX
+varptr = var_base_$num
+%echo 8c: the value of $varptr is $varptr:valueof (should be XXX)
+var_base_$num:incr:assign = YYY
+varptr = var_base_$num
+%echo 8c: the value of $varptr is $varptr:valueof (should be YYY
+
+#test 9:  test nameof postfix operator:
+fooptr=foo1
+foo1=foo1_value
+%echo 9a. ${ds}fooptr:nameof = $fooptr:nameof
+%echo 9b. ${ds}fooptr:nameof:nameof = $fooptr:nameof:nameof  (EXPECT: fooptr)
+%echo 9b. ${ds}fooptr:valueof:nameof = $fooptr:valueof:nameof  (EXPECT: fooptr)
+%echo 9b. ${ds}fooptr:nameof:valueof = $fooptr:nameof:valueof  (EXPECT: foo1)
+%echo 9b. ${ds}fooptr:nameof:valueof:valueof = $fooptr:nameof:valueof:valueof  (EXPECT: foo1_value)
+
+#test 10:  env postfix operator:
+%echo 10a. ${ds}HOME:nameof:env = $HOME:nameof:env
+%echo 10b. ${ds}UNDEFINED_VAR_234:nameof:env = $UNDEFINED_VAR_234:nameof:env
+
+#####
+#test fixeol operator
+#####
+tname=:fixeol
+tnum = 10
+%echo
+%echo TEST $tname operator
+#####
+
+foo = this string has no newline
+CG_COMPARE_SPEC = $foo:newline
+foo = $foo:fixeol
+
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+foo = << EOF
+this string has a newline
+EOF
+CG_COMPARE_SPEC = $foo
+foo = $foo:fixeol
+
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+#####
+#test crc operator
+#####
+tname=:crc
+%echo
+%echo TEST $tname operator
+#####
+
+CG_ROOT = $TSTTMPDIR
+
+foo = $foo:date
+foofn=variable.txt
+ECHO_TXT = $foo
+echo /$foofn
+
+CG_COMPARE_SPEC = $foo:crcstr
+
+result=FAILED
+%if $foofn:crcfile:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%if $foofn:crc:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%if $foofn:crcstr:ne	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+#do a bogus filename:
+foofn = bogus
+CG_COMPARE_SPEC = $foofn:crcstr
+
+result=FAILED
+%if $foofn:crcstr:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%if $foofn:crc:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+CG_COMPARE_SPEC = 0
+result=FAILED
+%if $foofn:crcfile:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+#test :cap, :uncap operators
+#####
+tname=:cap/:uncap
+%echo
+%echo TEST $tname operator
+#####
+
+foo = russ
+CG_COMPARE_SPEC = Russ
+foo = $foo:cap
+
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+foo = Russ
+CG_COMPARE_SPEC = russ
+foo = $foo:uncap
+
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+foo = 123
+CG_COMPARE_SPEC = $foo
+foo = $foo:cap
+
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+foo = $foo:uncap
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+space=
+space=$space:space
+
+foo = ${space}russ$space
+CG_COMPARE_SPEC = ${space}Russ$space
+foo = $foo:cap
+
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+
+foo = ${space}Russ$space
+CG_COMPARE_SPEC = ${space}russ$space
+foo = $foo:uncap
+
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+#####
+#test tounix, todos operators
+#####
+tname=:tounix/:todos
+%echo
+%echo $tname operator
+#####
+
+foo = << EOF
+one
+two
+three
+EOF
+
+#for od:
+CG_SHELL_COMMAND_ARGS = -c
+%echo ------- orig
+%echo $foo:od
+%echo ------- tounix:
+%echo $foo:tounix:od
+%echo ------- todos:
+%echo $foo:todos:od
+%echo ------- todos:tounix:
+%echo $foo:todos:tounix:od
+%echo -------
+
+CG_COMPARE_SPEC = $foo
+result=FAILED
+%if $foo:tounix:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%if $foo:todos:ne	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result

@@ -1,0 +1,236 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+# 
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)testg.cg - ver 1.1 - 01/04/2006
+#
+# Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
+# 
+# END_HEADER - DO NOT EDIT
+#
+
+{
+#####
+#test %whiledef
+#####
+tname=%whiledef
+tnum = 0
+
+cnt = 00
+foo$cnt:incr:assign =
+foo$cnt:incr:assign =
+foo$cnt:incr:assign =
+
+cnt = 00
+%whiledef foo$cnt:incr:assign %echo $cnt
+
+amacro := << EOF
+%echo amacro: cnt=$cnt:decr:assign
+%ifnot $cnt %undef somevar
+EOF
+
+cnt = 50
+somevar =
+%whiledef somevar %interpret amacro
+}
+
+{
+#####
+#test %while
+#####
+tname=%while
+tnum = 0
+%echo
+
+cnt = 005
+%while $cnt:decr:assign %echo %while $cnt is true
+
+cnt = -005
+%while $cnt:incr:assign %echo %while $cnt is true
+
+cntptr = cnt
+$cntptr = 5
+%while $cntptr:valueof %echo %while $cnt:decr:assign is true
+
+$cntptr = 5
+%if $cntptr:valueof %echo %if cntptr:valueof is true
+%ifdef $cntptr %echo %ifdef cntptr is true
+}
+
+{
+#####
+#test %void statement
+#####
+tname=%void
+tnum = 0
+%echo
+
+foo=2
+CG_COMPARE_SPEC = $foo
+
+%void %foo:zero:incr:incr:assign
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+}
+
+{
+#####
+#test %undef statement
+#####
+tname=%undef
+tnum = 0
+%echo
+
+%undef cnt
+result=FAILED
+%ifdef cntptr	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+
+result=FAILED
+%ifndef $cntptr	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+
+#test %undef patterns:
+foo_a = xxx
+foo_b = xxx
+foo_c = xxx
+
+#%echo BEFORE:  foo_a=$foo_a foo_b=$foo_b foo_c=$foo_c
+#Note - this is a perl RE, so foo_* will match foo followed by zero or more '_' chars.
+%undef foo_.*
+#%echo AFTER:  foo_a=$foo_a foo_b=$foo_b foo_c=$foo_c
+
+result=FAILED
+%ifndef foo_a %ifndef foo_b %ifndef foo_c result=PASSED
+%echo $tname test $tnum:incr:assign $result
+
+foo_a = xxx
+foo_b = xxx
+foo_c = xxx
+pattern = foo_.*
+
+#we can also undefine the variables defined by the contents of another:
+%undef $pattern
+
+result=FAILED
+%ifndef foo_a %ifndef foo_b %ifndef foo_c result=PASSED
+%echo $tname test $tnum:incr:assign $result
+
+#test for bug fixed in version 1.59  - %undef was over-matching.
+
+foo_var = 1
+foo_varA = 1
+
+%undef foo_var
+
+result=FAILED
+%ifdef foo_varA	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+
+%undef foo_var.*
+result=FAILED
+%ifndef foo_varA	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+}
+
+{
+#####
+#test :undef operator:
+#####
+tname=:undef
+tnum = 0
+%echo
+
+foo =
+result=FAILED
+%ifdef foo	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+
+foo2 = $foo:undef
+result=FAILED
+%ifndef foo	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+
+foo =
+foo = $foo:undef
+%echo foo=$foo
+result=FAILED
+%ifdef foo	result=PASSED (foo=$foo)
+%echo $tname test $tnum:incr:assign $result
+
+foo = xxx
+%echo foo=$foo:indent1
+%echo foo=$foo:indent1:undef
+result=FAILED
+%ifndef foo	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+
+foo = xxx
+%echo foo=$foo:undef:indent1
+result=FAILED
+%ifndef foo	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+
+}
+
+{
+#####
+#test :clr operator:
+#####
+tname=:clr/:zero
+tnum = 0
+%echo
+
+%undef foo
+%echo foo=$foo foo:zero=$foo:zero
+result=FAILED
+%ifnot $foo:zero	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+
+%undef foo
+%echo foo=$foo foo:clr=$foo:clr
+result=FAILED
+%ifnot $foo:clr	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+}
+
+{
+#####
+#test :xmlcomment
+#####
+tname=:xmlcomment
+tnum = 0
+%echo
+foo = this is a comment
+%echo foo:xmlcomment is $foo:xmlcomment
+
+foo = << EOF
+The <project> element specifies various attributes about a project. This
+is the root element of the project descriptor. The following table lists
+all of the possible child elements. Child elements with children are
+then documented further in subsequent sections.
+EOF
+
+%echo foo:xmlcommentblock:
+%echo -n $foo:xmlcommentblock
+}

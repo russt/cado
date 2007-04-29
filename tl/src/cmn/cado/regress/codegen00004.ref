@@ -1,0 +1,15 @@
+TESTNAME is codegen00004
+----------
+this is line one
+this is line two
+this is line one
+this is line two
+----------
+----------
+----------
+----------
+var1='value of var1'
+var2='value of var2'
+var1='value of var1'
+var2='value of var2'
+----------

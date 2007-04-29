@@ -1,0 +1,4 @@
+TESTNAME is codegen00008
+-rw-rw-r-- ../bld/cgtstroot/codegen00008.default
+-r--r--r-- ../bld/cgtstroot/codegen00008.readonly
+-r-xr-xr-x ../bld/cgtstroot/codegen00008.exe

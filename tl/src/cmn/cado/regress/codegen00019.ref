@@ -1,0 +1,37 @@
+TESTNAME is codegen00019
+%push test 1 PASSED
+%push test 1 MYSTACK:stacksize=1
+%push test 1 MYSTACK='trailing   spaces   '
+%pop test 2 PASSED
+%pop test 2 MYSTACK:stacksize=0
+%pop test 2 foo='trailing   spaces   '
+%push test 3 PASSED
+%push test 3 MYSTACK:stacksize=3
+%push test 3 MYSTACK='trailing   spaces   middle elementlast element'
+%pop test 4 foo='last element' MYSTACK:stacksize=2
+%pop test 4 foo='middle element' MYSTACK:stacksize=1
+%pop test 4 foo='trailing   spaces   ' MYSTACK:stacksize=0
+%pop test 4 PASSED
+%push test 5 PASSED (missing rhs)
+MYSTACK=${rhs:undef} size=1
+%push test 6 PASSED (undef rhs)
+MYSTACK=ab size=2
+%upush test 7 PASSED
+MYSTACK=abc size=3
+%upush test 8 PASSED
+MYSTACK=abcdef size=6
+%upush test 9 PASSED
+%push test 10 PASSED
+%push test 11 PASSED
+%push test 12 PASSED
+%push test 13 PASSED
+%push test 14 PASSED
+%push test 15 PASSED
+%push test 16 PASSED
+%push test 17 PASSED
+%push test 18 PASSED
+%push test 19 PASSED
+%push test 20 PASSED
+%push test 21 PASSED
+%push test 22 PASSED
+%push test 23 PASSED

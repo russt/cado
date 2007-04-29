@@ -1,0 +1,25 @@
+TARGET_OS=cmn, ntcmn
+
+########
+#pom.xml
+########
+#this is the library that generates m2 poms.xml files:
+maven_lib.cg                lib/$TARGET_OS/templates/maven2/maven_lib.cg                0444
+
+#documentation for pom.xml declarative elements:
+maven_lib_doc.txt           lib/$TARGET_OS/templates/maven2/maven_lib_doc.txt           0444
+
+#used by generator to insert maven element doc in pom.xml:
+maven_doc.defs              lib/$TARGET_OS/templates/maven2/maven_doc.defs             0444
+
+#############
+#settings.xml
+#############
+#this is the library that generates m2 settings.xml files:
+maven_settings_lib.cg       lib/$TARGET_OS/templates/maven2/maven_settings_lib.cg       0444
+
+#documentation for settings.xml declarative elements:
+maven_settings_lib_doc.txt  lib/$TARGET_OS/templates/maven2/maven_settings_lib_doc.txt  0444
+
+#used by generator to insert maven settings doc in pom.xml:
+settings_doc.defs           lib/$TARGET_OS/templates/maven2/settings_doc.defs           0444

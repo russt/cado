@@ -1,0 +1,42 @@
+TESTNAME is codegen00013
+codegen00013 test 1 PASSED
+codegen00013 test 2 PASSED
+oscmn.pl:  couldn't make directory component '/etc/bogus', error Permission denied
+codegen00013 test 3 PASSED
+codegen00013 test 4 PASSED
+CG_SHELL_STATUS=256
+codegen00013 test 5 PASSED status=1
+date_cmd:date=
+CG_SHELL_STATUS=256
+codegen00013 test 6 PASSED
+CG_SHELL_STATUS=256
+good_command
+CG_SHELL_STATUS=0
+codegen00013 test 7 PASSED
+STDERR=some output for stderr
+STDOUT=
+codegen00013 test 8 PASSED
+codegen00013 %halt/%abort test 1 PASSED
+codegen00013 %halt/%abort test 2 PASSED
+codegen00013 %halt/%abort test 3 PASSED
+codegen00013 %halt/%abort test 4 PASSED
+codegen00013 %halt/%abort test 5 PASSED
+codegen00013 CG_ARGV test 1 PASSED
+arg[1]='arg1'
+arg[2]='arg2'
+arg[3]='arg3'
+codegen00013 CG_ARGV test 2 PASSED
+
+foo1='' foo2='foovalue2' foo3='a b c'
+codegen00013 Dargs test 1 PASSED
+codegen00013 Dargs test 2 PASSED
+codegen00013 Dargs test 3 PASSED
+codegen00013 findInputFileInPath test 4 PASSED
+HELLO from <STDIN>
+codegen00013 findInputFileInPath test 5 PASSED
+HELLO - I'm a good file
+codegen00013 findInputFileInPath test 6 PASSED
+HELLO - I'm a good file
+codegen00013 findInputFileInPath test 7 PASSED
+HELLO from <STDIN> line 4
+codegen00013 stripToSharpBang test 8 PASSED

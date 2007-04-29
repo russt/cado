@@ -1,0 +1,6 @@
+    private static String programName = {=CG_CLASSNAME=}.class.getName();
+
+    public static void main(String[] args)
+    {
+{=%include $MAIN_PROGRAM=}
+    }

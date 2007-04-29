@@ -1,0 +1,22 @@
+TESTNAME is codegen00017
+opened file codegen00017.txt
+infile=codegen00017.txt
+infile:getnextline=infile
+infile:currentline=line one
+infile:currentlinenumber=1
+codegen00017.txt line 2=line two
+codegen00017.txt line 3=line three
+
+:[rwxezfdlTB]/:sz ops
+:[rwxezfdlTB]/:sz TEST #0000000000001 PASSED
+:[rwxezfdlTB]/:sz TEST #0000000000002 PASSED
+:[rwxezfdlTB]/:sz TEST #0000000000003 PASSED
+:[rwxezfdlTB]/:sz TEST #0000000000004 PASSED
+:[rwxezfdlTB]/:sz TEST #0000000000005 PASSED
+:[rwxezfdlTB]/:sz TEST #0000000000006 PASSED
+:[rwxezfdlTB]/:sz TEST #0000000000007 PASSED
+:[rwxezfdlTB]/:sz TEST #0000000000008 PASSED
+:[rwxezfdlTB]/:sz TEST #0000000000009 PASSED
+:[rwxezfdlTB]/:sz TEST #0000000000010 PASSED
+:[rwxezfdlTB]/:sz TEST #0000000000011 PASSED
+NOT RUNNING STDIN TEST

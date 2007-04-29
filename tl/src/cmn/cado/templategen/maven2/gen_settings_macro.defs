@@ -1,0 +1,393 @@
+{
+gen_activation_macro := << EOF
+#<activation>
+#   <activeByDefault></activeByDefault>
+#   <jdk></jdk>
+#   <o>
+#       ...
+#   </o>
+#   <property>
+#       ...
+#   </property>
+#   <file>
+#       ...
+#   </file>
+#</activation>
+
+    #nested element - set to parent (<project>) prefix + element name:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}${_element_name}_
+
+    %call gen_activeByDefault_element
+    %call gen_jdk_element
+    %call gen_o_element
+    %call gen_property_element
+    %call gen_file_element
+EOF
+}
+
+{
+gen_file_macro := << EOF
+#<file>
+#   <missing></missing>
+#   <exists></exists>
+#</file>
+
+    #set to parent (<project>) prefix:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}
+
+    %call gen_missing_element
+    %call gen_exists_element
+EOF
+}
+
+{
+gen_mirror_macro := << EOF
+#<mirror>
+#   <mirrorOf></mirrorOf>
+#   <name></name>
+#   <url></url>
+#   <id></id>
+#</mirror>
+
+    #nested element - set to parent (<project>) prefix + element name:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}${_element_name}_
+
+    %call gen_mirrorOf_element
+    %call gen_name_element
+    %call gen_url_element
+    %call gen_id_element
+EOF
+}
+
+{
+gen_mirrors_macro := << EOF
+#<mirrors>
+#   <mirror>
+#       ...
+#   </mirror>
+#</mirrors>
+
+    #set to parent (<project>) prefix:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}
+
+    %call gen_mirror_element
+EOF
+}
+
+{
+gen_o_macro := << EOF
+#<o>
+#   <name></name>
+#   <family></family>
+#   <arch></arch>
+#   <version></version>
+#</o>
+
+    #nested element - set to parent (<project>) prefix + element name:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}${_element_name}_
+
+    %call gen_name_element
+    %call gen_family_element
+    %call gen_arch_element
+    %call gen_version_element
+EOF
+}
+
+{
+gen_pluginRepositories_macro := << EOF
+#<pluginRepositories>
+#   <pluginRepository>
+#       ...
+#   </pluginRepository>
+#</pluginRepositories>
+
+    #set to parent (<project>) prefix:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}
+
+    %call gen_pluginRepository_element
+EOF
+}
+
+{
+gen_pluginRepository_macro := << EOF
+#<pluginRepository>
+#   <release>
+#       ...
+#   </release>
+#   <snapshot>
+#       ...
+#   </snapshot>
+#   <id></id>
+#   <name></name>
+#   <url></url>
+#   <layout></layout>
+#</pluginRepository>
+
+    #nested element - set to parent (<project>) prefix + element name:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}${_element_name}_
+
+    %call gen_release_element
+    %call gen_snapshot_element
+    %call gen_id_element
+    %call gen_name_element
+    %call gen_url_element
+    %call gen_layout_element
+EOF
+}
+
+{
+gen_profile_macro := << EOF
+#<profile>
+#   <activation>
+#       ...
+#   </activation>
+#   <properties></properties>
+#   <repositories>
+#       ...
+#   </repositories>
+#   <pluginRepositories>
+#       ...
+#   </pluginRepositories>
+#   <id></id>
+#</profile>
+
+    #nested element - set to parent (<project>) prefix + element name:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}${_element_name}_
+
+    %call gen_activation_element
+    %call gen_properties_element
+    %call gen_repositories_element
+    %call gen_pluginRepositories_element
+    %call gen_id_element
+EOF
+}
+
+{
+gen_profiles_macro := << EOF
+#<profiles>
+#   <profile>
+#       ...
+#   </profile>
+#</profiles>
+
+    #set to parent (<project>) prefix:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}
+
+    %call gen_profile_element
+EOF
+}
+
+{
+gen_property_macro := << EOF
+#<property>
+#   <name></name>
+#   <value></value>
+#</property>
+
+    #nested element - set to parent (<project>) prefix + element name:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}${_element_name}_
+
+    %call gen_name_element
+    %call gen_value_element
+EOF
+}
+
+{
+gen_proxies_macro := << EOF
+#<proxies>
+#   <proxy>
+#       ...
+#   </proxy>
+#</proxies>
+
+    #set to parent (<project>) prefix:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}
+
+    %call gen_proxy_element
+
+EOF
+}
+
+{
+gen_proxy_macro := << EOF
+#<proxy>
+#   <active></active>
+#   <protocol></protocol>
+#   <username></username>
+#   <password></password>
+#   <port></port>
+#   <host></host>
+#   <nonProxyHosts></nonProxyHosts>
+#   <id></id>
+#</proxy>
+
+    #nested element - set to parent (<project>) prefix + element name:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}${_element_name}_
+
+    %call gen_active_element
+    %call gen_protocol_element
+    %call gen_username_element
+    %call gen_password_element
+    %call gen_port_element
+    %call gen_host_element
+    %call gen_nonProxyHosts_element
+    %call gen_id_element
+EOF
+}
+
+{
+gen_release_macro := << EOF
+#<release>
+#   <enabled></enabled>
+#   <updatePolicy></updatePolicy>
+#   <checksumPolicy></checksumPolicy>
+#</release>
+
+    #nested element - set to parent (<project>) prefix + element name:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}${_element_name}_
+
+    %call gen_enabled_element
+    %call gen_updatePolicy_element
+    %call gen_checksumPolicy_element
+EOF
+}
+
+{
+gen_repositories_macro := << EOF
+#<repositories>
+#   <repository>
+#       ...
+#   </repository>
+#</repositories>
+
+    #set to parent (<project>) prefix:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}
+
+    %call gen_repository_element
+EOF
+}
+
+{
+gen_repository_macro := << EOF
+#<repository>
+#   <release>
+#       ...
+#   </release>
+#   <snapshot>
+#       ...
+#   </snapshot>
+#   <id></id>
+#   <name></name>
+#   <url></url>
+#   <layout></layout>
+#</repository>
+
+    #nested element - set to parent (<project>) prefix + element name:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}${_element_name}_
+
+    %call gen_release_element
+    %call gen_snapshot_element
+    %call gen_id_element
+    %call gen_name_element
+    %call gen_url_element
+    %call gen_layout_element
+EOF
+}
+
+{
+gen_server_macro := << EOF
+#<server>
+#   <username></username>
+#   <password></password>
+#   <privateKey></privateKey>
+#   <passphrase></passphrase>
+#   <filePermissions></filePermissions>
+#   <directoryPermissions></directoryPermissions>
+#   <configuration></configuration>
+#   <id></id>
+#</server>
+
+    #nested element - set to parent (<project>) prefix + element name:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}${_element_name}_
+
+    %call gen_username_element
+    %call gen_password_element
+    %call gen_privateKey_element
+    %call gen_passphrase_element
+    %call gen_filePermissions_element
+    %call gen_directoryPermissions_element
+    %call gen_configuration_element
+    %call gen_id_element
+EOF
+}
+
+{
+gen_servers_macro := << EOF
+#<servers>
+#    <server>
+#        ...
+#    </server>
+#</servers>
+
+    #set to parent (<project>) prefix:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}
+
+    %call gen_server_element
+EOF
+}
+
+{
+gen_settings_macro := << EOF
+#<settings>
+#    <localRepository></localRepository>
+#    <interactiveMode></interactiveMode>
+#    <usePluginRegistry></usePluginRegistry>
+#    <offline></offline>
+#    <proxies>
+#        ...
+#    </proxies>
+#    <servers>
+#        ...
+#    </servers>
+#    <mirrors>
+#        ...
+#    </mirrors>
+#    <profiles>
+#        ...
+#    </profiles>
+#    <activeProfiles></activeProfiles>
+#    <pluginGroups></pluginGroups>
+#</settings>
+
+    L1_ELEMENT_PREFIX =
+
+    %call gen_localRepository_element
+    %call gen_interactiveMode_element
+    %call gen_usePluginRegistry_element
+    %call gen_offline_element
+    %call gen_proxies_element
+    %call gen_servers_element
+    %call gen_mirrors_element
+    %call gen_profiles_element
+    %call gen_activeProfiles_element
+    %call gen_pluginGroups_element
+EOF
+}
+
+{
+gen_snapshot_macro := << EOF
+#<snapshot>
+#   <enabled></enabled>
+#   <updatePolicy></updatePolicy>
+#   <checksumPolicy></checksumPolicy>
+#</snapshot>
+
+    #nested element - set to parent (<project>) prefix + element name:
+    L1_ELEMENT_PREFIX = ${_parent_l1_prefix}${_element_name}_
+
+    %call gen_enabled_element
+    %call gen_updatePolicy_element
+    %call gen_checksumPolicy_element
+EOF
+}
+

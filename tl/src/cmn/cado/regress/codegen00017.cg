@@ -1,0 +1,122 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+# 
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)testh.cg - ver 1.1 - 01/04/2006
+#
+# Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
+# 
+# END_HEADER - DO NOT EDIT
+#
+
+#test file operators
+
+theFile = $TESTNAME.txt
+
+err = $theFile:openfile
+#%echo err="$err"
+
+%if $err %echo could not open ${theFile}:  $err
+%ifnot $err %echo opened file $theFile
+
+#we make a copy, because this variable will be undefined at the end of the loop
+infile = $theFile
+
+%echo infile=$infile
+%echo infile:getnextline=$infile:getnextline
+%echo infile:currentline=$infile:currentline
+%echo infile:currentlinenumber=$infile:currentlinenumber
+
+%ifnot $err %whiledef $infile:getnextline %echo $infile line $infile:currentlinenumber=$infile:currentline
+
+err = $theFile:closefile
+%if $err %echo  could not close ${theFile}:  $err
+
+#####
+#test file-test post-ops: :r,:w,:x,:e,:z,:sz,:f,:d,:l,:T,:B
+#####
+tname= :[rwxezfdlTB]/:sz
+%echo
+%echo $tname ops
+#####
+
+foo=.
+
+result=FAILED
+%if $foo:d	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%if $foo:r	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%if $foo:w	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%if $foo:x	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+foo=$theFile
+
+result=FAILED
+%if $foo:e	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%ifnot $foo:z	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%if $foo:sz	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%if $foo:f	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%ifnot $foo:l	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%if $foo:T	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+result=FAILED
+%ifnot $foo:B	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+#test stdin.  this test must be run by hand.
+%exit NOT RUNNING STDIN TEST
+%echo
+infile=-
+%echo -n What is your name? 
+foo = $infile:getnextline
+%echo infile:getnextline=$foo infile=$infile (expect <STDIN>)
+%echo
+%echo HELLO $infile:currentline
+
+#test EOF on stdin:
+%echo -n What is your name (enter EOF when you get tired of this game)? 
+%whiledef $infile:getnextline %echo HELLO $infile:currentline

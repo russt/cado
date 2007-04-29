@@ -1,0 +1,58 @@
+TESTNAME is codegen00018
+
+COMPARISON POSTFIX OPERATOR TESTS
+POSTFIX OPERATOR :eq TEST #1 PASSED
+POSTFIX OPERATOR :eq TEST #2 PASSED
+POSTFIX OPERATOR :ne TEST #3 PASSED
+POSTFIX OPERATOR :lt TEST #4 PASSED
+POSTFIX OPERATOR :gt TEST #5 PASSED
+POSTFIX OPERATOR :ge TEST #6 PASSED
+POSTFIX OPERATOR :ge TEST #7 PASSED
+POSTFIX OPERATOR :le TEST #8 PASSED
+POSTFIX OPERATOR :le TEST #9 PASSED
+
+PATTERN MATCHING POSTFIX OPERATOR TESTS
+POSTFIX OPERATOR :match TEST #1 PASSED
+POSTFIX OPERATOR :match TEST #2 PASSED
+test 2 - foo:match=0
+POSTFIX OPERATOR :match TEST #3 EXPECT EVAL ERROR
+
+test 3 - foo:substitute:a=abc
+POSTFIX OPERATOR :substitute TEST #4 PASSED
+
+POSTFIX OPERATOR :substitute TEST #5 PASSED
+
+test 5 - foo:substitute=,abc
+POSTFIX OPERATOR :substitute TEST #6 EXPECT EVAL ERROR
+
+:suffix POSTFIX OPERATOR TESTS
+foo='/a/b/c/foo.java' foo:suffix='java'
+POSTFIX OPERATOR :suffix TEST #1 PASSED
+foo='D:\a\b\c\foo.9' foo:suffix='9'
+POSTFIX OPERATOR :suffix TEST #2 PASSED
+foo='/a/b/c/foo.c/' foo:suffix=''
+POSTFIX OPERATOR :suffix TEST #3 PASSED
+
+:dirname POSTFIX OPERATOR TESTS
+foo='/a/b/c/foo.java' foo:dirname='/a/b/c'
+POSTFIX OPERATOR :dirname TEST #1 PASSED
+foo='D:\a\b\c\foo.9' foo:dirname='D:\a\b\c'
+POSTFIX OPERATOR :dirname TEST #2 PASSED
+foo='//a///b//c/foo.c/' foo:dirname='//a///b//c/foo.c'
+POSTFIX OPERATOR :dirname TEST #3 PASSED
+
+:basename POSTFIX OPERATOR TESTS
+foo='/a/b/c/foo.java' foo:basename='foo.java'
+POSTFIX OPERATOR :basename TEST #1 PASSED
+foo='D:\a\b\c\foo.9' foo:basename='foo.9'
+POSTFIX OPERATOR :basename TEST #2 PASSED
+foo='//a///b//c/foo.c/' foo:basename=''
+POSTFIX OPERATOR :basename TEST #3 PASSED
+
+:pad POSTFIX OPERATOR TESTS
+POSTFIX OPERATOR :pad TEST #1 PASSED
+POSTFIX OPERATOR :pad TEST #2 PASSED
+POSTFIX OPERATOR :pad TEST #3 PASSED
+POSTFIX OPERATOR :pad TEST #4 PASSED
+POSTFIX OPERATOR :pad TEST #5 PASSED
+POSTFIX OPERATOR :pad TEST #6 PASSED

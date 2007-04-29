@@ -1,0 +1,97 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+# 
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)gen_method_body.cg - ver 1.1 - 01/04/2006
+#
+# Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
+# 
+# END_HEADER - DO NOT EDIT
+#
+
+#
+#gen_method_body.cg  - generate a declaration of a single method for an interface
+#                      definition, and a implementation of the same method.
+#
+#  INPUT VARIABLES:  METHOD_JAVADOC, METHOD_SIGNATURE, METHOD_BODY,
+#                    METHOD_TABLE_FS, METHOD_TABLE_HEADER
+#
+#  OUTPUT VARIABLES:
+#    METHOD_DECLARATION    - a variable holding the declaration of the method
+#    METHOD_IMPLEMENTATION - a variable holding the implementation of the method
+#    METHOD_IMPLEMENTATION_ATTRIBUTE - set to default implementation attribute if you are
+#                                      defaulting your interface signatures to "public"
+#    METHOD_TABLE_ENTRY    - a variable holding the method declaration in tabular form.
+#
+#  Collectors:
+#    METHOD_DECLARATION_OUT    - accumulates METHOD_DECLARATION's since last RESET_GEN_METHOD_BODY
+#    METHOD_IMPLEMENTATION_OUT - accumulates METHOD_IMPLEMENTATION's since last RESET_GEN_METHOD_BODY
+#    METHOD_TABLE_OUT          - accumulates METHOD_TABLE_ENTRY's since last RESET_GEN_METHOD_BODY
+#
+#See sample2.cg for an example of how to use this template.
+#
+
+#define this if you don't want to add public attribute to your interface signatures:
+%ifndef METHOD_IMPLEMENTATION_ATTRIBUTE METHOD_IMPLEMENTATION_ATTRIBUTE =
+
+#default field-separator is tab:
+tmp=
+%ifndef METHOD_TABLE_FS METHOD_TABLE_FS=$tmp:tab
+
+#you can override this column header with class name, for example:
+%ifndef METHOD_TABLE_METHOD_COLUMN METHOD_TABLE_METHOD_COLUMN = Method
+
+#set METHOD_TABLE_HEADER if it is not yet defined - tabs are important here:
+%ifndef METHOD_TABLE_HEADER METHOD_TABLE_HEADER = Attributes${METHOD_TABLE_FS}Type${METHOD_TABLE_FS}${METHOD_TABLE_METHOD_COLUMN}${METHOD_TABLE_FS}Throws
+
+#we provide global collection variables, that are reset when the enclosing script
+#sets the variable "RESET_GEN_METHOD_BODY
+%ifdef RESET_GEN_METHOD_BODY METHOD_DECLARATION_OUT=
+%ifdef RESET_GEN_METHOD_BODY METHOD_IMPLEMENTATION_OUT=
+%ifdef RESET_GEN_METHOD_BODY METHOD_TABLE_OUT=$METHOD_TABLE_HEADER:newline
+%undef RESET_GEN_METHOD_BODY
+
+#these are only used if RESET_GEN_METHOD_BODY, so don't leave them defined:
+%undef METHOD_TABLE_METHOD_COLUMN
+%undef METHOD_TABLE_HEADER
+
+#collect the method declaration:
+METHOD_DECLARATION = << EOF
+$METHOD_JAVADOC    ${METHOD_SIGNATURE:trim};
+
+EOF
+
+#collect the method implementation:
+METHOD_IMPLEMENTATION = << EOF
+$METHOD_JAVADOC    ${METHOD_IMPLEMENTATION_ATTRIBUTE:rspace}${METHOD_SIGNATURE:trim}
+$METHOD_BODY
+EOF
+
+#######
+#METHOD_TABLE_ENTRY == (attributes, return_type, signature, exception list)
+#######
+METHOD_TABLE_ENTRY = ${METHOD_SIGNATURE:method2rec:rnewline}
+
+#accumulate to output variables:
+METHOD_DECLARATION_OUT =	$METHOD_DECLARATION_OUT$METHOD_DECLARATION
+METHOD_IMPLEMENTATION_OUT =	$METHOD_IMPLEMENTATION_OUT$METHOD_IMPLEMENTATION
+METHOD_TABLE_OUT =	$METHOD_TABLE_OUT$METHOD_TABLE_ENTRY

@@ -1,0 +1,7 @@
+#
+# codegen macro definitions.
+#
+
+%include cgsrc/main.defs
+%include cgsrc/postfix.defs
+%include cgsrc/op_stub.defs

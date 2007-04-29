@@ -1,0 +1,100 @@
+{
+#
+#{=PL_PACKAGE=} - {=PL_PACKAGE_DESCRIPTION=}
+#
+
+use strict;
+
+package {=PL_PACKAGE=};
+my $pkgname = __PACKAGE__;
+
+#imports:
+{=PL_PKG_IMPORTS=}
+
+#standard global options:
+my $p = $main::p;
+my ($VERBOSE, $HELPFLAG, $DEBUGFLAG, $DDEBUGFLAG, $QUIET) = (0,0,0,0,0);
+
+#package global variables:
+{=PL_PKG_ATTRIBUTES=}
+
+&init;      #init globals
+
+##################################### MAIN #####################################
+
+sub main
+{
+    local(*ARGV, *ENV) = @_;
+
+    &init;      #init globals
+
+    return (1) if (&parse_args(*ARGV, *ENV) != 0);
+    return (0) if ($HELPFLAG);
+
+{=$PL_MAIN:indent=}
+
+    return 0;
+}
+
+################################### PACKAGE ####################################
+
+{=PL_PKG_METHODS=}
+
+#################################### USAGE #####################################
+
+sub usage
+{
+    my($status) = @_;
+
+    print STDERR <<"!";
+{=PL_USAGE=}
+!
+    return ($status);
+}
+
+sub parse_args
+#proccess command-line aguments
+{
+    local(*ARGV, *ENV) = @_;
+
+{=$PL_PARSE_ARGS_PRE:indent=}
+
+    #eat up flag args:
+    my ($flag);
+    while ($#ARGV+1 > 0 && $ARGV[0] =~ /^-/) {
+        $flag = shift(@ARGV);
+
+        if ($flag =~ '^-v') {
+            $VERBOSE = 1;
+        } elsif ($flag =~ '^-dd') {
+            $DDEBUGFLAG = 1;
+        } elsif ($flag =~ '^-d') {
+            $DEBUGFLAG = 1;
+        } elsif ($flag =~ '^-h') {
+            $HELPFLAG = 1;
+            return &usage(0);
+{=$PL_PARSE_ARGS_LOOP:indent2=}
+        } else {
+            printf STDERR "%s:  unrecognized option, '%s'\n", $p, $flag;
+            return &usage(1);
+        }
+    }
+
+    #eliminate empty args (this happens on some platforms):
+    @ARGV = grep(!/^$/, @ARGV);
+
+{=$PL_PARSE_ARGS_POST:indent=}
+    return 0;
+}
+
+################################ INITIALIZATION ################################
+
+sub init
+{
+}
+
+sub cleanup
+{
+}
+1;
+} #end of {=PL_PACKAGE=}

@@ -1,0 +1,33 @@
+{
+gen_a_macro := << EOF
+#<a>
+#    ...
+#</a>
+
+    %call gen_b_element
+    %call gen_id_element
+EOF
+}
+
+{
+gen_b_macro := << EOF
+#<b>
+#    ...
+#</b>
+
+    %call gen_c_element
+    %call gen_d_element
+    %call gen_e_element
+EOF
+}
+
+{
+gen_top_macro := << EOF
+#<top>
+#    ...
+#</top>
+
+    %call gen_a_element
+EOF
+}
+

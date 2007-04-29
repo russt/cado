@@ -1,0 +1,4 @@
+%ifndef gen_method_body_deprectation_warn %echo WARNING:  basic/gen_method_body.jtpl is DEPRECATED - Use basic/gen_method_body.cg
+gen_method_body_deprectation_warn=
+
+%include basic/gen_method_body.cg

@@ -1,0 +1,91 @@
+#generate the file test operators (see pg. 85 of Perl manual):
+
+#this is a generic test template that must be finished by hand.
+regress_tpl := << EOF
+result=FAILED
+%if $foo:{=fileop=}	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+EOF
+
+fileop_tpl := << EOF
+sub {=fileop=}_op
+#return non-zero if file is {=fileop_doc=}.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-{=fileop_perl=} $fn)? 1 : 0;
+}
+
+EOF
+
+gen_fileop := << EOF
+#generate the file op code and append to CODEGEN_FILETEST_OPS
+{
+    %ifndef fileop_perl fileop_perl=$fileop
+    %evalmacro >> CODEGEN_FILETEST_OPS fileop_tpl
+
+    #generate test skeleton for this op:
+    %evalmacro >> REGRESS_FILETEST_OPS regress_tpl
+
+    %undef fileop_perl
+}
+EOF
+
+#clear output accumulators:
+CODEGEN_FILETEST_OPS =
+REGRESS_FILETEST_OPS =
+
+#%echo fileop_tpl ='$fileop_tpl'
+#%echo gen_fileop ='$gen_fileop'
+
+#-----------------------------
+fileop_doc = readable
+fileop = r
+%call gen_fileop
+
+fileop_doc = writable
+fileop = w
+%call gen_fileop
+
+fileop_doc = executable
+fileop = x
+%call gen_fileop
+
+#-----------------------------
+fileop_doc = exists
+fileop = e
+%call gen_fileop
+
+fileop_doc = zero length
+fileop = z
+%call gen_fileop
+
+fileop_doc = non-zero size (returns size)
+fileop = sz
+fileop_perl = s
+%call gen_fileop
+
+#-----------------------------
+fileop_doc = plain file
+fileop = f
+%call gen_fileop
+
+fileop_doc = directory
+fileop = d
+%call gen_fileop
+
+fileop_doc = symlink
+fileop = l
+%call gen_fileop
+
+#-----------------------------
+fileop_doc = Text file
+fileop = T
+%call gen_fileop
+
+fileop_doc = Binary file
+fileop = B
+%call gen_fileop
+
+#%echo CODEGEN_FILETEST_OPS ='$CODEGEN_FILETEST_OPS'

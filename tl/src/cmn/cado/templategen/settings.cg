@@ -1,0 +1,164 @@
+#this script generates the maven2 settings codegen library and documentation.
+
+{
+    ######
+    #setup
+    ######
+    PWD=
+    PWD=$PWD:pwd
+
+    #if CG_ROOT is not defined ...
+    %ifndef CG_ROOT %echo WARNING: defaulting CG_ROOT to $PWD/bld
+    %ifndef CG_ROOT CG_ROOT = $PWD/bld
+
+    CG_ROOT_BASE = $CG_ROOT
+    CG_ROOT =       $CG_ROOT_BASE/maven2
+
+    #add cgroot base to template path:
+    CG_TEMPLATE_PATH = $CG_ROOT_BASE;$CG_TEMPLATE_PATH
+}
+
+{
+    #step 1:  generate new xml reference document with unique element names:
+    #
+    #The file settings_element_ref.txt is cut & pasted from:
+    #http://maven.apache.org/maven-settings/settings.html,
+    #and then edited to add element end-tags for non-nested elements.
+    #
+    #INPUT:   maven2/settings_element_ref.txt
+    #OUTPUT:  maven2/settings_element_unique.txt
+    #INTERMEDIATE OUTPUT (hand edited):  maven2/gen_settings_macro.defs
+    #INTERMEDIATE OUTPUT:  maven2/gen_settings_non_terminal.defs
+    #INTERMEDIATE OUTPUT:  maven2/gen_settings_terminal.defs
+
+    CG_ROOT =       $CG_ROOT_BASE/maven2
+    %shell mkdir -p $CG_ROOT
+
+    %echo
+    %echo perl xmlcgutil.pl -t < maven2/settings_element_ref.txt > $CG_ROOT/gen_settings_terminal.defs
+    %shell perl xmlcgutil.pl -t < maven2/settings_element_ref.txt > $CG_ROOT/gen_settings_terminal.defs
+
+    %echo
+    %echo perl xmlcgutil.pl -n < maven2/settings_element_ref.txt > $CG_ROOT/gen_settings_non_terminal.defs
+    %shell perl xmlcgutil.pl -n < maven2/settings_element_ref.txt > $CG_ROOT/gen_settings_non_terminal.defs
+
+    #WARNING:  only do this once - then hand edit!
+#    %echo
+#    %echo perl xmlcgutil.pl -m < maven2/settings_element_ref.txt > $CG_ROOT/gen_settings_macro.defs
+#    %shell perl xmlcgutil.pl -m < maven2/settings_element_ref.txt > $CG_ROOT/gen_settings_macro.defs
+#    %exit
+}
+
+{
+    #step 2:  generate new xml doc with unique element names:
+
+    #include newly generated files:
+    %include xml/xml_macros.cg
+    %include maven2/gen_settings_macro.defs
+    %include maven2/gen_settings_terminal.defs
+    %include maven2/gen_settings_non_terminal.defs
+
+    MACRO_OUTPUT_ACCUMULATOR = ECHO_TXT
+    $MACRO_OUTPUT_ACCUMULATOR =
+
+    #this is the top-level element:
+    %echo
+    %echo Generate $CG_ROOT/settings_element_unique.txt
+    %call gen_settings_element
+
+    echo         /settings_element_unique.txt
+
+    #save frequency report of the output doc:
+    %echo
+    %echo Generating frequency report to $CG_ROOT/settings_element_unique_freq.txt
+    ECHO_TXT = $ECHO_TXT:freq
+    echo /settings_element_unique_freq.txt
+
+    #show any non-unique elements:
+    %echo
+    %echo  grep -v "^1" $CG_ROOT/settings_element_unique_freq.txt
+    %shell grep -v "^1" $CG_ROOT/settings_element_unique_freq.txt
+    %echo --------------------------
+
+    #compare new doc to old doc (this is a good check to make sure *macro.defs
+    #is reproducing the ref xml doc, *until* prefix names are added, at which point
+    #this check can be commented out):
+#    %echo
+#    %echo diff -c $CG_ROOT/settings_element_unique.txt maven2/settings_element_ref.txt
+#    %shell diff -c $CG_ROOT/settings_element_unique.txt maven2/settings_element_ref.txt
+#    %echo --------------------------
+}
+
+{
+    #step 3:  generate postfix input spec for genmavenlib.cg:
+    #INPUT:   maven2/settings_element_unique.txt
+    #OUTPUT:  maven2/settings_element_names.txt
+    %echo
+    %echo  perl xmlcgutil.pl -p < $CG_ROOT/settings_element_unique.txt > $CG_ROOT/settings_element_names.txt
+    %shell perl xmlcgutil.pl -p < $CG_ROOT/settings_element_unique.txt > $CG_ROOT/settings_element_names.txt
+}
+
+{
+    #step 4:  generate m2 settings codegen lib:
+    #INPUT:   maven2/settings_elements.txt
+    #INPUT:   maven2/settings_doc.defs
+    #OUTPUT:  maven2/maven_settings_lib.cg
+
+    CG_ROOT =       $CG_ROOT_BASE/maven2
+    mprefix =       mvnconf
+    MPREFIX =       $mprefix:toupper
+    mprefix_def =   -DMACRO_PREFIX=$mprefix
+    outlib =        -DMACRO_OUTPUT_LIB=maven_settings_lib.cg
+    element_names = -DMAVEN_TERMINAL_DEFS=$CG_ROOT/settings_element_names.txt
+    doc_defs =      -DMAVEN_DOC_DEFS=maven2/settings_doc.defs
+
+    #generate maven 2.0.x settings lib:
+    %echo
+    %echo  codegen -cgroot $CG_ROOT -u $mprefix_def $outlib $element_names $doc_defs genmavenlib.cg
+    %shell codegen -cgroot $CG_ROOT -u $mprefix_def $outlib $element_names $doc_defs genmavenlib.cg
+}
+
+{
+    #step 5:  generate full settings doc, and diff against input reference
+    #INPUT:  maven2/maven_settings_lib.cg codegen macro library
+    #OUTPUT: maven2/test_settings.xml
+
+    %include $CG_ROOT/maven_settings_lib.cg
+
+    ${MPREFIX}_GENERATE_EMPTY_ELEMENTS = 01
+    #create/clean accumulator:
+    MACRO_OUTPUT_ACCUMULATOR = ECHO_TXT
+    $MACRO_OUTPUT_ACCUMULATOR =
+
+    #generate a full settings.xml
+    %echo
+    %echo Generating test $CG_ROOT/test_settings.xml
+    #skip xml header to avoid diff:
+    #%call xml_header
+    %call ${mprefix}_settings
+
+    %echo
+    %echo Generating test settings.xml:  $CG_ROOT/test_settings.xml
+    echo    /test_settings.xml
+
+    %echo
+    %echo  diff -c $CG_ROOT/test_settings.xml  maven2/settings_element_ref.txt
+    %shell diff -c $CG_ROOT/test_settings.xml  maven2/settings_element_ref.txt
+    %echo --------------------------
+}
+
+{
+    #step 6:  generate user doc for m2 settings lib:
+    #INPUT:  maven2/maven_settings_lib.cg codegen macro library
+    #OUTPUT: maven2/maven_settings_lib_doc.txt
+
+    #show user variables, but don't dump to stdout:
+    DO_NOT_DUMP_USER_VARS = 1
+    %call show_maven_user_vars
+
+    ECHO_TXT = $maven_user_vars
+    #write the user maven var specs to a file:
+    %echo
+    %echo Generating DOC:  $CG_ROOT/maven_settings_lib_doc.txt
+    echo    /maven_settings_lib_doc.txt
+}

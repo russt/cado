@@ -1,0 +1,8 @@
+TEMPLATE    = file.mmf
+
+PKG     =  lib
+DEST    =  ${BASE}/${PKG}/${TARGET_OS}/templates/licenses
+
+MODE    =  0444
+
+FILES  = cddl_v1.ltpl signsrc_ops.pl

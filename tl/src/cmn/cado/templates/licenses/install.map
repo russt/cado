@@ -1,0 +1,3 @@
+TARGET_OS=cmn, ntcmn
+cddl_v1.ltpl       lib/$TARGET_OS/templates/licenses/cddl_v1.ltpl      0444
+signsrc_ops.pl     lib/$TARGET_OS/templates/licenses/signsrc_ops.pl    0444

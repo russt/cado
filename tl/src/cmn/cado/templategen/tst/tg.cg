@@ -1,0 +1,66 @@
+{
+    ######
+    #setup
+    ######
+    PWD=
+    PWD=$PWD:pwd
+
+    #if CG_ROOT is not defined ...
+    %ifndef CG_ROOT CG_ROOT = $PWD/bld
+
+    CG_ROOT_BASE = $CG_ROOT
+    CG_ROOT =       $CG_ROOT_BASE/testgen
+
+    #add cgroot base to template path:
+    CG_TEMPLATE_PATH = ..;$CG_ROOT_BASE;$CG_TEMPLATE_PATH
+}
+
+{
+TESTGEN_A_COUNT = 01..02
+TESTGEN_B_COUNT_01 = 01..03
+TESTGEN_B_COUNT_02 = 04..06
+
+TESTGEN_C_COUNT_01 = 01..02
+TESTGEN_C_01 = value_01_01
+TESTGEN_C_02 = value_01_02
+
+TESTGEN_C_COUNT_02 = 03..04
+TESTGEN_C_03 = value_02_03
+TESTGEN_C_04 = value_02_04
+
+TESTGEN_C_COUNT_03 = 05..06
+TESTGEN_C_05 = value_03_05
+TESTGEN_C_06 = value_03_06
+
+TESTGEN_C_COUNT_04 = 07..08
+TESTGEN_C_07 = value_04_07
+TESTGEN_C_08 = value_04_08
+
+TESTGEN_C_COUNT_05 = 09..10
+TESTGEN_C_09 = value_05_09
+TESTGEN_C_10 = value_05_10
+
+TESTGEN_C_COUNT_06 = 11..12
+TESTGEN_C_11 = value_06_11
+TESTGEN_C_12 = value_06_12
+}
+
+{ ######## test with mulitiple elements:
+    %include $CG_ROOT/testgen_lib.cg
+
+    TESTGEN_GENERATE_EMPTY_ELEMENTS = 0
+    %call testgen_lib_reset_globals
+
+    #create/clean accumulator:
+    MACRO_OUTPUT_ACCUMULATOR = ECHO_TXT
+    $MACRO_OUTPUT_ACCUMULATOR =
+
+    %call xml_header
+    %call testgen_top
+
+    %echo -n $ECHO_TXT
+    echo  /tg.xml
+    %echo  diff -c tg.ref $CG_ROOT/tg.xml
+    %shell diff -c tg.ref $CG_ROOT/tg.xml
+    %echo --------------------------------
+}

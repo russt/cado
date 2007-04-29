@@ -1,0 +1,234 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+# 
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)testj.cg - ver 1.1 - 01/04/2006
+#
+# Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
+# 
+# END_HEADER - DO NOT EDIT
+#
+
+#test %push/%pop statements
+
+tnum = 0
+
+#put some spaces at the end:
+top = trailing   spaces   
+
+MYSTACK =
+%push MYSTACK $top
+
+result=FAILED
+%ifnot $MYSTACK:stacksize:minus1	result=PASSED
+%echo %push test $tnum:incr:assign $result
+%echo %push test $tnum MYSTACK:stacksize=$MYSTACK:stacksize
+%echo %push test $tnum MYSTACK='$MYSTACK'
+
+%pop foo MYSTACK
+
+result=FAILED
+CG_COMPARE_SPEC = $top
+%if $foo:eq	result=PASSED
+%echo %pop test $tnum:incr:assign $result
+%echo %pop test $tnum MYSTACK:stacksize=$MYSTACK:stacksize
+%echo %pop test $tnum foo='$foo'
+
+%push MYSTACK $top
+%push MYSTACK middle element
+%push MYSTACK last element
+result=FAILED
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum:incr:assign $result
+%echo %push test $tnum MYSTACK:stacksize=$MYSTACK:stacksize
+%echo %push test $tnum MYSTACK='$MYSTACK'
+
+loop_macro := << EOF
+%echo %pop test $tnum foo='$foo' MYSTACK:stacksize=$MYSTACK:stacksize
+%pop foo MYSTACK
+EOF
+
+result=FAILED
+tnum = $tnum:incr
+%pop foo MYSTACK
+%whiledef foo %call loop_macro
+%ifndef foo	result=PASSED
+%echo %pop test $tnum $result
+
+#if missing value, then stack is unmodified:
+result=FAILED
+tnum = $tnum:incr
+%undef MYSTACK
+%push MYSTACK
+%ifndef MYSTACK	result=PASSED
+%echo %push test $tnum $result (missing rhs)
+
+#if rhs is undefined, we push :undef so error is noticed:
+result=FAILED
+tnum = $tnum:incr
+%undef MYSTACK
+%undef rhs
+%push MYSTACK $rhs
+%echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
+%ifnot $MYSTACK:stacksize:minus1	result=PASSED
+%echo %push test $tnum $result (undef rhs)
+
+result=FAILED
+tnum = $tnum:incr
+%undef MYSTACK
+%upush MYSTACK a
+%upush MYSTACK a
+%upush MYSTACK b
+%upush MYSTACK
+%echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
+%ifnot $MYSTACK:stacksize:minus2	result=PASSED
+%echo %upush test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+%undef MYSTACK
+%upush MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%upush MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %upush test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+%undef MYSTACK
+%upush MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%upush MYSTACK d${CG_STACK_DELIMITER}e${CG_STACK_DELIMITER}f
+%echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
+%ifnot $MYSTACK:stacksize:minus6	result=PASSED
+%echo %upush test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = |
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER := $
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = ^
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = &
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = -
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = *
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = @
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = ?
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = '
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = "
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = .
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = +
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = \
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+CG_STACK_DELIMITER = [
+%undef MYSTACK
+%push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo %push test $tnum $result

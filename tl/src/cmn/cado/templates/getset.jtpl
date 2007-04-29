@@ -1,0 +1,24 @@
+
+    /** Private storage for {=ATTRIBUTE_NAME=}: */
+    private {=ATTRIBUTE_STATIC=} {=ATTRIBUTE_TYPE=} {=ATTRIBUTE_PREFIX=}{=ATTRIBUTE_NAME=};
+
+    /**
+     * Setter for {=ATTRIBUTE_NAME=}.
+     * @param a{=ATTRIBUTE_NAME=} - the initialization value.
+     */
+    public {=ATTRIBUTE_STATIC=}
+    void set{=ATTRIBUTE_NAME=}({=ATTRIBUTE_TYPE=} a{=ATTRIBUTE_NAME=})
+    {
+        {=ATTRIBUTE_PREFIX=}{=ATTRIBUTE_NAME=} = a{=ATTRIBUTE_NAME=};
+    }
+
+    /**
+     * Getter for {=ATTRIBUTE_NAME=}.
+     * @return the current value of {=ATTRIBUTE_NAME=}.
+     */
+    public {=ATTRIBUTE_STATIC=} {=ATTRIBUTE_TYPE=}
+    get{=ATTRIBUTE_NAME=}()
+    {
+        return {=ATTRIBUTE_PREFIX=}{=ATTRIBUTE_NAME=};
+    }
+

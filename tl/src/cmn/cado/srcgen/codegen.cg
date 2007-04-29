@@ -1,0 +1,31 @@
+#this script generates the codegen processor and documentation.
+
+PWD=
+PWD=$PWD:pwd
+
+#if CG_ROOT is not defined ...
+%ifndef CG_ROOT %echo WARNING: defaulting CG_ROOT to $PWD/bld
+%ifndef CG_ROOT CG_ROOT = $PWD/bld
+
+#save CG_ROOT base setting as we will adjust it for different sections:
+CG_ROOT_BASE = $CG_ROOT
+
+
+#generate file test  ops:
+%include cgsrc/filetest_op.defs
+
+%include cgsrc/codegen.defs
+
+cgsrc/codegen.pl	/codegen.pl
+
+#display test skel if requested for cut/paste
+%ifdef SHOW_TESTS %echo $REGRESS_FILETEST_OPS
+
+#NOTE:  Here is the original order before re-org:
+#    {=CODEGEN_HEADER=}
+#    {=CODEGEN_MAIN=}
+#    {=POSTFIX_OPS=}
+#    {=CODEGEN_MAIN2=}
+#    {=POSTFIX_FILE_OPS=}
+#    {=CODEGEN_USAGE=}
+#    {=POSTFIX_OPS2=}

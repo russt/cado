@@ -1,0 +1,35 @@
+TESTNAME is codegen00001
+CG_ROOT is now defined to be '../bld/cgtstroot'
+FOO=foo value
+FOO is no longer defined, life is good.
+%if test 1 PASSED
+%if test 2 PASSED
+%if test 3 PASSED
+%if test 4 PASSED
+%if test 5 PASSED
+%if test 6 PASSED
+%if test 7 PASSED
+%if test 8 PASSED
+%if test 9 PASSED
+%if test 10 PASSED
+%if test 11 PASSED
+%if test 12 PASSED
+%if test 13 PASSED
+%if test 14 EXPECTED SYNTAX ERROR
+%if test 15 EXPECTED TEMPLATE ERROR
+%ifnot test 1 PASSED
+%ifnot test 2 PASSED
+%ifnot test 3 PASSED
+%ifnot test 4 PASSED
+%ifnot test 5 PASSED
+%ifnot test 6 PASSED
+%ifnot test 7 PASSED
+%ifnot test 8 PASSED
+%ifdef test 1 PASSED
+%ifdef test 2 PASSED
+%ifndef test 3 PASSED
+%ifdef test 4 PASSED
+%ifndef test 5 PASSED
+%undef test 1 PASSED
+%undef test 2 PASSED
+%undef test 3 EXPECTED VARIABLE REFERENCE WARNING

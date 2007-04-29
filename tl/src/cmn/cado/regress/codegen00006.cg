@@ -1,0 +1,107 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+# 
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)test6.cg - ver 1.1 - 01/04/2006
+#
+# Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
+# 
+# END_HEADER - DO NOT EDIT
+#
+
+#test the %exit command:
+
+tnum = 0
+tname := %exit
+
+exit_test := << EOF
+result=PASSED
+%ifndef FOOVAR %exit ${CG_INFILE}:  you must define FOOVAR!
+result=FAILED
+EOF
+
+%call exit_test
+%echo $tname test $tnum:incr:assign $result
+
+exit_test := << EOF
+result=PASSED
+#test with no-arg:
+%exit
+result=FAILED
+EOF
+
+%call exit_test
+%echo $tname test $tnum:incr:assign $result
+
+exit_test := << EOF
+result=PASSED
+#test with trailing/leading spaces:
+	 %exit	 
+result=FAILED
+EOF
+
+%call exit_test
+%echo $tname test $tnum:incr:assign $result
+
+result=EXPECT_SYNTAX_ERROR
+%exitbadkeyword
+%echo $tname test $tnum:incr:assign $result
+
+#######
+#re-run using return keyword:
+#######
+
+tnum = 0
+tname := %return
+
+return_test := << EOF
+result=PASSED
+%ifndef FOOVAR %return ${CG_INFILE}:  you must define FOOVAR!
+result=FAILED
+EOF
+
+%call return_test
+%echo $tname test $tnum:incr:assign $result
+
+return_test := << EOF
+result=PASSED
+#test with no-arg:
+%return
+result=FAILED
+EOF
+
+%call return_test
+%echo $tname test $tnum:incr:assign $result
+
+return_test := << EOF
+result=PASSED
+#test with trailing/leading spaces:
+	 %return	 
+result=FAILED
+EOF
+
+%call return_test
+%echo $tname test $tnum:incr:assign $result
+
+result=EXPECT_SYNTAX_ERROR
+%returnbadkeyword
+%echo $tname test $tnum:incr:assign $result

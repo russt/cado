@@ -1,0 +1,98 @@
+TESTNAME is codegen00009
++200=200
+-100=100
+*10=1000
+/10=0100
+%3=0001
+/10=0001
+%3=0001
+FOOVAR is >   	abc
+
+<
+ltrimmed is >abc
+
+<
+rtrimmed is >   	abc<
+trimmed is >abc<
+toupper is >ABC<
+tolower is >abc<
+FOOVAR is >abc.ABC.abc<
+#### TEST bogus ops
+FOOVAR is ><
+#### TEST rspace
+1. ''
+2. ''
+#### TEST lspace
+3. ''
+#### TEST tab
+3a. '	'
+#### TEST 4: oneline
+4a. '
+line1
+   leading space
+trailing space   
+line2
+
+
+'
+4b. 'line1 leading space trailing space line2'
+#### TEST 5: onecol
+5. 'one
+two
+three'
+#### TEST 6: method2rec
+6a. 'public static	String[]	foulUpAString2Times(int blah, boolean [] beboop, String lala)	StupidException, ReallyStupidException, QuiteReasonableException'
+6b. '	String	totally_trivial_method(((())))	'
+6c. 'public synchronized	String[] []	foomethod()	'
+7a. $fooptr:valueof=foo1_value' 
+7b. $fooptr:valueof:valueof=foo2_value' 
+7c. $fooptr:valueof=${fooptr:undef}' 
+8a. $fooptr = foo1_value => fooptr='foo1' foo1='foo1_value'
+8b. EXPECT WARNING: variable reference '${blah:undef}' on left-hand side of assignement is INVALID - ignored.
+8c: the value of var_base_01 is XXX (should be XXX)
+8c: the value of var_base_02 is YYY (should be YYY
+9a. $fooptr:nameof = fooptr
+9b. $fooptr:nameof:nameof = fooptr  (EXPECT: fooptr)
+9b. $fooptr:valueof:nameof = fooptr  (EXPECT: fooptr)
+9b. $fooptr:nameof:valueof = foo1  (EXPECT: foo1)
+9b. $fooptr:nameof:valueof:valueof = foo1_value  (EXPECT: foo1_value)
+IGNORE 10a. $HOME:nameof:env = /home/russt
+10b. $UNDEFINED_VAR_234:nameof:env = 
+
+TEST :fixeol operator
+:fixeol TEST #11 PASSED
+:fixeol TEST #12 PASSED
+
+TEST :crc operator
+:crc TEST #13 PASSED
+:crc TEST #14 PASSED
+:crc TEST #15 PASSED
+:crc TEST #16 PASSED
+:crc TEST #17 PASSED
+:crc TEST #18 PASSED
+
+TEST :cap/:uncap operator
+:cap/:uncap TEST #19 PASSED
+:cap/:uncap TEST #20 PASSED
+:cap/:uncap TEST #21 PASSED
+:cap/:uncap TEST #22 PASSED
+:cap/:uncap TEST #23 PASSED
+:cap/:uncap TEST #24 PASSED
+
+:tounix/:todos operator
+------- orig
+0000000   o   n   e  \n   t   w   o  \n   t   h   r   e   e  \n
+0000016
+------- tounix:
+0000000   o   n   e  \n   t   w   o  \n   t   h   r   e   e  \n
+0000016
+------- todos:
+0000000   o   n   e  \r  \n   t   w   o  \r  \n   t   h   r   e   e  \r
+0000020  \n
+0000021
+------- todos:tounix:
+0000000   o   n   e  \n   t   w   o  \n   t   h   r   e   e  \n
+0000016
+-------
+:tounix/:todos TEST #25 PASSED
+:tounix/:todos TEST #26 PASSED

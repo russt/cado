@@ -1,0 +1,1 @@
+%echo we are now in the include file:  ${CG_INFILE}

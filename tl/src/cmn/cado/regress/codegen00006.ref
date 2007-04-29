@@ -1,0 +1,11 @@
+TESTNAME is codegen00006
+IGNORE ../bld/_codegen.tmpfile.26914.0:  you must define FOOVAR!
+%exit test 1 PASSED
+%exit test 2 PASSED
+%exit test 3 PASSED
+%exit test 4 EXPECT_SYNTAX_ERROR
+IGNORE ../bld/_codegen.tmpfile.26914.3:  you must define FOOVAR!
+%return test 1 PASSED
+%return test 2 PASSED
+%return test 3 PASSED
+%return test 4 EXPECT_SYNTAX_ERROR

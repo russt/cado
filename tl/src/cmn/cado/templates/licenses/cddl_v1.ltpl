@@ -1,0 +1,29 @@
+{=$COMMENT_BEG:newline=}
+{=$COMMENT_MID=} BEGIN_HEADER - DO NOT EDIT
+{=$COMMENT_MID=} 
+{=$COMMENT_MID=} The contents of this file are subject to the terms
+{=$COMMENT_MID=} of the Common Development and Distribution License
+{=$COMMENT_MID=} (the "License").  You may not use this file except
+{=$COMMENT_MID=} in compliance with the License.
+{=$COMMENT_MID:newline=}
+{=$COMMENT_MID=} You can obtain a copy of the license at
+{=$COMMENT_MID=} {=LICENCE_URL=}.
+{=$COMMENT_MID=} See the License for the specific language governing
+{=$COMMENT_MID=} permissions and limitations under the License.
+{=$COMMENT_MID:newline=}
+{=$COMMENT_MID=} When distributing Covered Code, include this CDDL
+{=$COMMENT_MID=} HEADER in each file and include the License file at
+{=$COMMENT_MID=} {=LICENCE_URL=}.
+{=$COMMENT_MID=} If applicable add the following below this CDDL HEADER,
+{=$COMMENT_MID=} with the fields enclosed by brackets "[]" replaced with
+{=$COMMENT_MID=} your own identifying information: Portions Copyright
+{=$COMMENT_MID=} [year] [name of copyright owner]
+{=$COMMENT_END:newline=}
+
+{=$COMMENT_BEG:newline=}
+{=$COMMENT_MID=} @(#){=SOURCE_FILENAME=} - Last published on {=SOURCE_RELEASE_DATE=}
+{=$COMMENT_MID:newline=}
+{=$COMMENT_MID=} Copyright {=COPYRIGHT_YEARS=} {=COPYRIGHT_HOLDER=}. All Rights Reserved.
+{=$COMMENT_MID=} 
+{=$COMMENT_MID=} END_HEADER - DO NOT EDIT
+{=$COMMENT_END:newline=}

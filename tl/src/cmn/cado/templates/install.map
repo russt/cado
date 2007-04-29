@@ -1,0 +1,32 @@
+TARGET_OS=cmn, ntcmn
+sample.cg              lib/$TARGET_OS/templates/java/sample.cg                   0444
+sample2.cg             lib/$TARGET_OS/templates/java/sample2.cg                  0444
+copyright.jtpl         lib/$TARGET_OS/templates/java/copyright.jtpl              0444
+#this is an empty file that you can use in templates that require a file parameter
+null.jtpl              lib/$TARGET_OS/templates/java/null                        0444
+#this template will include the contents of the user-defined $ECHO_TXT variable:
+echo.jtpl              lib/$TARGET_OS/templates/java/echo                        0444
+
+abstract.jtpl          lib/$TARGET_OS/templates/java/basic/abstract.jtpl         0444
+class.jtpl             lib/$TARGET_OS/templates/java/basic/class.jtpl            0444
+class_nopkg.jtpl       lib/$TARGET_OS/templates/java/basic/class_nopkg.jtpl      0444
+constructor.jtpl       lib/$TARGET_OS/templates/java/basic/constructor.jtpl      0444
+echo_methods.jtpl      lib/$TARGET_OS/templates/java/basic/echo_methods.jtpl     0444
+gen_imports.jtpl       lib/$TARGET_OS/templates/java/basic/gen_imports.jtpl      0444
+gen_javadoc.jtpl       lib/$TARGET_OS/templates/java/basic/gen_javadoc.jtpl      0444
+interface.jtpl         lib/$TARGET_OS/templates/java/basic/interface.jtpl        0444
+javadoc.jtpl           lib/$TARGET_OS/templates/java/basic/javadoc.jtpl          0444
+main.jtpl              lib/$TARGET_OS/templates/java/basic/main.jtpl             0444
+singleton.jtpl         lib/$TARGET_OS/templates/java/basic/singleton.jtpl        0444
+getset.jtpl            lib/$TARGET_OS/templates/java/basic/getset.jtpl           0444
+
+#codegen scripts for java:
+gen_method_body.cg     lib/$TARGET_OS/templates/java/basic/gen_method_body.cg    0444
+#this name is deprecated:
+gen_method_body.jtpl   lib/$TARGET_OS/templates/java/basic/gen_method_body.jtpl  0444
+
+#codegen scripts for shell:
+main.sh                lib/$TARGET_OS/templates/shell/main.sh                    0444
+
+#license file for templates dir:
+cddl_license.txt       lib/$TARGET_OS/templates/license.txt                      0444

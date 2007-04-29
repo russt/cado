@@ -1,0 +1,760 @@
+
+project
+
+The <project> element is the root of the descriptor. The following table lists all of the possible child elements.
+Element	Description
+parent	 The location of the parent project, if one exists. Values from the parent project will be the default for this project if they are left unspecified. The location is given as a group ID, artifact ID and version.
+modelVersion	Declares to which version of project descriptor this POM conforms.
+groupId	 A universally unique identifier for a project. It is normal to use a fully-qualified package name to distinguish it from other projects with a similar name (eg. org.apache.maven).
+artifactId	 The identifier for this artifact that is unique within the group given by the group ID. An artifact is something that is either produced or used by a project. Examples of artifacts produced by Maven for a project include: JARs, source and binary distributions, and WARs.
+packaging	 The type of artifact this project produces, for example jar war ear pom. Plugins can create their own packaging, and therefore their own packaging types, so this list does not contain all possible types.
+name	 The full name of the project.
+version	 The current version of the artifact produced by this project.
+description	 A detailed description of the project, used by Maven whenever it needs to describe the project, such as on the web site. While this element can be specified as CDATA to enable the use of HTML tags within the description, it is discouraged to allow plain text representation. If you need to modify the index page of the generated web site, you are able to specify your own instead of adjusting this text.
+url	 The URL to the project's homepage.
+prerequisites	 Describes the prerequisites in the build environment for this project.
+issueManagement	The project's issue management system information.
+ciManagement	The project's continuous integration information.
+inceptionYear	 The year of the project's inception, specified with 4 digits. This value is used when generating copyright notices as well as being informational.
+mailingLists	 Contains information about a project's mailing lists.
+developers	 Describes the committers of a project.
+contributors	 Describes the contributors to a project that are not yet committers.
+licenses	 This element describes all of the licenses for this project. Each license is described by a license element, which is then described by additional elements. Projects should only list the license(s) that applies to the project and not the licenses that apply to dependencies. If multiple licenses are listed, it is assumed that the user can select any of them, not that they must accept all.
+scm	 Specification for the SCM used by the project, such as CVS, Subversion, etc.
+organization	 This element describes various attributes of the organization to which the project belongs. These attributes are utilized when documentation is created (for copyright notices and links).
+build	Information required to build the project.
+profiles	 A listing of project-local build profiles which will modify the build process when activated.
+modules	 The modules (sometimes called subprojects) to build as a part of this project. Each module listed is a relative path to the directory containing the module.
+repositories	The lists of the remote repositories for discovering dependencies and extensions.
+pluginRepositories	 The lists of the remote repositories for discovering plugins for builds and reports.
+dependencies	 This element describes all of the dependencies associated with a project. These dependencies are used to construct a classpath for your project during the build process. They are automatically downloaded from the repositories defined in this project. See the dependency mechanism for more information.
+reports	Deprecated. Now ignored by Maven.
+reporting	 This element includes the specification of report plugins to use to generate the reports on the Maven-generated site. These reports will be run when a user executes mvn site. All of the reports will be included in the navigation bar for browsing.
+dependencyManagement	 Default dependency information for projects that inherit from this one. The dependencies in this section are not immediately resolved. Instead, when a POM derived from this one declares a dependency described by a matching groupId and artifactId, the version and other values from this section are used for that dependency if they were not already specified.
+distributionManagement	Distribution information for a project that enables deployment of the site and artifacts to remote web servers and repositories respectively.
+properties	 Properties that can be used throughout the POM as a substitution, and are used as filters in resources if enabled. The format is <name>value</name>.
+parent
+
+Element	Description
+artifactId	The artifact id of the parent project to inherit from.
+groupId	The group id of the parent project to inherit from.
+version	The version of the parent project to inherit.
+relativePath	 The relative path of the parent pom.xml file within the check out. The default value is ../pom.xml. Maven looks for the parent pom first in the reactor of currently building projects, then in this location on the filesystem, then the local repository, and lastly in the remote repo. relativePath allows you to select a different location, for example when your structure is flat, or deeper without an intermediate parent pom. However, the group ID, artifact ID and version are still required, and must match the file in the location given or it will revert to the repository for the POM. This feature is only for enhancing the development in a local checkout of that project.
+prerequisites
+
+Describes the prerequisites a project can have.
+
+Element	Description
+maven	The minimum version of Maven required to build the project, or to use this plugin.
+issueManagement
+
+Information about the issue tracking (or bug tracking) system used to manage this project.
+
+Element	Description
+system	The name of the issue management system, e.g. Bugzilla
+url	URL for the issue management system used by the project.
+ciManagement
+
+Element	Description
+system	 The name of the continuous integration system, e.g. continuum.
+url	 URL for the continuous integration system used by the project if it has a web interface.
+notifiers	 Configuration for notifying developers/users when a build is unsuccessful, including user information and notification mode.
+notifier
+
+Configures one method for notifying users/developers when a build breaks.
+
+Element	Description
+type	The mechanism used to deliver notifications.
+sendOnError	Whether to send notifications on error.
+sendOnFailure	Whether to send notifications on failure.
+sendOnSuccess	Whether to send notifications on success.
+sendOnWarning	Whether to send notifications on warning.
+address	Deprecated. Where to send the notification to - eg email address.
+configuration	Extended configuration specific to this notifier goes here.
+mailingList
+
+This element describes all of the mailing lists associated with a project. The auto-generated site references this information.
+
+Element	Description
+name	The name of the mailing list.
+subscribe	 The email address or link that can be used to subscribe to the mailing list. If this is an email address, a mailto: link will automatically be created when the documentation is created.
+unsubscribe	 The email address or link that can be used to unsubscribe to the mailing list. If this is an email address, a mailto: link will automatically be created when the documentation is created.
+post	 The email address or link that can be used to post to the mailing list. If this is an email address, a mailto: link will automatically be created when the documentation is created.
+archive	 The link to a URL where you can browse the mailing list archive.
+otherArchives	 The link to alternate URLs where you can browse the list archive.
+developer
+
+Information about one of the committers on this project.
+
+Element	Description
+id	The unique ID of the developer in the SCM.
+name	The full name of the contributor.
+email	The email address of the contributor.
+url	The URL for the homepage of the contributor.
+organization	The organization to which the contributor belongs.
+organizationUrl	The URL of the organization.
+roles	 The roles the contributor plays in the project. Each role is described by a role element, the body of which is a role name. This can also be used to describe the contribution.
+timezone	 The timezone the contributor is in. This is a number in the range -11 to 12.
+properties	 Properties about the contributor, such as an instant messenger handle.
+contributor
+
+Description of a person who has contributed to the project, but who does not have commit privileges. Usually, these contributions come in the form of patches submitted.
+
+Element	Description
+name	The full name of the contributor.
+email	The email address of the contributor.
+url	The URL for the homepage of the contributor.
+organization	The organization to which the contributor belongs.
+organizationUrl	The URL of the organization.
+roles	 The roles the contributor plays in the project. Each role is described by a role element, the body of which is a role name. This can also be used to describe the contribution.
+timezone	 The timezone the contributor is in. This is a number in the range -11 to 12.
+properties	 Properties about the contributor, such as an instant messenger handle.
+license
+
+Describes the licenses for this project. This is used to generate the license page of the project's web site, as well as being taken into consideration in other reporting and validation. The licenses listed for the project are that of the project itself, and not of dependencies.
+
+Element	Description
+name	The full legal name of the license.
+url	The official url for the license text.
+distribution	 The primary method by which this project may be distributed.
+repo
+may be downloaded from the Maven repository
+manual
+user must manually download and install the dependency.
+comments	 Addendum information pertaining to this license.
+scm
+
+Element	Description
+connection	 The source control management system URL that describes the repository and how to connect to the repository. For more information, see the URL format and list of supported SCMs. This connection is read-only.
+developerConnection	 Just like connection, but for developers, i.e. this scm connection will not be read only.
+tag	 The tag of current code. By default, it's set to HEAD during development.
+url	 The URL to the project's browsable SCM repository, such as ViewVC or Fisheye.
+organization
+
+Specifies the organization that produces this project.
+
+Element	Description
+name	The full name of the organization.
+url	The URL to the organization's home page.
+build
+
+Element	Description
+sourceDirectory	 This element specifies a directory containing the source of the project. The generated build system will compile the source in this directory when the project is built. The path given is relative to the project descriptor.
+scriptSourceDirectory	 This element specifies a directory containing the script sources of the project. This directory is meant to be different from the sourceDirectory, in that its contents will be copied to the output directory in most cases (since scripts are interpreted rather than compiled).
+testSourceDirectory	 This element specifies a directory containing the unit test source of the project. The generated build system will compile these directories when the project is being tested. The path given is relative to the project descriptor.
+outputDirectory	 The directory where compiled application classes are placed.
+testOutputDirectory	 The directory where compiled test classes are placed.
+extensions	A set of build extensions to use from this project.
+defaultGoal	 The default goal (or phase in Maven 2) to execute when none is specified for the project.
+resources	 This element describes all of the classpath resources such as properties files associated with a project. These resources are often included in the final package.
+testResources	 This element describes all of the classpath resources such as properties files associated with a project's unit tests.
+directory	 The directory where all files generated by the build are placed.
+finalName	 The filename (excluding the extension, and with no path information) that the produced artifact will be called. The default value is ${artifactId}-${version}.
+filters	 The list of filter properties files that are used when filtering is enabled.
+pluginManagement	 Default plugin information to be made available for reference by projects derived from this one. This plugin configuration will not be resolved or bound to the lifecycle unless referenced. Any local configuration for a given plugin will override the plugin's entire definition here.
+plugins	 The list of plugins to use.
+extension
+
+Describes a build extension to utilise.
+
+Element	Description
+groupId	The group ID of the extension's artifact.
+artifactId	The artifact ID of the extension.
+version	The version of the extension.
+resource
+
+This element describes all of the classpath resources associated with a project or unit tests.
+
+Element	Description
+targetPath	 Describe the resource target path. For example, if you want that resource to appear in a specific package (org.apache.maven.messages), you must specify this element with this value: org/apache/maven/messages. This is not required if you simply put the resources in that directory structure at the source, however.
+filtering	 Whether resources are filtered to replace tokens with parameterised values or not. The values are taken from the properties element and from the properties in the files listed in the filters element.
+directory	 Describe the directory where the resources are stored. The path is relative to the POM.
+includes	A list of patterns to include, e.g. **/*.xml.
+excludes	A list of patterns to exclude, e.g. **/*.xml
+testResource
+
+This element describes all of the classpath resources associated with a project or unit tests.
+
+Element	Description
+targetPath	 Describe the resource target path. For example, if you want that resource to appear in a specific package (org.apache.maven.messages), you must specify this element with this value: org/apache/maven/messages. This is not required if you simply put the resources in that directory structure at the source, however.
+filtering	 Whether resources are filtered to replace tokens with parameterised values or not. The values are taken from the properties element and from the properties in the files listed in the filters element.
+directory	 Describe the directory where the resources are stored. The path is relative to the POM.
+includes	A list of patterns to include, e.g. **/*.xml.
+excludes	A list of patterns to exclude, e.g. **/*.xml
+pluginManagement
+
+Section for management of default plugin information for use in a group of POMs.
+
+Element	Description
+plugins	 The list of plugins to use.
+plugin
+
+Element	Description
+groupId	The group ID of the plugin in the repository.
+artifactId	The artifact ID of the plugin in the repository.
+version	The version (or valid range of verisons) of the plugin to be used.
+extensions	Whether to load Maven extensions (such as packaging and type handlers) from this plugin. For performance reasons, this should only be enabled when necessary.
+executions	Multiple specifications of a set of goals to execute during the build lifecycle, each having (possibly) different configuration.
+dependencies	Additional dependencies that this project needs to introduce to the plugin's classloader.
+goals	Deprecated. Unused by Maven.
+inherited	 Whether any configuration should be propagated to child POMs.
+configuration	No description.
+execution
+
+Element	Description
+id	The identifier of this execution for labelling the goals during the build, and for matching exections to merge during inheritance.
+phase	The build lifecycle phase to bind the goals in this execution to. If omitted, the goals will be bound to the default specified in their metadata.
+goals	The goals to execute with the given configuration.
+inherited	 Whether any configuration should be propagated to child POMs.
+configuration	No description.
+dependency
+
+Element	Description
+groupId	 The project group that produced the dependency, e.g. org.apache.maven.
+artifactId	 The unique id for an artifact produced by the project group, e.g. maven-artifact.
+version	 The version of the dependency, e.g. 3.2.1. In Maven 2, this can also be specified as a range of versions.
+type	 The type of dependency. This defaults to jar. While it usually represents the extension on the filename of the dependency, that is not always the case. A type can be mapped to a different extension and a classifier. The type often correspongs to the packaging used, though this is also not always the case. Some examples are jar, war, ejb-client and test-jar. New types can be defined by plugins that set extensions to true, so this is not a complete list.
+classifier	 The classifier of the dependency. This allows distinguishing two artifacts that belong to the same POM but were built differently, and is appended to the filename after the version. For example, jdk14 and jdk15.
+scope	 The scope of the dependency - compile, runtime, test, system, and provided. Used to calculate the various classpaths used for compilation, testing, and so on. It also assists in determining which artifacts to include in a distribution of this project. For more information, see the dependency mechanism.
+systemPath	 FOR SYSTEM SCOPE ONLY. Note that use of this property is discouraged and may be replaced in later versions. This specifies the path on the filesystem for this dependency. Requires an absolute path for the value, not relative. Use a property that gives the machine specific absolute path, e.g. ${java.home}.
+exclusions	 Lists a set of artifacts that should be excluded from this dependency's artifact list when it comes to calculating transitive dependencies.
+optional	 Indicates the dependency is optional for use of this library. While the version of the dependency will be taken into account for dependency calculation if the library is used elsewhere, it will not be passed on transitively.
+exclusion
+
+Element	Description
+artifactId	The artifact ID of the project to exclude.
+groupId	The group ID of the project to exclude.
+plugin
+
+Element	Description
+groupId	The group ID of the plugin in the repository.
+artifactId	The artifact ID of the plugin in the repository.
+version	The version (or valid range of verisons) of the plugin to be used.
+extensions	Whether to load Maven extensions (such as packaging and type handlers) from this plugin. For performance reasons, this should only be enabled when necessary.
+executions	Multiple specifications of a set of goals to execute during the build lifecycle, each having (possibly) different configuration.
+dependencies	Additional dependencies that this project needs to introduce to the plugin's classloader.
+goals	Deprecated. Unused by Maven.
+inherited	 Whether any configuration should be propagated to child POMs.
+configuration	No description.
+execution
+
+Element	Description
+id	The identifier of this execution for labelling the goals during the build, and for matching exections to merge during inheritance.
+phase	The build lifecycle phase to bind the goals in this execution to. If omitted, the goals will be bound to the default specified in their metadata.
+goals	The goals to execute with the given configuration.
+inherited	 Whether any configuration should be propagated to child POMs.
+configuration	No description.
+dependency
+
+Element	Description
+groupId	 The project group that produced the dependency, e.g. org.apache.maven.
+artifactId	 The unique id for an artifact produced by the project group, e.g. maven-artifact.
+version	 The version of the dependency, e.g. 3.2.1. In Maven 2, this can also be specified as a range of versions.
+type	 The type of dependency. This defaults to jar. While it usually represents the extension on the filename of the dependency, that is not always the case. A type can be mapped to a different extension and a classifier. The type often correspongs to the packaging used, though this is also not always the case. Some examples are jar, war, ejb-client and test-jar. New types can be defined by plugins that set extensions to true, so this is not a complete list.
+classifier	 The classifier of the dependency. This allows distinguishing two artifacts that belong to the same POM but were built differently, and is appended to the filename after the version. For example, jdk14 and jdk15.
+scope	 The scope of the dependency - compile, runtime, test, system, and provided. Used to calculate the various classpaths used for compilation, testing, and so on. It also assists in determining which artifacts to include in a distribution of this project. For more information, see the dependency mechanism.
+systemPath	 FOR SYSTEM SCOPE ONLY. Note that use of this property is discouraged and may be replaced in later versions. This specifies the path on the filesystem for this dependency. Requires an absolute path for the value, not relative. Use a property that gives the machine specific absolute path, e.g. ${java.home}.
+exclusions	 Lists a set of artifacts that should be excluded from this dependency's artifact list when it comes to calculating transitive dependencies.
+optional	 Indicates the dependency is optional for use of this library. While the version of the dependency will be taken into account for dependency calculation if the library is used elsewhere, it will not be passed on transitively.
+exclusion
+
+Element	Description
+artifactId	The artifact ID of the project to exclude.
+groupId	The group ID of the project to exclude.
+profile
+
+Modifications to the build process which is activated based on environmental parameters or command line arguments.
+
+Element	Description
+id	The identifier of this build profile. This used both for command line activation, and identifies identical profiles to merge with during inheritance.
+activation	The conditional logic which will automatically trigger the inclusion of this profile.
+build	Information required to build the project.
+modules	 The modules (sometimes called subprojects) to build as a part of this project. Each module listed is a relative path to the directory containing the module.
+repositories	The lists of the remote repositories for discovering dependencies and extensions.
+pluginRepositories	 The lists of the remote repositories for discovering plugins for builds and reports.
+dependencies	 This element describes all of the dependencies associated with a project. These dependencies are used to construct a classpath for your project during the build process. They are automatically downloaded from the repositories defined in this project. See the dependency mechanism for more information.
+reports	Deprecated. Now ignored by Maven.
+reporting	 This element includes the specification of report plugins to use to generate the reports on the Maven-generated site. These reports will be run when a user executes mvn site. All of the reports will be included in the navigation bar for browsing.
+dependencyManagement	 Default dependency information for projects that inherit from this one. The dependencies in this section are not immediately resolved. Instead, when a POM derived from this one declares a dependency described by a matching groupId and artifactId, the version and other values from this section are used for that dependency if they were not already specified.
+distributionManagement	Distribution information for a project that enables deployment of the site and artifacts to remote web servers and repositories respectively.
+properties	 Properties that can be used throughout the POM as a substitution, and are used as filters in resources if enabled. The format is <name>value</name>.
+activation
+
+The conditions within the build runtime environment which will trigger the automatic inclusion of the build profile.
+
+Element	Description
+activeByDefault	Flag specifying whether this profile is active by default.
+jdk	 Specifies that this profile will be activated when a matching JDK is detected. For example, 1.4 only activates on JDKs versioned 1.4, while !1.4 matches any JDK that is not version 1.4.
+os	 Specifies that this profile will be activated when matching operating system attributes are detected.
+property	 Specifies that this profile will be activated when this system property is specified.
+file	 Specifies that this profile will be activated based on existence of a file.
+os
+
+This is an activator which will detect an operating system's attributes in order to activate its profile.
+
+Element	Description
+name	The name of the operating system to be used to activate the profile. This must be an exact match of the ${os.name} Java property, such as Windows XP.
+family	 The general family of the OS to be used to activate the profile, such as windows or unix.
+arch	The architecture of the operating system to be used to activate the profile.
+version	The version of the operating system to be used to activate the profile.
+property
+
+This is the property specification used to activate a profile. If the value field is empty, then the existence of the named property will activate the profile, otherwise it does a case-sensitive match against the property value as well.
+
+Element	Description
+name	The name of the property to be used to activate a profile.
+value	The value of the property required to activate a profile.
+file
+
+This is the file specification used to activate the profile. The missing value will be the location of a file that needs to exist, and if it doesn't the profile will be activated. On the other hand exists will test for the existence of the file and if it is there the profile will be activated.
+
+Element	Description
+missing	The name of the file that must be missing to activate the profile.
+exists	The name of the file that must exist to activate the profile.
+build
+
+Element	Description
+defaultGoal	 The default goal (or phase in Maven 2) to execute when none is specified for the project.
+resources	 This element describes all of the classpath resources such as properties files associated with a project. These resources are often included in the final package.
+testResources	 This element describes all of the classpath resources such as properties files associated with a project's unit tests.
+directory	 The directory where all files generated by the build are placed.
+finalName	 The filename (excluding the extension, and with no path information) that the produced artifact will be called. The default value is ${artifactId}-${version}.
+filters	 The list of filter properties files that are used when filtering is enabled.
+pluginManagement	 Default plugin information to be made available for reference by projects derived from this one. This plugin configuration will not be resolved or bound to the lifecycle unless referenced. Any local configuration for a given plugin will override the plugin's entire definition here.
+plugins	 The list of plugins to use.
+resource
+
+This element describes all of the classpath resources associated with a project or unit tests.
+
+Element	Description
+targetPath	 Describe the resource target path. For example, if you want that resource to appear in a specific package (org.apache.maven.messages), you must specify this element with this value: org/apache/maven/messages. This is not required if you simply put the resources in that directory structure at the source, however.
+filtering	 Whether resources are filtered to replace tokens with parameterised values or not. The values are taken from the properties element and from the properties in the files listed in the filters element.
+directory	 Describe the directory where the resources are stored. The path is relative to the POM.
+includes	A list of patterns to include, e.g. **/*.xml.
+excludes	A list of patterns to exclude, e.g. **/*.xml
+testResource
+
+This element describes all of the classpath resources associated with a project or unit tests.
+
+Element	Description
+targetPath	 Describe the resource target path. For example, if you want that resource to appear in a specific package (org.apache.maven.messages), you must specify this element with this value: org/apache/maven/messages. This is not required if you simply put the resources in that directory structure at the source, however.
+filtering	 Whether resources are filtered to replace tokens with parameterised values or not. The values are taken from the properties element and from the properties in the files listed in the filters element.
+directory	 Describe the directory where the resources are stored. The path is relative to the POM.
+includes	A list of patterns to include, e.g. **/*.xml.
+excludes	A list of patterns to exclude, e.g. **/*.xml
+pluginManagement
+
+Section for management of default plugin information for use in a group of POMs.
+
+Element	Description
+plugins	 The list of plugins to use.
+plugin
+
+Element	Description
+groupId	The group ID of the plugin in the repository.
+artifactId	The artifact ID of the plugin in the repository.
+version	The version (or valid range of verisons) of the plugin to be used.
+extensions	Whether to load Maven extensions (such as packaging and type handlers) from this plugin. For performance reasons, this should only be enabled when necessary.
+executions	Multiple specifications of a set of goals to execute during the build lifecycle, each having (possibly) different configuration.
+dependencies	Additional dependencies that this project needs to introduce to the plugin's classloader.
+goals	Deprecated. Unused by Maven.
+inherited	 Whether any configuration should be propagated to child POMs.
+configuration	No description.
+execution
+
+Element	Description
+id	The identifier of this execution for labelling the goals during the build, and for matching exections to merge during inheritance.
+phase	The build lifecycle phase to bind the goals in this execution to. If omitted, the goals will be bound to the default specified in their metadata.
+goals	The goals to execute with the given configuration.
+inherited	 Whether any configuration should be propagated to child POMs.
+configuration	No description.
+dependency
+
+Element	Description
+groupId	 The project group that produced the dependency, e.g. org.apache.maven.
+artifactId	 The unique id for an artifact produced by the project group, e.g. maven-artifact.
+version	 The version of the dependency, e.g. 3.2.1. In Maven 2, this can also be specified as a range of versions.
+type	 The type of dependency. This defaults to jar. While it usually represents the extension on the filename of the dependency, that is not always the case. A type can be mapped to a different extension and a classifier. The type often correspongs to the packaging used, though this is also not always the case. Some examples are jar, war, ejb-client and test-jar. New types can be defined by plugins that set extensions to true, so this is not a complete list.
+classifier	 The classifier of the dependency. This allows distinguishing two artifacts that belong to the same POM but were built differently, and is appended to the filename after the version. For example, jdk14 and jdk15.
+scope	 The scope of the dependency - compile, runtime, test, system, and provided. Used to calculate the various classpaths used for compilation, testing, and so on. It also assists in determining which artifacts to include in a distribution of this project. For more information, see the dependency mechanism.
+systemPath	 FOR SYSTEM SCOPE ONLY. Note that use of this property is discouraged and may be replaced in later versions. This specifies the path on the filesystem for this dependency. Requires an absolute path for the value, not relative. Use a property that gives the machine specific absolute path, e.g. ${java.home}.
+exclusions	 Lists a set of artifacts that should be excluded from this dependency's artifact list when it comes to calculating transitive dependencies.
+optional	 Indicates the dependency is optional for use of this library. While the version of the dependency will be taken into account for dependency calculation if the library is used elsewhere, it will not be passed on transitively.
+exclusion
+
+Element	Description
+artifactId	The artifact ID of the project to exclude.
+groupId	The group ID of the project to exclude.
+plugin
+
+Element	Description
+groupId	The group ID of the plugin in the repository.
+artifactId	The artifact ID of the plugin in the repository.
+version	The version (or valid range of verisons) of the plugin to be used.
+extensions	Whether to load Maven extensions (such as packaging and type handlers) from this plugin. For performance reasons, this should only be enabled when necessary.
+executions	Multiple specifications of a set of goals to execute during the build lifecycle, each having (possibly) different configuration.
+dependencies	Additional dependencies that this project needs to introduce to the plugin's classloader.
+goals	Deprecated. Unused by Maven.
+inherited	 Whether any configuration should be propagated to child POMs.
+configuration	No description.
+execution
+
+Element	Description
+id	The identifier of this execution for labelling the goals during the build, and for matching exections to merge during inheritance.
+phase	The build lifecycle phase to bind the goals in this execution to. If omitted, the goals will be bound to the default specified in their metadata.
+goals	The goals to execute with the given configuration.
+inherited	 Whether any configuration should be propagated to child POMs.
+configuration	No description.
+dependency
+
+Element	Description
+groupId	 The project group that produced the dependency, e.g. org.apache.maven.
+artifactId	 The unique id for an artifact produced by the project group, e.g. maven-artifact.
+version	 The version of the dependency, e.g. 3.2.1. In Maven 2, this can also be specified as a range of versions.
+type	 The type of dependency. This defaults to jar. While it usually represents the extension on the filename of the dependency, that is not always the case. A type can be mapped to a different extension and a classifier. The type often correspongs to the packaging used, though this is also not always the case. Some examples are jar, war, ejb-client and test-jar. New types can be defined by plugins that set extensions to true, so this is not a complete list.
+classifier	 The classifier of the dependency. This allows distinguishing two artifacts that belong to the same POM but were built differently, and is appended to the filename after the version. For example, jdk14 and jdk15.
+scope	 The scope of the dependency - compile, runtime, test, system, and provided. Used to calculate the various classpaths used for compilation, testing, and so on. It also assists in determining which artifacts to include in a distribution of this project. For more information, see the dependency mechanism.
+systemPath	 FOR SYSTEM SCOPE ONLY. Note that use of this property is discouraged and may be replaced in later versions. This specifies the path on the filesystem for this dependency. Requires an absolute path for the value, not relative. Use a property that gives the machine specific absolute path, e.g. ${java.home}.
+exclusions	 Lists a set of artifacts that should be excluded from this dependency's artifact list when it comes to calculating transitive dependencies.
+optional	 Indicates the dependency is optional for use of this library. While the version of the dependency will be taken into account for dependency calculation if the library is used elsewhere, it will not be passed on transitively.
+exclusion
+
+Element	Description
+artifactId	The artifact ID of the project to exclude.
+groupId	The group ID of the project to exclude.
+repository
+
+A repository contains the information needed for establishing connections with remote repoistory.
+
+Element	Description
+releases	How to handle downloading of releases from this repository.
+snapshots	How to handle downloading of snapshots from this repository.
+id	 A unique identifier for a repository. This is used to match the repository to configuration in the settings.xml file, for example.
+name	 Human readable name of the repository.
+url	 The url of the repository, in the form protocol://hostname/path.
+layout	 The type of layout this repository uses for locating and storing artifacts - can be legacy or default.
+releases
+
+Download policy
+
+Element	Description
+enabled	Whether to use this repository for downloading this type of artifact.
+updatePolicy	 The frequency for downloading updates - can be always, daily (default), interval:XXX (in minutes) or never (only if it doesn't exist locally).
+checksumPolicy	 What to do when verification of an artifact checksum fails. Valid values are ignore , fail or warn (the default).
+snapshots
+
+Download policy
+
+Element	Description
+enabled	Whether to use this repository for downloading this type of artifact.
+updatePolicy	 The frequency for downloading updates - can be always, daily (default), interval:XXX (in minutes) or never (only if it doesn't exist locally).
+checksumPolicy	 What to do when verification of an artifact checksum fails. Valid values are ignore , fail or warn (the default).
+pluginRepository
+
+A repository contains the information needed for establishing connections with remote repoistory.
+
+Element	Description
+releases	How to handle downloading of releases from this repository.
+snapshots	How to handle downloading of snapshots from this repository.
+id	 A unique identifier for a repository. This is used to match the repository to configuration in the settings.xml file, for example.
+name	 Human readable name of the repository.
+url	 The url of the repository, in the form protocol://hostname/path.
+layout	 The type of layout this repository uses for locating and storing artifacts - can be legacy or default.
+releases
+
+Download policy
+
+Element	Description
+enabled	Whether to use this repository for downloading this type of artifact.
+updatePolicy	 The frequency for downloading updates - can be always, daily (default), interval:XXX (in minutes) or never (only if it doesn't exist locally).
+checksumPolicy	 What to do when verification of an artifact checksum fails. Valid values are ignore , fail or warn (the default).
+snapshots
+
+Download policy
+
+Element	Description
+enabled	Whether to use this repository for downloading this type of artifact.
+updatePolicy	 The frequency for downloading updates - can be always, daily (default), interval:XXX (in minutes) or never (only if it doesn't exist locally).
+checksumPolicy	 What to do when verification of an artifact checksum fails. Valid values are ignore , fail or warn (the default).
+dependency
+
+Element	Description
+groupId	 The project group that produced the dependency, e.g. org.apache.maven.
+artifactId	 The unique id for an artifact produced by the project group, e.g. maven-artifact.
+version	 The version of the dependency, e.g. 3.2.1. In Maven 2, this can also be specified as a range of versions.
+type	 The type of dependency. This defaults to jar. While it usually represents the extension on the filename of the dependency, that is not always the case. A type can be mapped to a different extension and a classifier. The type often correspongs to the packaging used, though this is also not always the case. Some examples are jar, war, ejb-client and test-jar. New types can be defined by plugins that set extensions to true, so this is not a complete list.
+classifier	 The classifier of the dependency. This allows distinguishing two artifacts that belong to the same POM but were built differently, and is appended to the filename after the version. For example, jdk14 and jdk15.
+scope	 The scope of the dependency - compile, runtime, test, system, and provided. Used to calculate the various classpaths used for compilation, testing, and so on. It also assists in determining which artifacts to include in a distribution of this project. For more information, see the dependency mechanism.
+systemPath	 FOR SYSTEM SCOPE ONLY. Note that use of this property is discouraged and may be replaced in later versions. This specifies the path on the filesystem for this dependency. Requires an absolute path for the value, not relative. Use a property that gives the machine specific absolute path, e.g. ${java.home}.
+exclusions	 Lists a set of artifacts that should be excluded from this dependency's artifact list when it comes to calculating transitive dependencies.
+optional	 Indicates the dependency is optional for use of this library. While the version of the dependency will be taken into account for dependency calculation if the library is used elsewhere, it will not be passed on transitively.
+exclusion
+
+Element	Description
+artifactId	The artifact ID of the project to exclude.
+groupId	The group ID of the project to exclude.
+reporting
+
+Section for management of reports and their configuration.
+
+Element	Description
+excludeDefaults	If true, then the default reports are not included in the site generation. This includes the reports in the "Project Info" menu.
+outputDirectory	 Where to store all of the generated reports. The default is ${project.build.directory}/site .
+plugins	The reporting plugins to use and their configuration.
+plugin
+
+Element	Description
+groupId	The group ID of the reporting plugin in the repository.
+artifactId	The artifact ID of the reporting plugin in the repository.
+version	The version of the reporting plugin to be used.
+inherited	Whether the configuration in this plugin should be made available to projects that inherit from this one.
+configuration	The configuration of the reporting plugin.
+reportSets	Multiple specifications of a set of reports, each having (possibly) different configuration. This is the reporting parallel to an execution in the build.
+reportSet
+
+Represents a set of reports and configuration to be used to generate them.
+
+Element	Description
+id	The unique id for this report set, to be used during POM inheritance.
+configuration	Configuration of the report to be used when generating this set.
+inherited	 Whether any configuration should be propagated to child POMs.
+reports	 The list of reports from this plugin which should be generated from this set.
+dependencyManagement
+
+Section for management of default dependency information for use in a group of POMs.
+
+Element	Description
+dependencies	 The dependencies specified here are not used until they are referenced in a POM within the group. This allows the specification of a "standard" version for a particular dependency.
+dependency
+
+Element	Description
+groupId	 The project group that produced the dependency, e.g. org.apache.maven.
+artifactId	 The unique id for an artifact produced by the project group, e.g. maven-artifact.
+version	 The version of the dependency, e.g. 3.2.1. In Maven 2, this can also be specified as a range of versions.
+type	 The type of dependency. This defaults to jar. While it usually represents the extension on the filename of the dependency, that is not always the case. A type can be mapped to a different extension and a classifier. The type often correspongs to the packaging used, though this is also not always the case. Some examples are jar, war, ejb-client and test-jar. New types can be defined by plugins that set extensions to true, so this is not a complete list.
+classifier	 The classifier of the dependency. This allows distinguishing two artifacts that belong to the same POM but were built differently, and is appended to the filename after the version. For example, jdk14 and jdk15.
+scope	 The scope of the dependency - compile, runtime, test, system, and provided. Used to calculate the various classpaths used for compilation, testing, and so on. It also assists in determining which artifacts to include in a distribution of this project. For more information, see the dependency mechanism.
+systemPath	 FOR SYSTEM SCOPE ONLY. Note that use of this property is discouraged and may be replaced in later versions. This specifies the path on the filesystem for this dependency. Requires an absolute path for the value, not relative. Use a property that gives the machine specific absolute path, e.g. ${java.home}.
+exclusions	 Lists a set of artifacts that should be excluded from this dependency's artifact list when it comes to calculating transitive dependencies.
+optional	 Indicates the dependency is optional for use of this library. While the version of the dependency will be taken into account for dependency calculation if the library is used elsewhere, it will not be passed on transitively.
+exclusion
+
+Element	Description
+artifactId	The artifact ID of the project to exclude.
+groupId	The group ID of the project to exclude.
+distributionManagement
+
+This elements describes all that pertains to distribution for a project. It is primarily used for deployment of artifacts and the site produced by the build.
+
+Element	Description
+repository	 Information needed to deploy the artifacts generated by the project to a remote repository.
+snapshotRepository	 Where to deploy snapshots of artifacts to. If not given, it defaults to the repository element.
+site	 Information needed for deploying the web site of the project.
+downloadUrl	 The URL of the project's download page. If not given users will be referred to the homepage given by url. This is given to assist in locating artifacts that are not in the repository due to licensing restrictions.
+relocation	 Relocation information of the artifact if it has been moved to a new group ID and/or artifact ID.
+status	 Gives the status of this artifact in the remote repository. This must not be set in your local project, as it is updated by tools placing it in the reposiory. Valid values are: none (default), converted (repository manager converted this from an Maven 1 POM), partner (directly synced from a partner Maven 2 repository), deployed (was deployed from a Maven 2 instance), verified (has been hand verified as correct and final).
+repository
+
+Repository contains the information needed for deploying to the remote repoistory.
+
+Element	Description
+uniqueVersion	Whether to assign snapshots a unique version comprised of the timestamp and build number, or to use the same version each time
+id	 A unique identifier for a repository. This is used to match the repository to configuration in the settings.xml file, for example.
+name	 Human readable name of the repository.
+url	 The url of the repository, in the form protocol://hostname/path.
+layout	 The type of layout this repository uses for locating and storing artifacts - can be legacy or default.
+snapshotRepository
+
+Repository contains the information needed for deploying to the remote repoistory.
+
+Element	Description
+uniqueVersion	Whether to assign snapshots a unique version comprised of the timestamp and build number, or to use the same version each time
+id	 A unique identifier for a repository. This is used to match the repository to configuration in the settings.xml file, for example.
+name	 Human readable name of the repository.
+url	 The url of the repository, in the form protocol://hostname/path.
+layout	 The type of layout this repository uses for locating and storing artifacts - can be legacy or default.
+site
+
+Contains the information needed for deploying websites.
+
+Element	Description
+id	 A unique identifier for a deployment locataion. This is used to match the site to configuration in the settings.xml file, for example.
+name	 Human readable name of the deployment location.
+url	 The url of the location where website is deployed, in the form protocol://hostname/path.
+relocation
+
+Describes where an artifact has moved to. If any of the values are omitted, it is assumed to be the same as it was before.
+
+Element	Description
+groupId	The group ID the artifact has moved to.
+artifactId	The new artifact ID of the artifact.
+version	The new version of the artifact.
+message	An additional message to show the user about the move, such as the reason.
+repository
+
+A repository contains the information needed for establishing connections with remote repoistory.
+
+Element	Description
+releases	How to handle downloading of releases from this repository.
+snapshots	How to handle downloading of snapshots from this repository.
+id	 A unique identifier for a repository. This is used to match the repository to configuration in the settings.xml file, for example.
+name	 Human readable name of the repository.
+url	 The url of the repository, in the form protocol://hostname/path.
+layout	 The type of layout this repository uses for locating and storing artifacts - can be legacy or default.
+releases
+
+Download policy
+
+Element	Description
+enabled	Whether to use this repository for downloading this type of artifact.
+updatePolicy	 The frequency for downloading updates - can be always, daily (default), interval:XXX (in minutes) or never (only if it doesn't exist locally).
+checksumPolicy	 What to do when verification of an artifact checksum fails. Valid values are ignore , fail or warn (the default).
+snapshots
+
+Download policy
+
+Element	Description
+enabled	Whether to use this repository for downloading this type of artifact.
+updatePolicy	 The frequency for downloading updates - can be always, daily (default), interval:XXX (in minutes) or never (only if it doesn't exist locally).
+checksumPolicy	 What to do when verification of an artifact checksum fails. Valid values are ignore , fail or warn (the default).
+pluginRepository
+
+A repository contains the information needed for establishing connections with remote repoistory.
+
+Element	Description
+releases	How to handle downloading of releases from this repository.
+snapshots	How to handle downloading of snapshots from this repository.
+id	 A unique identifier for a repository. This is used to match the repository to configuration in the settings.xml file, for example.
+name	 Human readable name of the repository.
+url	 The url of the repository, in the form protocol://hostname/path.
+layout	 The type of layout this repository uses for locating and storing artifacts - can be legacy or default.
+releases
+
+Download policy
+
+Element	Description
+enabled	Whether to use this repository for downloading this type of artifact.
+updatePolicy	 The frequency for downloading updates - can be always, daily (default), interval:XXX (in minutes) or never (only if it doesn't exist locally).
+checksumPolicy	 What to do when verification of an artifact checksum fails. Valid values are ignore , fail or warn (the default).
+snapshots
+
+Download policy
+
+Element	Description
+enabled	Whether to use this repository for downloading this type of artifact.
+updatePolicy	 The frequency for downloading updates - can be always, daily (default), interval:XXX (in minutes) or never (only if it doesn't exist locally).
+checksumPolicy	 What to do when verification of an artifact checksum fails. Valid values are ignore , fail or warn (the default).
+dependency
+
+Element	Description
+groupId	 The project group that produced the dependency, e.g. org.apache.maven.
+artifactId	 The unique id for an artifact produced by the project group, e.g. maven-artifact.
+version	 The version of the dependency, e.g. 3.2.1. In Maven 2, this can also be specified as a range of versions.
+type	 The type of dependency. This defaults to jar. While it usually represents the extension on the filename of the dependency, that is not always the case. A type can be mapped to a different extension and a classifier. The type often correspongs to the packaging used, though this is also not always the case. Some examples are jar, war, ejb-client and test-jar. New types can be defined by plugins that set extensions to true, so this is not a complete list.
+classifier	 The classifier of the dependency. This allows distinguishing two artifacts that belong to the same POM but were built differently, and is appended to the filename after the version. For example, jdk14 and jdk15.
+scope	 The scope of the dependency - compile, runtime, test, system, and provided. Used to calculate the various classpaths used for compilation, testing, and so on. It also assists in determining which artifacts to include in a distribution of this project. For more information, see the dependency mechanism.
+systemPath	 FOR SYSTEM SCOPE ONLY. Note that use of this property is discouraged and may be replaced in later versions. This specifies the path on the filesystem for this dependency. Requires an absolute path for the value, not relative. Use a property that gives the machine specific absolute path, e.g. ${java.home}.
+exclusions	 Lists a set of artifacts that should be excluded from this dependency's artifact list when it comes to calculating transitive dependencies.
+optional	 Indicates the dependency is optional for use of this library. While the version of the dependency will be taken into account for dependency calculation if the library is used elsewhere, it will not be passed on transitively.
+exclusion
+
+Element	Description
+artifactId	The artifact ID of the project to exclude.
+groupId	The group ID of the project to exclude.
+reporting
+
+Section for management of reports and their configuration.
+
+Element	Description
+excludeDefaults	If true, then the default reports are not included in the site generation. This includes the reports in the "Project Info" menu.
+outputDirectory	 Where to store all of the generated reports. The default is ${project.build.directory}/site .
+plugins	The reporting plugins to use and their configuration.
+plugin
+
+Element	Description
+groupId	The group ID of the reporting plugin in the repository.
+artifactId	The artifact ID of the reporting plugin in the repository.
+version	The version of the reporting plugin to be used.
+inherited	Whether the configuration in this plugin should be made available to projects that inherit from this one.
+configuration	The configuration of the reporting plugin.
+reportSets	Multiple specifications of a set of reports, each having (possibly) different configuration. This is the reporting parallel to an execution in the build.
+reportSet
+
+Represents a set of reports and configuration to be used to generate them.
+
+Element	Description
+id	The unique id for this report set, to be used during POM inheritance.
+configuration	Configuration of the report to be used when generating this set.
+inherited	 Whether any configuration should be propagated to child POMs.
+reports	 The list of reports from this plugin which should be generated from this set.
+dependencyManagement
+
+Section for management of default dependency information for use in a group of POMs.
+
+Element	Description
+dependencies	 The dependencies specified here are not used until they are referenced in a POM within the group. This allows the specification of a "standard" version for a particular dependency.
+dependency
+
+Element	Description
+groupId	 The project group that produced the dependency, e.g. org.apache.maven.
+artifactId	 The unique id for an artifact produced by the project group, e.g. maven-artifact.
+version	 The version of the dependency, e.g. 3.2.1. In Maven 2, this can also be specified as a range of versions.
+type	 The type of dependency. This defaults to jar. While it usually represents the extension on the filename of the dependency, that is not always the case. A type can be mapped to a different extension and a classifier. The type often correspongs to the packaging used, though this is also not always the case. Some examples are jar, war, ejb-client and test-jar. New types can be defined by plugins that set extensions to true, so this is not a complete list.
+classifier	 The classifier of the dependency. This allows distinguishing two artifacts that belong to the same POM but were built differently, and is appended to the filename after the version. For example, jdk14 and jdk15.
+scope	 The scope of the dependency - compile, runtime, test, system, and provided. Used to calculate the various classpaths used for compilation, testing, and so on. It also assists in determining which artifacts to include in a distribution of this project. For more information, see the dependency mechanism.
+systemPath	 FOR SYSTEM SCOPE ONLY. Note that use of this property is discouraged and may be replaced in later versions. This specifies the path on the filesystem for this dependency. Requires an absolute path for the value, not relative. Use a property that gives the machine specific absolute path, e.g. ${java.home}.
+exclusions	 Lists a set of artifacts that should be excluded from this dependency's artifact list when it comes to calculating transitive dependencies.
+optional	 Indicates the dependency is optional for use of this library. While the version of the dependency will be taken into account for dependency calculation if the library is used elsewhere, it will not be passed on transitively.
+exclusion
+
+Element	Description
+artifactId	The artifact ID of the project to exclude.
+groupId	The group ID of the project to exclude.
+distributionManagement
+
+This elements describes all that pertains to distribution for a project. It is primarily used for deployment of artifacts and the site produced by the build.
+
+Element	Description
+repository	 Information needed to deploy the artifacts generated by the project to a remote repository.
+snapshotRepository	 Where to deploy snapshots of artifacts to. If not given, it defaults to the repository element.
+site	 Information needed for deploying the web site of the project.
+downloadUrl	 The URL of the project's download page. If not given users will be referred to the homepage given by url. This is given to assist in locating artifacts that are not in the repository due to licensing restrictions.
+relocation	 Relocation information of the artifact if it has been moved to a new group ID and/or artifact ID.
+status	 Gives the status of this artifact in the remote repository. This must not be set in your local project, as it is updated by tools placing it in the reposiory. Valid values are: none (default), converted (repository manager converted this from an Maven 1 POM), partner (directly synced from a partner Maven 2 repository), deployed (was deployed from a Maven 2 instance), verified (has been hand verified as correct and final).
+repository
+
+Repository contains the information needed for deploying to the remote repoistory.
+
+Element	Description
+uniqueVersion	Whether to assign snapshots a unique version comprised of the timestamp and build number, or to use the same version each time
+id	 A unique identifier for a repository. This is used to match the repository to configuration in the settings.xml file, for example.
+name	 Human readable name of the repository.
+url	 The url of the repository, in the form protocol://hostname/path.
+layout	 The type of layout this repository uses for locating and storing artifacts - can be legacy or default.
+snapshotRepository
+
+Repository contains the information needed for deploying to the remote repoistory.
+
+Element	Description
+uniqueVersion	Whether to assign snapshots a unique version comprised of the timestamp and build number, or to use the same version each time
+id	 A unique identifier for a repository. This is used to match the repository to configuration in the settings.xml file, for example.
+name	 Human readable name of the repository.
+url	 The url of the repository, in the form protocol://hostname/path.
+layout	 The type of layout this repository uses for locating and storing artifacts - can be legacy or default.
+site
+
+Contains the information needed for deploying websites.
+
+Element	Description
+id	 A unique identifier for a deployment locataion. This is used to match the site to configuration in the settings.xml file, for example.
+name	 Human readable name of the deployment location.
+url	 The url of the location where website is deployed, in the form protocol://hostname/path.
+relocation
+
+Describes where an artifact has moved to. If any of the values are omitted, it is assumed to be the same as it was before.
+
+Element	Description
+groupId	The group ID the artifact has moved to.
+artifactId	The new artifact ID of the artifact.
+version	The new version of the artifact.
+message	An additional message to show the user about the move, such as the reason.

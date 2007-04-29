@@ -1,0 +1,140 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+# 
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)testa.cg - ver 1.1 - 01/04/2006
+#
+# Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
+# 
+# END_HEADER - DO NOT EDIT
+#
+
+%ifndef CG_ROOT    CG_ROOT = bld
+CG_ROOT_BASE =     $CG_ROOT
+
+#test external postfix operators
+
+$FOO=$FOO:badcommand
+
+BASE_METHOD_NAME = a
+N = 0
+METHOD_NAME = $BASE_METHOD_NAME$N
+%echo METHOD_NAME=$METHOD_NAME
+
+METHOD_NAME = $BASE_METHOD_NAME$N:incr:assign
+%echo METHOD_NAME=$METHOD_NAME
+
+METHOD_NAME = $BASE_METHOD_NAME$N:incr:assign
+%echo METHOD_NAME=$METHOD_NAME
+
+METHOD_NAME = $BASE_METHOD_NAME$N:decr:assign
+%echo METHOD_NAME=$METHOD_NAME
+
+METHOD_NAME = $BASE_METHOD_NAME$N:decr:assign
+%echo METHOD_NAME=$METHOD_NAME
+
+FOO = b a c
+
+FOO=echo c a b | xargs -n 1 | sort -
+%echo call sh with '$FOO'
+FOO=$FOO:sh
+%echo sh SAYS:
+%echo $FOO
+
+%echo --------------
+FOO = << EOF
+222
+9
+3
+4
+EOF
+
+CG_SHELL_COMMAND_ARGS = -n
+%echo sort -n SAYS:
+%echo $FOO:sort
+%echo --------------
+%undef CG_SHELL_COMMAND_ARGS
+#clear this before interprolating codegen00010.txt, which has a date command.
+CG_SHELL_COMMAND_ARGS =
+
+#test interpolation of external command called from within a template:
+CG_ROOT=$CG_ROOT_BASE
+%shell rm -f $CG_ROOT/${TESTNAME}.txt
+%echo -------------- BEFORE interpolation: ${TESTNAME}.txt:
+%shell cat ${TESTNAME}.txt
+%echo --------------
+
+${TESTNAME}.txt	/${TESTNAME}.txt
+
+%echo -------------- AFTER interpolation: $CG_ROOT/${TESTNAME}.txt
+%shell cat $CG_ROOT/${TESTNAME}.txt
+%echo --------------
+
+CG_SHELL_COMMAND_ARGS =
+FOO = 1 2 + p
+%echo 1. call dc with '$FOO'
+FOO=$FOO:dc
+%echo dc SAYS: $FOO
+
+FOO = << EOF
+2k
+1
+2 / p
+EOF
+
+%echo 2. call dc with '$FOO'
+FOO=$FOO:dc
+%echo dc SAYS: $FOO
+
+FOO = << EOF
+abc
+def
+EOF
+%echo CAT SAYS:
+%echo $FOO:cat
+
+#run a simple codegen test:
+FOO := << EOF
+CG_ROOT = /tmp/foo
+%echo CG_ROOT is $CG_ROOT
+EOF
+
+CG_SHELL_COMMAND_ARGS =
+%echo FOO is $FOO
+%echo codegen SAYS:  $FOO:codegen
+
+FOO=basename /a/b/c/foo.java
+%echo sh $FOO SAYS:  $FOO:sh
+
+CG_SHELL_COMMAND_ARGS = -f
+FOO= dirname /a/b/c/foo.java
+#note - csh requires a newline at the end of the command:
+%echo csh $FOO SAYS:  $FOO:newline:csh
+
+#an alternate what to add:
+CG_SHELL_COMMAND_ARGS =
+somevar=100
+FOO = $somevar 100 +p
+
+%echo before dc, somevar=$somevar
+somevar = $FOO:dc
+%echo after dc, somevar=$somevar

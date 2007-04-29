@@ -1,0 +1,7 @@
+TARGET_OS=cmn, ntcmn
+
+#this library generates generic xml files:
+xml_macros.cg       lib/$TARGET_OS/templates/xml/xml_macros.cg      0444
+
+#this perl file defines extended operations used by maven2 codegen libraries:
+xmlcg_ops.pl        lib/$TARGET_OS/templates/xml/xmlcg_ops.pl       0444

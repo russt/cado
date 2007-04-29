@@ -1,0 +1,275 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+# 
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)testi.cg - ver 1.1 - 01/04/2006
+#
+# Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
+# 
+# END_HEADER - DO NOT EDIT
+#
+
+#test expression operators
+
+#####
+tnum = 0
+%echo
+%echo COMPARISON POSTFIX OPERATOR TESTS
+#####
+
+tname=:eq
+foo = 5
+CG_COMPARE_SPEC := 5
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = $CG_COMPARE_SPEC:incr
+result=PASSED
+%if $foo:eq	result=FAILED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+tname=:ne
+foo = 0
+result=FAILED
+%if $foo:ne	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+tname=:lt
+foo = $CG_COMPARE_SPEC:decr
+result=FAILED
+%if $foo:lt	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+tname=:gt
+foo = $CG_COMPARE_SPEC:incr
+result=FAILED
+%if $foo:gt	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+tname=:ge
+foo = $CG_COMPARE_SPEC
+result=FAILED
+%if $foo:ge	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = $CG_COMPARE_SPEC:incr
+result=FAILED
+%if $foo:ge	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+tname=:le
+foo = $CG_COMPARE_SPEC
+result=FAILED
+%if $foo:le	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = $CG_COMPARE_SPEC:decr
+result=FAILED
+%if $foo:le	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+#####
+tnum = 0
+%echo
+%echo PATTERN MATCHING POSTFIX OPERATOR TESTS
+#####
+
+tname=:match
+foo = ,abc
+CG_MATCH_SPEC := /^\s*,/
+
+result=FAILED
+%if $foo:match	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+#test :m alias:
+result=FAILED
+%if $foo:m	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = ,abc
+CG_MATCH_SPEC := blooper
+%echo test $tnum - foo:match=$foo:match
+result=EXPECT EVAL ERROR
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+%echo
+
+tname=:substitute
+foo = ,abc
+CG_SUBSTITUTE_SPEC := s/^\s*,//
+%echo test $tnum - foo:substitute:a=$foo:substitute:a
+CG_COMPARE_SPEC := abc
+
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+%echo
+
+#test :s alias:
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+%echo
+
+foo = ,abc
+CG_SUBSTITUTE_SPEC := substitute_blooper
+%echo test $tnum - foo:substitute=$foo:substitute
+result=EXPECT EVAL ERROR
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+#####  test suffix operator:
+tname=:suffix
+tnum = 0
+%echo
+%echo $tname POSTFIX OPERATOR TESTS
+#####
+
+foo = /a/b/c/foo.java
+
+result=FAILED
+%echo foo='$foo' foo:suffix='$foo:suffix'
+CG_COMPARE_SPEC := java
+%if $foo:suffix:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+foo = /a/b/c/foo.java
+
+foo = D:\a\b\c\foo.9
+result=FAILED
+%echo foo='$foo' foo:suffix='$foo:suffix'
+CG_COMPARE_SPEC := 9
+%if $foo:suffix:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = /a/b/c/foo.c/
+result=FAILED
+%echo foo='$foo' foo:suffix='$foo:suffix'
+%ifnot $foo:suffix	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+#####  test dirname operator:
+tname=:dirname
+tnum = 0
+%echo
+%echo $tname POSTFIX OPERATOR TESTS
+#####
+
+foo = /a/b/c/foo.java
+
+result=FAILED
+%echo foo='$foo' foo:dirname='$foo:dirname'
+CG_COMPARE_SPEC := /a/b/c
+%if $foo:dirname:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+foo = /a/b/c/foo.java
+
+foo = D:\a\b\c\foo.9
+result=FAILED
+%echo foo='$foo' foo:dirname='$foo:dirname'
+CG_COMPARE_SPEC := D:\a\b\c
+%if $foo:dirname:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = //a///b//c/foo.c/
+result=FAILED
+%echo foo='$foo' foo:dirname='$foo:dirname'
+CG_COMPARE_SPEC := //a///b//c/foo.c
+%if $foo:dirname:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+#####  test basename operator:
+tname=:basename
+tnum = 0
+%echo
+%echo $tname POSTFIX OPERATOR TESTS
+#####
+
+foo = /a/b/c/foo.java
+
+result=FAILED
+%echo foo='$foo' foo:basename='$foo:basename'
+CG_COMPARE_SPEC := foo.java
+%if $foo:basename:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+foo = /a/b/c/foo.java
+
+foo = D:\a\b\c\foo.9
+result=FAILED
+%echo foo='$foo' foo:basename='$foo:basename'
+CG_COMPARE_SPEC := foo.9
+%if $foo:basename:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = //a///b//c/foo.c/
+result=FAILED
+%echo foo='$foo' foo:basename='$foo:basename'
+CG_COMPARE_SPEC :=
+%if $foo:basename:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+#####  test pad operator:
+tname=:pad
+tnum = 0
+%echo
+%echo $tname POSTFIX OPERATOR TESTS
+#####
+
+foo = 9
+CG_COMPARE_SPEC = 09
+result=FAILED
+%if $foo:pad:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = a
+CG_COMPARE_SPEC = $foo:lspace
+result=FAILED
+%if $foo:pad:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = 9
+CG_COMPARE_SPEC = 0009
+CG_PAD_SPEC = %04d
+result=FAILED
+%if $foo:pad:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = a
+CG_COMPARE_SPEC = 000a
+CG_PAD_SPEC = %04s
+result=FAILED
+%if $foo:pad:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = a
+CG_COMPARE_SPEC = $foo:lspace:lspace:lspace:lspace
+CG_PAD_SPEC = %5s
+result=FAILED
+%if $foo:pad:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = a
+CG_COMPARE_SPEC = $foo:rspace:rspace:rspace:rspace
+CG_PAD_SPEC = %-5s
+result=FAILED
+%if $foo:pad:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+#%echo POSTFIX OPERATOR $tname TEST #$tnum foo:pad='$foo:pad' CG_COMPARE_SPEC='$CG_COMPARE_SPEC'

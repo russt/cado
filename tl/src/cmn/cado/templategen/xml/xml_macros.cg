@@ -1,0 +1,119 @@
+#this is a codegen library used to create xml documents
+
+xml_macro_library_name = $CG_INFILE
+xml_macro_exit_status = 0
+xml_default_accumulator = ECHO_TXT
+
+{
+xml_header := << EOF
+    %ifndef MACRO_OUTPUT_ACCUMULATOR	MACRO_OUTPUT_ACCUMULATOR = $xml_default_accumulator
+    %ifndef $MACRO_OUTPUT_ACCUMULATOR	$MACRO_OUTPUT_ACCUMULATOR =
+
+$MACRO_OUTPUT_ACCUMULATOR := << EOF2
+<?xml version="1.0" encoding="UTF-8"?>
+EOF2
+
+EOF
+}
+
+{
+xml_line_element := << EOF
+    xml_macro_name = xml_line_element
+    %call xml_run_macro
+EOF
+
+xml_line_element_macro := << EOF
+<{=$XML_ELEMENT_NAME=}{=$XML_ATTRIBUTE_LIST:lspace=}>{=$XML_ELEMENT_BODY=}</{=$XML_ELEMENT_NAME=}>
+EOF
+}
+
+{
+xml_element := << EOF
+    xml_macro_name = xml_element
+    %call xml_run_macro
+EOF
+
+xml_element_macro := << EOF
+<{=$XML_ELEMENT_NAME=}{=$XML_ATTRIBUTE_LIST:lspace=}/>
+EOF
+}
+
+{
+xml_nested_element := << EOF
+    xml_macro_name = xml_nested_element
+    %call xml_run_macro
+EOF
+
+xml_nested_element_macro := << EOF
+<{=$XML_ELEMENT_NAME=}{=$XML_ATTRIBUTE_LIST:lnewline:indent1=}>
+{=$XML_ELEMENT_BODY:rtrim:rnewline:indent1=}
+</{=$XML_ELEMENT_NAME=}>
+EOF
+}
+
+{
+xml_run_macro := << EOF
+    #check arguments
+    %ifndef XML_ELEMENT_NAME xml_macro_exit_status = 0
+    %ifndef XML_ELEMENT_NAME %return ${xml_macro_library_name}[$xml_macro_name]:  you must define XML_ELEMENT_NAME!
+    #optional:
+    %ifndef XML_ATTRIBUTE_LIST XML_ATTRIBUTE_LIST=
+    %ifndef XML_ELEMENT_BODY XML_ELEMENT_BODY=
+
+    #set output accumulator
+    %ifndef MACRO_OUTPUT_ACCUMULATOR	MACRO_OUTPUT_ACCUMULATOR = $xml_default_accumulator
+    %ifndef $MACRO_OUTPUT_ACCUMULATOR	$MACRO_OUTPUT_ACCUMULATOR =
+
+    %ifdef MACRO_DEBUG %eecho MACRO_OUTPUT_ACCUMULATOR=$MACRO_OUTPUT_ACCUMULATOR
+
+    #precede element with comment if specified:
+    %ifdef XML_ELEMENT_DOC %ifdef INCLUDE_XML_ELEMENT_DOC %call xml_element_doc
+
+    #run macro, appending to accumulator var:
+    %evalmacro xml_run_macro_TempA ${xml_macro_name}_macro
+
+    %ifdef MACRO_DDEBUG %eecho ${xml_macro_library_name}[$xml_macro_name]: OUTPUT='$xml_run_macro_TempA'
+
+    $MACRO_OUTPUT_ACCUMULATOR = ${MACRO_OUTPUT_ACCUMULATOR:valueof}$xml_run_macro_TempA
+
+    %ifdef MACRO_DDEBUG %eecho ${xml_macro_library_name}[$xml_macro_name]: AFTER: $MACRO_OUTPUT_ACCUMULATOR='$MACRO_OUTPUT_ACCUMULATOR:valueof'
+
+    #undefine args:
+    %undef XML_ELEMENT_NAME
+    %undef XML_ATTRIBUTE_LIST
+    %undef XML_ELEMENT_BODY
+EOF
+}
+
+{ #add xml comments
+xml_element_doc := << EOF
+    %ifndef MACRO_OUTPUT_ACCUMULATOR	MACRO_OUTPUT_ACCUMULATOR = $xml_default_accumulator
+    %ifndef $MACRO_OUTPUT_ACCUMULATOR	$MACRO_OUTPUT_ACCUMULATOR =
+
+    ####
+    #set comment style if none specified:
+    ####
+    CG_MATCH_SPEC = /\n/
+    _xml_element_doc_has_eol = 0
+    %if $XML_ELEMENT_DOC:rtrim:match _xml_element_doc_has_eol = 1
+
+    %undef _xml_element_doc_style
+    %ifndef XML_COMMENT_STYLE %if    $_xml_element_doc_has_eol    _xml_element_doc_style = xmlcommentblock
+    %ifndef XML_COMMENT_STYLE %ifnot $_xml_element_doc_has_eol    _xml_element_doc_style = xmlcomment
+
+
+    ####
+    #add comment wrapper:
+    ####
+    evalstr := XML_ELEMENT_DOC = $XML_ELEMENT_DOC:rtrim:
+    evalstr = $evalstr$_xml_element_doc_style
+    %call evalstr
+
+    $MACRO_OUTPUT_ACCUMULATOR = << EOF2
+${MACRO_OUTPUT_ACCUMULATOR:valueof}${XML_ELEMENT_DOC:lnewline}
+EOF2
+
+    %undef XML_ELEMENT_DOC
+EOF
+}
+

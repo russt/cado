@@ -1,0 +1,42 @@
+{
+#
+#{=PL_PACKAGE=} - {=PL_PACKAGE_DESCRIPTION=}
+#
+
+use strict;
+
+package {=PL_PACKAGE=};
+my $pkgname = __PACKAGE__;
+
+#imports:
+{=PL_PKG_IMPORTS=}
+
+#package variables:
+{=PL_PKG_ATTRIBUTES=}
+
+sub {=PL_CONSTRUCTOR_NAME=}
+{
+    my ($invocant) = @_;
+    shift @_;
+
+    #allows this constructer to be invoked with reference or with explicit package name:
+    my $class = ref($invocant) || $invocant;
+
+{=$PL_CONSTRUCTOR_BODY:indent1=}
+
+    #set up class attribute  hash and bless it into class:
+    my $self = bless {
+{=$PL_OBJ_ATTRIBUTES:indent2=}
+        }, $class;
+
+    #post-attribute init after we bless our $self (allows use of accessor methods):
+{=$PL_POST_ATTRIBUTE_INIT:indent1=}
+
+    return $self;
+}
+
+################################### PACKAGE ####################################
+{=PL_PKG_METHODS=}
+
+1;
+} #end of {=PL_PACKAGE=}

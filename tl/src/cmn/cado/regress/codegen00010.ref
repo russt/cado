@@ -1,0 +1,58 @@
+TESTNAME is codegen00010
+METHOD_NAME=a0
+METHOD_NAME=a1
+METHOD_NAME=a2
+METHOD_NAME=a1
+METHOD_NAME=a0
+call sh with 'echo c a b | xargs -n 1 | sort -'
+sh SAYS:
+a
+b
+c
+--------------
+sort -n SAYS:
+3
+4
+9
+222
+--------------
+-------------- BEFORE interpolation: codegen00010.txt:
+before:  FOO='{=FOO=}'
+after:  FOO='{=$FOO:sort:newline=}'
+
+#note that the date doesn't care about stdin, so $avar can be anything.
+{=$avar:date:newline=}
+--------------
+-------------- AFTER interpolation: ../bld/cgtstroot/codegen00010.txt
+before:  FOO='222
+9
+3
+4
+'
+after:  FOO='222
+3
+4
+9
+'
+
+#note that the date doesn't care about stdin, so $avar can be anything.
+IGNORE Fri Dec 22 15:05:58 PST 2006
+--------------
+1. call dc with '1 2 + p'
+dc SAYS: 3
+2. call dc with '2k
+1
+2 / p
+'
+dc SAYS: .50
+CAT SAYS:
+abc
+def
+FOO is CG_ROOT = /tmp/foo
+%echo CG_ROOT is $CG_ROOT
+
+codegen SAYS:  CG_ROOT is /tmp/foo
+sh basename /a/b/c/foo.java SAYS:  foo.java
+csh dirname /a/b/c/foo.java SAYS:  /a/b/c
+before dc, somevar=100
+after dc, somevar=200

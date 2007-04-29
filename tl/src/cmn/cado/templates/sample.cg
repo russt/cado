@@ -1,0 +1,63 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+# 
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)sample.cg - ver 1.1 - 01/04/2006
+#
+# Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
+# 
+# END_HEADER - DO NOT EDIT
+#
+
+#set template path - normally, this would be defined in the environment.
+CG_TEMPLATE_PATH = .
+
+#set codegen output root:
+CG_ROOT = ./bld
+
+#you must say codgen -e to inherit environment variables:
+AUTHOR=$USER
+MYCLASS_ROOT = com.sun.internal.foo
+
+#the release version.  "d<n>" means development version <n>.
+VERSION=1.0d1
+
+#the following definitions can be used as placeholders:
+CLASS_JAVADOC=basic/javadoc.jtpl
+CLASS_METHODS=null
+CLASS_IMPORTS=null
+
+#set these vars for the class template to control
+#the list of interfaces implemented or the classes extended, etc.
+#if none, the set to empty string:
+CLASS_EXTENDS=
+CLASS_IMPLEMENTS=
+#=======================================================================
+
+#a basic interface shell:
+basic/interface.jtpl	$MYCLASS_ROOT.anInterface
+
+#a basic class shell:
+basic/class.jtpl	$MYCLASS_ROOT.aClass
+
+#a basic abstract class shell:
+basic/abstract.jtpl	$MYCLASS_ROOT.anAbstractClass

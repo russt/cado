@@ -1,0 +1,4 @@
+TESTNAME is codegen00007
+codegen00007.cg: about to include codegen00007.txt
+we are now in the include file:  ./codegen00007.txt
+codegen00007.cg: we're baaaack

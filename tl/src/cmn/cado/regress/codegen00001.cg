@@ -1,0 +1,197 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+# 
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)test1.cg - ver 1.1 - 01/04/2006
+#
+# Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
+# 
+# END_HEADER - DO NOT EDIT
+#
+
+#CG_TEMPLATES = .
+#CG_ROOT = .
+
+%ifndef CG_ROOT %echo setting CG_ROOT because it is not defined
+
+%ifndef CG_ROOT CG_ROOT = ./bld
+
+%echo CG_ROOT is now defined to be '$CG_ROOT'
+
+$TESTNAME.txt    /$TESTNAME.gen
+
+FOO = foo value
+%echo FOO=$FOO
+
+%undef FOO
+%ifdef FOO %echo FOO is still defined!  bad programmer!
+%ifndef FOO %echo FOO is no longer defined, life is good.
+
+true = true
+false = false
+zero = 0
+one = 1
+empty =
+
+tnum=0
+result=FAILED
+%if true	result=PASSED
+%echo %if test $tnum:incr:assign $result
+
+result=FAILED
+%if TRUE	result=PASSED
+%echo %if test $tnum:incr:assign $result
+
+result=FAILED
+%if 1	result=PASSED
+%echo %if test $tnum:incr:assign $result
+
+result=FAILED
+%if $zero:incr	result=PASSED
+%echo %if test $tnum:incr:assign $result
+
+result=FAILED
+%if $true	result=PASSED
+%echo %if test $tnum:incr:assign $result
+
+result=FAILED
+%if 2	result=PASSED
+%echo %if test $tnum:incr:assign $result
+
+result=FAILED
+%if +123456789	result=PASSED
+%echo %if test $tnum:incr:assign $result
+
+result=FAILED
+%if -27	result=PASSED
+%echo %if test $tnum:incr:assign $result
+
+result=PASSED
+%if -0	result=FAILED
+%echo %if test $tnum:incr:assign $result
+
+result=PASSED
+%if +0	result=FAILED
+%echo %if test $tnum:incr:assign $result
+
+#"false" is a non-empty string, so it evaluates to 1:
+result=FAILED
+%if $false	result=PASSED
+%echo %if test $tnum:incr:assign $result
+
+#empty string is false:
+result=PASSED
+%if $empty	result=FAILED
+%echo %if test $tnum:incr:assign $result
+
+result=FAILED
+%if blah-de-blah	result=PASSED
+%echo %if test $tnum:incr:assign $result
+
+result=EXPECTED SYNTAX ERROR
+%if
+%echo %if test $tnum:incr:assign $result
+
+result=EXPECTED TEMPLATE ERROR
+%if true b %echo blah
+%echo %if test $tnum:incr:assign $result
+
+tnum=0
+
+#false is just another non-empty string, so it is true!
+result=PASSED
+%ifnot false	result=FAILED
+%echo %ifnot test $tnum:incr:assign $result
+
+result=FAILED
+%ifnot 0	result=PASSED
+%echo %ifnot test $tnum:incr:assign $result
+
+result=PASSED
+%ifnot $false	result=FAILED
+%echo %ifnot test $tnum:incr:assign $result
+
+result=FAILED
+%ifnot $one:decr	result=PASSED
+%echo %ifnot test $tnum:incr:assign $result
+
+result=PASSED
+#this is still a non-empty string, so is true:
+%ifnot ""	result=FAILED
+%echo %ifnot test $tnum:incr:assign $result
+
+result=FAILED
+%ifnot -0	result=PASSED
+%echo %ifnot test $tnum:incr:assign $result
+
+result=FAILED
+%ifnot +0	result=PASSED
+%echo %ifnot test $tnum:incr:assign $result
+
+result=PASSED
+%ifnot true	result=FAILED
+%echo %ifnot test $tnum:incr:assign $result
+
+#test pointers in ifdef expressions:
+tnum = 0
+fooptr = foo1
+foo1 = foo1_value
+result=FAILED
+%ifdef $fooptr	result=PASSED
+%echo %ifdef test $tnum:incr:assign $result
+
+result=PASSED
+%ifdef $fooptr:valueof	result=FAILED
+%echo %ifdef test $tnum:incr:assign $result
+
+result=PASSED
+%ifndef $fooptr	result=FAILED
+%echo %ifndef test $tnum:incr:assign $result
+
+result=PASSED
+%undef foo1
+%ifdef $fooptr	result=FAILED
+%echo %ifdef test $tnum:incr:assign $result
+
+result=FAILED
+%ifndef $fooptr	result=PASSED
+%echo %ifndef test $tnum:incr:assign $result
+
+#test pointers in undef expressions:
+tnum = 0
+fooptr = foo1
+foo1 = foo1_value
+
+%undef $fooptr
+result=FAILED
+%ifndef foo1	result=PASSED
+%echo %undef test $tnum:incr:assign $result
+
+foo1 = foo1_value
+%undef foo1
+result=FAILED
+%ifndef foo1	result=PASSED
+%echo %undef test $tnum:incr:assign $result
+
+%undef $nullpointer
+result=EXPECTED VARIABLE REFERENCE WARNING
+%echo %undef test $tnum:incr:assign $result

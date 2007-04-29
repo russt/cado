@@ -1,0 +1,81 @@
+INTRO = << !
+We want to interpret m..n as a range value.
+Axioms:
+    :rangelb => m..n => m
+    :rangeub => m..n => n
+    common behavior
+        non-integer and non-nil-string => warning, ignore
+        "" => 0
+        m => m
+
+This script ${CG_INFILE} tests this behavior.
+!
+
+%echo $INTRO
+
+#####
+tname=:rangelb
+tnum = 0
+%echo $tname POSTFIX OPERATOR TESTS
+#####
+
+foo = 5
+CG_COMPARE_SPEC := 5
+result=FAILED
+%if $foo:rangelb:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+
+foo = 01..99
+CG_COMPARE_SPEC := 01
+result=FAILED
+%if $foo:rangelb:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+
+foo =
+result=FAILED
+%ifnot $foo:rangelb	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+
+#####
+tname=:rangeub
+tnum = 0
+%echo $tname POSTFIX OPERATOR TESTS
+#####
+foo = 5
+CG_COMPARE_SPEC := 5
+result=FAILED
+%if $foo:rangeub:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+
+foo = 01..99
+CG_COMPARE_SPEC := 99
+result=FAILED
+%if $foo:rangeub:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+
+foo =
+result=FAILED
+%ifnot $foo:rangeub	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+
+#####
+tname=:isint
+tnum = 0
+%echo $tname POSTFIX OPERATOR TESTS
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+#####
+foo = 123
+result=FAILED
+%if   $foo:isint	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+
+#####
+tname=:split
+tnum = 0
+%echo $tname POSTFIX OPERATOR TESTS
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+#####
+foo = 1,2,3
+result=FAILED
+%if   $foo:split	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result

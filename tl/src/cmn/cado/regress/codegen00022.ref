@@ -1,0 +1,26 @@
+TESTNAME is codegen00022
+We want to interpret m..n as a range value.
+Axioms:
+    :rangelb => m..n => m
+    :rangeub => m..n => n
+    common behavior
+        non-integer and non-nil-string => warning, ignore
+        "" => 0
+        m => m
+
+This script codegen00022.cg tests this behavior.
+
+:rangelb POSTFIX OPERATOR TESTS
+POSTFIX OPERATOR :rangelb TEST #1 PASSED
+POSTFIX OPERATOR :rangelb TEST #2 PASSED
+POSTFIX OPERATOR :rangelb TEST #3 PASSED
+:rangeub POSTFIX OPERATOR TESTS
+POSTFIX OPERATOR :rangeub TEST #1 PASSED
+POSTFIX OPERATOR :rangeub TEST #2 PASSED
+POSTFIX OPERATOR :rangeub TEST #3 PASSED
+:isint POSTFIX OPERATOR TESTS
+POSTFIX OPERATOR :isint TEST #1 PASSED
+POSTFIX OPERATOR :isint TEST #2 PASSED
+:split POSTFIX OPERATOR TESTS
+POSTFIX OPERATOR :split TEST #1 PASSED
+POSTFIX OPERATOR :split TEST #2 PASSED

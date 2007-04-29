@@ -1,0 +1,188 @@
+Requests for Enhancements to codegen
+
+*******************
+*     PENDING     *
+*******************
+
+-------------------
+05-Apr-2006 (russt)
+
+add :eval postfix op that will execute the contents of a var as if it was written
+to a file an then included.
+
+for example:
+
+    foo=bldhost -versionproperties
+    foo=$foo:sh:eval
+
+would result in some new variables defined:
+
+    %echo SHORT_PRODUCT_NAME=$SHORT_PRODUCT_NAME
+..
+etc.
+
+I suppose we could return the status of the eval as the result of the
+assignment.  I.e., in the above example, $foo would be empty or contain
+an error message from codegen.
+
+This is exactly equivalent to:
+
+    ECHO_TXT=bldhost -versionproperties
+    ECHO_TXT=$ECHO_TXT:sh
+    echo foofile
+    %include foofile
+    %echo SHORT_PRODUCT_NAME=$SHORT_PRODUCT_NAME
+    ...
+
+A different way, that would allow either a variable,
+or a pointer to variable, to be evaluated:
+
+    foo=bldhost -versionproperties
+    foo=$foo:sh
+    foo2=foo
+
+    %inline foo
+and
+    %inline $foo2
+
+would be equivalent.  This would allow me to pass variables
+around that could be inlined by other macros.
+-------------------
+26-Aug-2005 (russt)
+
+- Need to clarify the semantics of "undef".
+  in particular, if the :env operator for a var is undefined, then
+  shouldn't I return an undefined value?
+
+  This would mean modifying assignments so that lhs = rhs could assign "undef"
+  to lhs if rhs is undefined.  This is similar to the perl "undef", and it would
+  be exactly equivalent to "%undef lhs".  However, in the case of codegen, I cannot
+  add a keywork or function for the rhs, so in summary, there perhaps to be 3 ways
+  to get a variable undefined:
+
+  1.  %undef var
+  2.  var = <undefined expression>
+  3.  var = $var:undef
+
+Q:  when I say "%echo $var:undef", what should it display?
+A:  I think perhaps it should display ${var:undef} instead of ${var} as it does now.
+
+Q:  should  $var:env imply $var:nameof:env?
+A:  this is less useful, since $var:op1:op2: ... :op3:env could be an interesting
+    calculation.
+
+Q:  should  I allow uninitialized variables on lhs to participate in certain
+    postfix expressions?
+
+    I.e., what should be the result of:
+
+        %echo $SRCROOT:nameof:env
+
+    Currently it displays "SRCROOT", as does $SRCROOT:nameof:assign:env,
+    but perhaps it should return the contents of $ENV{'SRCROOT'} (or undefined).
+    [NOTE:  this was a bug introduced with :undef op; fixed in version 1.45]
+
+-------------------
+17-Aug-2005 (russt)
+
+- Add extension mechanism for post-fix operators; i.e., add
+  %extend statement, that adds a user-defined perl library
+  to implement new operators.  PRE-REQ: call postfix ops thru hash.
+
+-------------------
+12-Aug-2005 (russt)
+
+- Add %showvars statement - this will dump current symbol table
+
+-------------------
+
+*******************
+*   IMPLEMENTED   *
+*******************
+
+-------------------
+23-Aug-2005 (russt)
+
+- In file-spec, allow binary files on LHS.  copy unmolested.
+  (IMPLEMENTED in version 1.45 8/29/05)
+
+-------------------
+22-Aug-2005 (russt) [Version 1.44]
+
+- Add -Dvar[=value] command line arg
+  (IMPLEMENTED in version 1.44 8/22/05)
+
+-------------------
+12-Aug-2005 (russt)
+
+- Add %shift statement 
+  (IMPLEMENTED on 8/12/05).
+
+BUG FIXES:
+
+- need to escape '%' characters that we get in the input before passing to sprintf.
+  (IMPLEMENTED on 8/12/05)
+- need to ignore leading space on file-spec lines.
+  (IMPLEMENTED on 8/12/05)
+
+-------------------
+11-Aug-2005 (russt)
+
+Internal code clean-up/refactoring:
+
+- call postfix ops thru hash to improve performance
+- run messages thru standard interface (&err, &warn) to make them more consistent
+- keep track of macro names for tracing.
+
+-------------------
+07-Aug-2005 (russt)
+
+Pass un-used arguments to codegen.  I.e.:
+
+    % codegen cat.cg somefile
+
+    would set     $CG_ARGV_COUNT to 1
+    and would set $CG_ARGV_1 to "somefile"
+
+IMPLEMENTED in version 1.43 8/20/05 (as stack var, no CG_ARGV_COUNT)
+
+-------------------
+07-Aug-2005 (russt)
+
+Improve test infrastructure.
+
+- convert more tests to use conditional expressions to detect pass/fail
+- Write script to run all tests.
+- move tests to regress subdir.
+- some tests may need reference files
+- some tests (testh.cg) now require stdin.
+
+-------------------
+07-Aug-2005 (russt)
+
+Add %push, %pop statements. These are modeled after the perl statements:
+
+    perl (2)> push @foo, "a";
+     -> 1
+    perl (3)> print @foo;
+    a -> 1
+    perl (4)> push @foo, "b";
+     -> 2
+    perl (5)> print @foo
+    ab -> 1
+    #last-in, first-out:
+    perl (6)> pop @foo;
+     -> b
+
+Codegen version:
+
+    %push foovar <expr>
+
+is equivalent to:
+
+    foovar = $foovar${FS}<expr>
+
+where $FS is some internal field separator.
+
+IMPLEMENTED in version 1.42
+-------------------

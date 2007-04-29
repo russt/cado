@@ -1,0 +1,35 @@
+TESTNAME is codegen00023
+%foreach range TEST #1, arange=0..2
+ii=0
+ii=1
+ii=2
+%foreach range TEST #2, arange=0..2
+ii=0
+ii=1
+ii=2
+%foreach range TEST #3, arange=01..3
+ii=01
+ii=02
+ii=03
+%foreach range TEST #4, arange=1..03
+ii=01
+ii=02
+ii=03
+%foreach range TEST #5, arange=a..c
+%foreach range TEST #6, arangeptr=badvar
+%foreach range TEST #7, ii is ptr:
+
+%foreach pattern TEST #1, variable names of pattern vpattern=/^FOO_VAR_.*/
+ss=FOO_VAR_01
+ss=FOO_VAR_02
+ss=FOO_VAR_03
+
+%foreach pattern TEST #2, values of literal var pattern /^FOO_VAR_.*/
+ss=01
+ss=02
+ss=03
+
+%foreach pattern TEST #3, variable names of pattern varptr=vpattern, varptr:valueof=/^FOO_VAR_.*/
+ss=FOO_VAR_01
+ss=FOO_VAR_02
+ss=FOO_VAR_03

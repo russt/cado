@@ -1,0 +1,10 @@
+TEMPLATE    = file.mmf
+
+PKG =  bin
+PKG2    =  lib
+
+MODE    =  0555
+MODE2   =  0444
+
+FILES   = codegen.prl
+FILES2  = codegen.pl

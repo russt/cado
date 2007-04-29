@@ -1,0 +1,978 @@
+{
+CODEGEN_OP_STUBS := << EOF_OPS
+sub rtrim_op
+#process :rtrim postfix op
+{
+    my ($var) = @_;
+    $var =~ s/\s+$//;
+    return $var;
+}
+
+sub trim_op
+#process :trim postfix op
+{
+    my ($var) = @_;
+    $var =~ s/^\s+//;
+    $var =~ s/\s+$//;
+    return $var;
+}
+
+sub undef_op
+#process :undef postfix op
+{
+    my ($var, $varname) = @_;
+    #undefine $varname
+    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    $var = sprintf('${%s:undef}', $varname);   #same as lookup_def returns.
+    return $var;
+}
+
+sub m_op
+#alias for :match
+{
+    return &match_op(@_);
+}
+
+sub match_op
+#process :match postfix op
+#:match or :m - will match against CG_MATCH_SPEC
+#return 1 if match, else 0.
+{
+    my ($var) = @_;
+    my $spec = $CG_USER_VARS{'CG_MATCH_SPEC'};
+
+    return 0 unless (defined($spec));
+
+#printf "expr_match: var='%s' spec='%s'\n", $var, $spec;
+
+    my $ans = eval "\$var =~ $spec";
+
+    if ($@) {
+        printf STDERR "%s[match]: ERROR: line %d: evaluation of CG_MATCH_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, $@;
+        return 0;
+    } elsif (!defined($ans)) {
+        #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
+        printf STDERR "%s[match]: ERROR: line %d: evaluation of CG_MATCH_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, "ERROR in eval" ;
+        return 0;
+    }
+
+    return ($ans eq ""? 0 : 1);
+}
+
+sub pad_op
+#process :pad postfix op
+#pad a number or string as specified by CG_PAD_SPEC
+#Default is to zero-pad integers to width 2.
+#CG_PAD_SPEC is take as an sprintf format spec.
+{
+    my ($var) = @_;
+    my $spec = $CG_USER_VARS{'CG_PAD_SPEC'};
+
+    if (!defined($spec)) {
+        if (&is_integer($var)) {
+            $spec = "%02d";
+        } else {
+            $spec = "%2s";
+        }
+    }
+
+    printf "pad_op: var='%s' spec='%s'\n", $var, $spec if ($DEBUG);
+
+    return sprintf($spec, $var);
+}
+
+sub s_op
+#alias for :substitute
+{
+    return &substitute_op(@_);
+}
+
+sub substitute_op
+#process :substitute postfix op
+#:substitute or :s - will match against CG_SUBSTITUTE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_SUBSTITUTE_SPEC'};
+    return $var unless (defined($spec));
+
+    my $savevar = $var;
+    my $result = eval "\$var =~ $spec";
+
+    if ($@) {
+        printf STDERR "%s[substitute]: ERROR: line %d: evaluation of CG_SUBSTITUTE_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, $@;
+        return $savevar;
+    } elsif (!defined($result)) {
+        #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
+        printf STDERR "%s[substitute]: ERROR: line %d: evaluation of CG_SUBSTITUTE_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, "ERROR in eval" ;
+        return $savevar;
+    }
+
+    return $var;
+}
+
+sub tounix_op
+#convert a string to unix text
+{
+    my ($var) = @_;
+
+    $var =~ s/\r\n/\n/gm;
+    return $var;
+}
+
+sub todos_op
+#convert a string to dos text
+{
+    my ($var) = @_;
+
+    #make sure it is in unix format:
+    $var =~ &tounix_op($var);
+
+    $var =~ s/\n/\r\n/gm;
+    return $var;
+}
+
+sub eq_op
+#process :eq postfix op
+#:eq - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var == $spec) if (&is_number($var) && &is_number($spec));
+    return ($var eq $spec);
+}
+
+sub ne_op
+#process :ne postfix op
+#:ne - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var != $spec) if (&is_number($var) && &is_number($spec));
+    return ($var ne $spec);
+}
+
+sub gt_op
+#process :gt postfix op
+#:gt - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var > $spec) if (&is_number($var) && &is_number($spec));
+    return ($var gt $spec);
+}
+
+sub ge_op
+#process :ge postfix op
+#:ge - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var >= $spec) if (&is_number($var) && &is_number($spec));
+    return ($var ge $spec);
+}
+
+sub lt_op
+#process :lt postfix op
+#:lt - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var < $spec) if (&is_number($var) && &is_number($spec));
+    return ($var lt $spec);
+}
+
+sub le_op
+#process :le postfix op
+#:le - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var <= $spec) if (&is_number($var) && &is_number($spec));
+    return ($var le $spec);
+}
+
+sub basename_op
+#process :basename postfix op
+#return basename of input var
+{
+    my ($var) = @_;
+
+    return $1 if ( $var =~ /[\/\\]([^\/\\]*)$/ );
+    return "";
+}
+
+sub dirname_op
+#process :dirname postfix op
+#return dirname of input var
+{
+    my ($var) = @_;
+    $var =~ s/[\/\\][^\/\\]*$//;
+    return $var;
+}
+
+sub suffix_op
+#process :suffix postfix op
+#return suffix of input var
+{
+    my ($var) = @_;
+
+    return $1 if ( $var =~ /\.([^\.\\\/]*)$/ );
+    return "";
+}
+
+sub stacksize_op
+#process :stacksize postfix op
+#:stacksize - return the stacksize of a scalar.
+#only variables created by %push will have a stacksize > 1
+#empty string returns a stacksize of 0.
+{
+    my ($var) = @_;
+
+    return 0 if ($var eq "");
+
+    my @tmp = split($;, $var);
+
+    return $#tmp +1;
+}
+
+sub stackminus_op
+#process :stackminus postfix op
+#:stackminus - subtract the members of CG_STACK_SPEC from current stack.
+{
+    my ($var) = @_;
+
+    return $var if ($var eq "");
+
+    my @thisStack = split($;, $var);
+#printf STDERR "thisStack=(%s)\n", join(",", @thisStack);
+    my $specStack = $CG_USER_VARS{'CG_STACK_SPEC'};
+    return $var unless (defined($specStack));
+
+    my @specStack = split($;, $specStack);
+#printf STDERR "specStack=(%s)\n", join(",", @specStack);
+
+    my @new = &MINUS(\@thisStack, \@specStack);
+#printf STDERR "new=(%s)\n", join(",", @new);
+
+    return join($;, @new);
+}
+
+sub openfile_op
+#process :openfile postfix op
+#open a file if it is open. return error string or empty if no error.
+{
+    my ($fn, $varname) = @_;
+
+    my $fhref = $CG_OPEN_FILE_DESCRIPTORS{$fn};
+    my $fhidx = -1;
+
+    if (defined($fhref)) {
+        #then close before re-open:
+        close $fhref;
+        $fhidx = $CG_OPEN_FILE_FD_INDEXES{$fn};
+    } else {
+        #get the next file reference:
+        $fhidx = &get_avaliable_filehandle("open_fileop");
+
+        if ($fhidx < 0) {
+            return sprintf("%s: ERROR: out of file descriptors (max is %d).", $p, $LAST_TEMPLATE_FD_KEY+1);
+        }
+
+        $fhref = $TEMPLATE_FD_REFS[$fhidx];
+    }
+
+
+    if (!open($fhref, $fn)) {
+        &free_filehandle($fhidx, "open_fileop") if ($fhidx >= 0);   #free if we allocated filehandle
+        my $errtxt = sprintf("%s", $!);
+        return $errtxt unless ($errtxt eq "");
+        return "UNKNOWN ERROR";
+    }
+
+
+    #init line contents, count for newly opened file:
+    $CG_OFD_CURRENTLINE{$fn} = "";
+    $CG_OFD_CURRENTLINECOUNT{$fn} = 0;
+
+    #save file-handle:
+    $CG_OPEN_FILE_DESCRIPTORS{$fn} = $fhref;
+    $CG_OPEN_FILE_FD_INDEXES{$fn} = $fhidx;
+
+    return "";
+}
+
+sub getnextline_op
+#process :getnextline postfix op
+#get the next line of a file if it is open.
+#return varname if line is defined, otherwise, return "".
+#undefine varname if file is not open or we have read past the end.
+{
+    my ($fn, $varname) = @_;
+
+    if ($fn eq "-" || $fn =~ /stdin/i) {
+        my $line = <>;
+        if (!defined($line)) {
+            delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+            return "";
+        }
+        chomp $line;
+        $CG_OPEN_FILE_DESCRIPTORS{'<STDIN>'} = '<STDIN>';
+        $CG_OFD_CURRENTLINE{'<STDIN>'} = $line;
+        ++$CG_OFD_CURRENTLINECOUNT{'<STDIN>'};    #this keeps a tally of how many lines read from stdin
+
+        #we read a line from stdin.
+        $CG_USER_VARS{$varname} = '<STDIN>';  #normalize name of stdin
+        return $varname;
+    }
+
+    my $fhref = $CG_OPEN_FILE_DESCRIPTORS{$fn};
+    my $line = <$fhref> if (defined($fhref));
+
+    if (!defined($fhref) || !defined($line)) {
+        delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+        return "";
+    }
+
+    #otherwise, make a copy of current line, and increment line count:
+    if (defined($line)) {
+        chomp $line;
+        $CG_OFD_CURRENTLINE{$fn} = $line;
+        ++$CG_OFD_CURRENTLINECOUNT{$fn};
+    }
+
+    printf "getnextline_fileop: varname=%s fn=%s line='%s'\n", $varname, $fn, $line if ($DEBUG);
+
+    #return the name of the input variable, for use in %whiledef loops:
+    return $varname;
+}
+
+sub currentline_op
+#process :currentline postfix op
+#return the current input line of a file, or undef varname if file is closed
+{
+    my ($fn, $varname) = @_;
+
+    return $CG_OFD_CURRENTLINE{$fn} if (defined($CG_OFD_CURRENTLINE{$fn}));
+
+    #otherwise, undefine the caller's variable:
+    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    #otherwise, undefine the caller's variable:
+    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    return sprintf('${%s}', $varname);   #same as lookup_def returns.
+}
+
+sub currentlinenumber_op
+#process :currentlinenumber postfix op
+#(1..nlines), 0 => file closed
+{
+    my ($fn, $varname) = @_;
+
+    return $CG_OFD_CURRENTLINECOUNT{$fn} if (defined($CG_OFD_CURRENTLINECOUNT{$fn}));
+
+    return 0;    #allows %ifnot to detect that file is not open
+}
+
+sub closefile_op
+#process :closefile postfix op
+#close a file if it is open. set $var to error or empty if no error.
+{
+    my ($fn, $varname) = @_;
+    my $fhref = $CG_OPEN_FILE_DESCRIPTORS{$fn};
+
+    if (defined($fhref)) {
+        #then close:
+        close $fhref;
+
+        #clear variables related to this file:
+        delete $CG_OPEN_FILE_DESCRIPTORS{$fn} if (defined($CG_OPEN_FILE_DESCRIPTORS{$fn}));
+        delete $CG_OFD_CURRENTLINE{$fn} if (defined($CG_OFD_CURRENTLINE{$fn}));
+        delete $CG_OFD_CURRENTLINECOUNT{$fn} if (defined($CG_OFD_CURRENTLINECOUNT{$fn}));
+
+        if (defined($CG_OPEN_FILE_FD_INDEXES{$fn})) {
+            &free_filehandle($CG_OPEN_FILE_FD_INDEXES{$fn}, "close_fileop");
+            delete $CG_OPEN_FILE_FD_INDEXES{$fn};
+        }
+    }
+
+    #we don't return any errors for now...
+
+    return "";
+}
+
+sub eoltrim_op
+#process :eoltrim postfix op
+{
+    my ($var) = @_;
+    $var =~ s/\s+\n/\n/g;
+    return $var;
+}
+
+sub lspace_op
+#process :lspace postfix op
+#add one space to beginning of string iff it is a non-empty string:
+{
+    my ($var) = @_;
+    $var = " $var" unless ($var eq "");
+    return $var;
+}
+
+sub rspace_op
+#process :rspace postfix op
+{
+    my ($var) = @_;
+    #add one space to end of string iff it is a non-empty string:
+    $var = "$var " unless ($var eq "");
+    return $var;
+}
+
+sub space_op
+#process :space postfix op
+#use this to add spaces to empty string.
+{
+    my ($var) = @_;
+    return $var = $var . " ";
+}
+
+sub rnewline_op
+#process :rnewline postfix op
+{
+    my ($var) = @_;
+    #add one newline to end of string iff it is a non-empty string:
+    $var = "$var\n" unless ($var eq "");
+    return $var;
+}
+
+sub lnewline_op
+#process :lnewline postfix op
+{
+    my ($var) = @_;
+    $var = "\n$var" unless ($var eq "");
+    return $var;
+}
+
+sub newline_op
+#process :newline postfix op
+{
+    my ($var) = @_;
+    $var = "$var\n";
+    return $var;
+}
+
+sub fixeol_op
+#force at most one newline at the end of the string
+{
+    my ($var) = @_;
+
+    #ignore empty strings or strings that already have a newline:
+    return $var if ($var eq "" || $var =~ /\n$/);
+
+    $var = "$var\n";
+    return $var;
+}
+
+sub oneline_op
+#process :oneline postfix op
+#replace \s*EOL\s* sequences with a single space, and trim result:
+{
+    my ($var) = @_;
+
+    $var =~ s/\s*(\r\n)+\s*/ /g;
+    $var =~ s/\s*(\n\r)+\s*/ /g;
+    $var =~ s/\s*\n+\s*/ /g;
+    $var =~ s/\s*\r+\s*/ /g;
+
+    #trim:
+    $var =~ s/^\s+//;
+    $var =~ s/\s+$//;
+
+    return $var;
+}
+
+sub rangelb_op
+#process :rangelb postfix op
+#Interpret m..n as a range value.
+#    :rangelb => m..n => m
+#    :rangeub => m..n => n
+#    common behavior
+#        strings are trimmed
+#        if missing range operator "..", then reflect original value
+#        "" => 0
+#        m => m
+{
+    my ($var) = @_;
+
+    #trim leading/trailing whitespace:
+    $var = $1 if ($var =~ /^\s*([^\s]+)\s*$/);
+
+    return 0 if ($var eq "");
+
+    my @lbub  = split(/\.\./, $var, 2);
+
+    return $lbub[0] if ($#lbub >= 0);
+
+    return $var;
+}
+
+sub rangeub_op
+#process :rangeub postfix op
+#Interpret m..n as a range value.
+#    :rangelb => m..n => m
+#    :rangeub => m..n => n
+#    common behavior
+#        strings are trimmed
+#        if missing range operator "..", then reflect original value
+#        "" => 0
+#        m => m
+{
+    my ($var) = @_;
+
+    #trim leading/trailing whitespace:
+    $var = $1 if ($var =~ /^\s*([^\s]+)\s*$/);
+
+    return 0 if ($var eq "");
+
+    my @lbub  = split(/\.\./, $var, 2);
+
+    return $lbub[0] if ($#lbub == 0);
+    return $lbub[1] if ($#lbub == 1);
+
+    return $var;
+}
+
+sub isint_op
+#process :isint postfix op
+#returns 1 if <val> is a positive integer, else zero.
+{
+    my ($var) = @_;
+
+    return 1 if ( $var =~ /^\s*\d+\s*$/ );
+    return 0;
+}
+
+sub split_op
+#process :split postfix op
+#splits variable into a push/pop reference
+#default split set is [_,]
+{
+    my ($var) = @_;
+
+    printf STDERR "%s: ERROR: split is not implemented\n", $p;
+    return $var
+}
+
+
+sub onecol_op
+#process :onecol postfix op
+{
+    my ($var) = @_;
+
+    #trim, then replace \s+ sequences with newlines:
+    $var =~ s/^\s+//;
+    $var =~ s/\s+$//;
+    #Q: should I use \r\n on DOS?
+    $var =~ s/\s+/\n/g;
+
+    return $var;
+}
+
+sub method2rec_op
+#process :method2rec postfix op
+#convert a java method signature to a tab separated record:
+#parse a line containing a java method signature declaration, and output
+#a tab-separated record containing:
+#    (method attributes, return type, name(parmeters), exceptions thrown) 
+{
+    my ($var) = @_;
+
+    #make input easier to parse:
+    $var = &oneline_op($var);
+
+    #get rid of any tabs:
+    $var =~ s/\t//g;
+
+    #get rid of any terminating semi-colons:
+    $var =~ s/\s*;.*$//;
+
+    #get rid of any open-brace expressions:
+    $var =~ s/\s*{.*$//; #}
+
+    #pull out throws clause:
+    my $throws = "";
+    #WARNING: we localize the scope of $1 from the match, as perl leaves the
+    #most recent match defined until it is overriden, which means defined($1) is always
+    #true after the first match.  not what we want...
+    {
+        $var =~ s/\s+throws\s+(.*)//;
+        $throws = $1 if (defined($1));
+    }
+
+#printf STDERR "method2rec: var='%s' throws='%s'\n", $var, $throws;
+
+    #pull out methodname(args...):
+    my $name = "";
+    {
+        #get formal parameters:
+        $var =~ s/\s*(\(.*)$//;
+        $name = $1 if (defined($1));
+        #get method name:
+        $var =~ s/\s+(\S+)$//;
+        $name = "$1$name" if (defined($1));
+    }
+
+#printf STDERR "method2rec: var='%s' name='%s'\n", $var, $name;
+
+    #pull out return type:
+    my $returns = "";
+    #get array brackets if present:
+    {
+        $var =~ s/\s*(\[.*)$//;
+        $returns = $1 if (defined($1));
+        #get return type name
+        #note that pattern can start at beginning of line if interface
+        #with no attributes, because access attribute (public,private...)  is optional:
+        $var =~ s/\s*(\S+)$//;
+        $returns = "$1$returns" if (defined($1));
+    }
+
+#printf STDERR "method2rec: var='%s' returns='%s'\n", $var, $returns;
+
+    #whatever is left are the method attributes:
+    my $attributes = $var;
+
+#printf STDERR "method2rec: var='%s' attributes='%s'\n", $var, $attributes;
+
+    #return tab-separated record:
+    return join("\t", $attributes, $returns, $name, $throws);
+}
+
+sub ltrim_op
+#process :ltrim postfix op
+{
+    my ($var, $varname, $linecnt) = @_;
+    $var =~ s/^\s+//;
+    return $var;
+}
+
+sub antvar_op
+#process :antvar postfix op
+#convert to an ant variable reference:
+{
+    my ($var) = @_;
+    return '$' . "{$var}";
+}
+
+sub xmlcommentblock_op
+#process :xmlcommentblock postfix op
+#wrap $var in multi-line xml comment:
+#wrap the input string in an xml comment
+{
+    my ($var) = @_;
+
+    my $eolpat = "\n";
+    if ($var =~ /\r/) {
+        #set to use dos line endings:
+        $eolpat = "\r\n";
+    }
+
+    my @tmp = split($eolpat, $var);
+
+    $var = sprintf("<!--\n # %s\n-->", join("\n # ", @tmp));
+
+#    <!--
+#     # this
+#     # is a comment
+#    -->
+
+    return $var;
+}
+
+sub xmlcomment_op
+#process :xmlcomment postfix op
+#wrap $var in xml comment:
+{
+    my ($var) = @_;
+    return sprintf("<!-- %s -->", $var);
+}
+
+sub tab_op
+#process :tab postfix op
+#use this to add tabs to empty string.
+{
+    my ($var) = @_;
+    return $var . "\t";
+}
+
+sub tolower_op
+#process :tolower postfix op
+{
+    my ($var) = @_;
+    $var =~ tr/[A-Z]/[a-z]/;
+    return $var;
+}
+
+sub toupper_op
+#process :toupper postfix op
+{
+    my ($var) = @_;
+    $var =~ tr/[a-z]/[A-Z]/;
+    return $var;
+}
+
+sub cap_op
+#process :cap postfix op
+#this op capitalizes the first letter of a string.
+{
+    my ($var) = @_;
+    #ignore leading spaces:
+    $var =~ s/^(\s*)([a-z])(.*)$/$1\u$2$3/;
+    return $var;
+}
+
+sub uncap_op
+#process :uncap postfix op
+#this op uncapitalizes the first letter of a string.
+{
+    my ($var) = @_;
+    #ignore leading spaces:
+    $var =~ s/^(\s*)([A-Z])(.*)$/$1\l$2$3/;
+    return $var;
+}
+
+sub incr_op
+#process :incr postfix op
+{
+    my ($var) = @_;
+
+    #we do fixed-width increment, e.g., 001, 002, ... 999
+    my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+    $var = sprintf "%.*d", length($tmp), $var+1;
+
+    return $var;
+}
+
+sub decr_op
+#process :decr postfix op
+{
+    my ($var) = @_;
+
+    #we do fixed-width decrement, e.g., 999, 998, ... 000;
+    my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+    $var = sprintf "%.*d", length($tmp), $var-1;
+
+    return $var;
+}
+
+sub env_op
+#process :env postfix op
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    if (defined($ENV{$var})) {
+        $var = $ENV{$var};
+    } else {
+        printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $var, "env" unless ($QUIET);
+        $var = "";
+    }
+
+    return $var;
+}
+
+sub freq_op
+#process :freq postfix op
+#get the frequency of each line, and ouput in the form:
+#  <cnt><tab><unique_lines>
+#where <unique_lines> is the original data with leading/trailing whitespace trimmed
+{
+    my ($var) = @_;
+    my $eolpat = "\n";
+    if ($var =~ /\r/) {
+        #set to use dos line endings:
+        $eolpat = "\r\n";
+    }
+    my @tmp = split($eolpat, $var);
+
+#printf STDERR "freq: tmp=(%s)\n", join(',', @tmp);
+
+    #this is much faster than a for loop:
+    @tmp = grep (s/^\s*//, @tmp);
+    @tmp = grep (s/\s*$//, @tmp);
+
+    #now count unique occurances:
+    my %FREQ = ();
+    grep (++$FREQ{$_}, @tmp);
+
+#printf "keys FREQ=(%s)\n", join(",", sort keys %FREQ);
+#printf "values FREQ=(%s)\n", join(",", sort values %FREQ);
+
+    @tmp = grep($_ = "$FREQ{$_}\t$_", sort keys %FREQ);
+
+    return join("\n", @tmp);
+}
+
+sub nameof_op
+#process :nameof postfix op
+{
+    my ($var, $varname) = @_;
+    return $varname;
+}
+
+sub valueof_op
+#process :valueof postfix op
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    #show the value of the variable named by $var:
+    if (&var_defined($var)) {
+        $var = $CG_USER_VARS{$var};
+    } else {
+        printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $var, "valueof" unless ($QUIET);
+        $var = sprintf("\${%s:undef}", $varname);;
+    }
+
+    return $var;
+}
+
+sub a_op
+#alias for :assign
+{
+    return &assign_op(@_);
+}
+
+sub assign_op
+#process :assign postfix op
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    #update the value of $var:
+    $CG_USER_VARS{$varname} = $var;
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+
+    return $var;
+}
+
+sub clr_op
+#set a variable to empty string.
+{
+    my ($var, $varname, $linecnt) = @_;
+    return &assign_op("", $varname, $linecnt);
+}
+
+sub zero_op
+#set a variable to zero.
+{
+    my ($var, $varname, $linecnt) = @_;
+    return &assign_op(0, $varname, $linecnt);
+}
+
+my @RCS_KEYWORDS = (
+        "Author",
+        "Date",
+        "Header",
+        "Id",
+        "Locker",
+        "Log",
+        "Name",
+        "RCSfile",
+        "Revision",
+        "Source",
+        "State",
+    );
+
+sub stripRcsKeywords_op
+#strip all RCS keywords from the string
+{
+    my ($var) = @_;
+
+    #optimization - don't look at strings unless there is at
+    #least one possible rcs keyword sequence:
+    return $var unless ($var =~ /\$[A-Z][a-z]/ );
+
+    for my $kw (@RCS_KEYWORDS) {
+        #this will only strip keywords that are properly terminated.
+        #for example, $Id .. <EOL>  will not be touched,
+        #but $Id ... $ will be deleted.
+        $var =~ s/\$$kw[^\$\n]*\$//g
+    }
+
+    return $var;
+}
+
+sub crcfile_op
+#return the crc of the file named by the string.
+#open the file directly, and if that fails, look in CG_ROOT.
+#return zero if file is not readable, otherwise,
+#hex number representing the crc.
+{
+    my ($fn) = @_;
+    my $crc = "0";
+
+    #if we can read file directly...
+    if ( -r $fn ) {
+        $crc =  sprintf("%x", &pcrc::CalculateFileCRC($fn));
+        return "$crc";
+    } else {
+        #otherwise, look in CG_ROOT:
+        my ($cgfn) = &path::mkpathname($CG_USER_VARS{'CG_ROOT'}, $fn);
+
+        if ( -r $cgfn ) {
+            $crc =  sprintf("%x", &pcrc::CalculateFileCRC($cgfn));
+            return "$crc";
+        }
+    }
+
+    return "0";    #return zero if we cannot open file
+}
+
+sub crcstr_op
+#return the crc of the contents of a string
+{
+    my ($var) = @_;
+
+    my $tmpfile_fullpath = &write_string_to_cg_tmp_file($var);
+    if ($tmpfile_fullpath eq "NULL") {
+        #we treat this as an internal error (as opposed to a user error):
+        printf STDERR "%s[%s]: ERROR: line %d: cannot create temp file.\n",
+            $p, "crcstr_op", $LINE_CNT unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return "0";    #return zero if we cannot open file
+    }
+
+    #return crc of temp file containing string:
+    my $crc = &crcfile_op($tmpfile_fullpath);
+    unlink $tmpfile_fullpath;
+    return $crc;
+}
+
+sub crc_op
+#return crcfile, and if that fails, crcstr.
+#use explicit ops if you want to force it one way or the other.
+{
+    my ($var) = @_;
+    my $crc = 0;
+
+    $crc =  &crcfile_op($var);
+    return $crc if ( $crc ne "0" );
+
+    #otherwise, return crc of string:
+    return &crcstr_op($var);
+}
+
+EOF_OPS
+}

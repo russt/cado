@@ -1,0 +1,5 @@
+15-Aug-05
+
+-add maven_lib_defaults, have maven_lib_reset call it.
+-add maven_lib_set_debug, maven_lib_clear_debug,
+ maven_lib_set_verbose, maven_lib_clear_verbose

@@ -1,0 +1,7 @@
+sub {=$PL_ATTRIBUTE_NAME:uncap=}
+#return m{=PL_ATTRIBUTE_NAME=} list
+{
+    my ($self) = @_;
+    return @{$self->{'m{=PL_ATTRIBUTE_NAME=}'}};
+}
+

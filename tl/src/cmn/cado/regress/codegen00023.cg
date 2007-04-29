@@ -1,0 +1,66 @@
+#set codegen output root:
+%ifndef CG_ROOT CG_ROOT = ./bld
+
+#####
+tnum = 0
+tname=%foreach range
+#####
+
+arange = 0..2
+%print $tname TEST #${tnum:incr:assign}, arange=${arange}
+%foreach ii arange %print ii=$ii
+
+arangeptr = arange
+%print $tname TEST #${tnum:incr:assign}, arange=${arangeptr:valueof}
+%foreach ii $arangeptr %print ii=$ii
+
+arange = 01..3
+%print $tname TEST #${tnum:incr:assign}, arange=${arange}
+%foreach ii arange %print ii=$ii
+
+arange = 1..03
+%print $tname TEST #${tnum:incr:assign}, arange=${arange}
+%foreach ii arange %print ii=$ii
+
+#this should generate an illegal range error:
+arange = a..c
+%print $tname TEST #${tnum:incr:assign}, arange=${arangeptr:valueof}
+%foreach ii $arangeptr %print ii=$ii
+
+#this should generate an error:
+arangeptr = badvar
+%print $tname TEST #${tnum:incr:assign}, arangeptr=${arangeptr}
+%foreach ii $arangeptr %print ii=$ii
+
+#this should generate an error:
+%print $tname TEST #${tnum:incr:assign}, ii is ptr:
+%foreach $ii $arangeptr %print ii=$ii
+
+#####
+tnum = 0
+tname=%foreach pattern
+#####
+
+
+ii=00
+FOO_VAR_$ii:incr:a = $ii
+FOO_VAR_$ii:incr:a = $ii
+FOO_VAR_$ii:incr:a = $ii
+
+vpattern := /^FOO_VAR_.*/
+
+#this dumps the FOO_VAR_* variable names:
+%print
+%print $tname TEST #${tnum:incr:assign}, variable names of pattern vpattern=$vpattern
+%foreach ss vpattern %echo ss=$ss
+
+#this dumps the FOO_VAR_* variable values:
+%print
+%print $tname TEST #${tnum:incr:assign}, values of literal var pattern $vpattern
+%foreach ss vpattern %print ss=$ss:valueof
+
+#this also dumps the FOO_VAR_* variable names:
+varptr = vpattern
+%print
+%print $tname TEST #${tnum:incr:assign}, variable names of pattern varptr=$varptr, varptr:valueof=$varptr:valueof
+%foreach ss $varptr %print ss=$ss

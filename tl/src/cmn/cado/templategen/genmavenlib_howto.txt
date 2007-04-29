@@ -1,0 +1,43 @@
+How to create input for genmavenlib.cg.
+
+Naming rules:
+
+1.  POM variable names must be unique.  Otherwise, cannot specify all pom elements fully as
+    later definitions will override previous ones.  For example, <project><id>... and
+    <developer><id> must be uniquely qualified.  Unique element names are also required to
+    be able to specify documentation of the elements uniquely.
+2.  element names in maven schema must not contain under-score (_) characters (none so far!)..
+3.  the actual element name must match:  '_' element_name <EOI>
+
+Example:
+
+maven element:                        <pomVersion></pomVersion>
+genmavenlib.cg element input name:          project_pomVersion
+genmavenlib.cg doc input name:        maven_project_pomVersion_doc
+generated token name:                 MAVEN_PROJECT_POMVERSION
+
+Input files:
+    maven*/element_names.txt          the is the rpn style file to define the genmavenlib element input names.
+    maven*/maven_doc.defs             defines the documentaion for each maven element
+
+Auxillary files:
+    maven*/element_ref.txt            the reference POM from maven.apache.org, with element end tags added for testing
+    finddups.sh                       finds duplicate elements in maven/maven_doc.defs
+    test_elements.txt                 short elements file to test genmavenlib.cg
+
+How to test maven2 reference pom:
+    testgenmaven.cg                   generates full maven2 pom and diffs against maven2/element_ref.txt
+
+#######
+Editing patterns:
+#######
+
+Edits to create end tags:
+    :g/<[a-zA-Z][a-zA-Z]*\/>/s/^/,/
+    :g/^,/s/<\([a-zA-Z][a-zA-Z]*\).*/<\1><\/\1>/
+
+Edits to create element_names.txt input:
+    Eliminate opening element tags:
+        :v/<\//s/.*//
+    Add project_prefix to outer elements ('=' marks terminals, ',' marks non-terminals):
+        :g/^[=,]/s/\([=,]    \)</\1project_/

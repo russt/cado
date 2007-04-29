@@ -1,0 +1,5 @@
+    /** Constructs a <CODE>{=CG_CLASSNAME=}</CODE>.  */
+    public {=CG_CLASSNAME=}()
+    {
+    }
+

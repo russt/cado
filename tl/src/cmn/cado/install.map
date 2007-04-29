@@ -1,0 +1,8 @@
+TARGET_OS = cmn & skel
+codegen.prl        bin/$TARGET_OS/codegen                 0555
+
+TARGET_OS = ntcmn & skel & ksh
+codegen.prl        bin/$TARGET_OS/codegen.ksh             0555
+
+TARGET_OS=cmn, ntcmn
+codegen.pl         lib/$TARGET_OS/codegen.pl              0444

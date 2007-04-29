@@ -1,0 +1,31 @@
+TEMPLATE    = file.mmf
+
+#don't check syntax for shell templates:
+CHECK=
+
+PKG     =  lib
+DEST    =  ${BASE}/${PKG}/${TARGET_OS}/templates/java
+
+PKG2    =  lib
+DEST2   =  ${BASE}/${PKG2}/${TARGET_OS}/templates/java/basic
+
+PKG3    =  lib
+DEST3   =  ${BASE}/${PKG3}/${TARGET_OS}/templates/shell
+
+PKG4    =  lib
+DEST4   =  ${BASE}/${PKG4}/${TARGET_OS}/templates
+
+MODE    =  0444
+MODE2   =  0444
+MODE3   =  0444
+MODE4   =  0444
+
+FILES  = copyright.jtpl echo.jtpl null.jtpl sample.cg sample2.cg
+FILES2 = abstract.jtpl interface.jtpl class.jtpl getset.jtpl\
+         class_nopkg.jtpl javadoc.jtpl constructor.jtpl main.jtpl\
+         echo_methods.jtpl gen_imports.jtpl gen_javadoc.jtpl singleton.jtpl\
+         gen_method_body.jtpl gen_method_body.cg
+
+FILES3 = main.sh
+
+FILES4 = cddl_license.txt

@@ -1,0 +1,2 @@
+#undefine perl template definitions:
+%undef PL_*

@@ -1,0 +1,9 @@
+TEMPLATE    = file.mmf
+
+PKG     =  lib
+DEST    =  ${BASE}/${PKG}/${TARGET_OS}/templates/maven2
+
+MODE    =  0444
+
+FILES  = maven_lib.cg maven_lib_doc.txt maven_doc.defs \
+         maven_settings_lib.cg maven_settings_lib_doc.txt settings_doc.defs

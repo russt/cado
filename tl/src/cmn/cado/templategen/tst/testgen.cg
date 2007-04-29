@@ -1,0 +1,166 @@
+#this script generates the test  codegen library and documentation.
+
+{
+    ######
+    #setup
+    ######
+    PWD=
+    PWD=$PWD:pwd
+
+    #if CG_ROOT is not defined ...
+    %ifndef CG_ROOT %echo WARNING: defaulting CG_ROOT to $PWD/bld
+    %ifndef CG_ROOT CG_ROOT = $PWD/bld
+
+    CG_ROOT_BASE = $CG_ROOT
+    CG_ROOT =       $CG_ROOT_BASE/testgen
+
+    #GENMAVELIB_ROOT = $SRCROOT:nameof:env/genesis/templates
+    XMLCGUTIL = ../xmlcgutil.pl
+    GENMAVENLIB = ../genmavenlib.cg
+
+    #add cgroot base to template path:
+    CG_TEMPLATE_PATH = ..;$CG_ROOT_BASE;$CG_TEMPLATE_PATH
+}
+
+{
+    #step 1:  generate new xml reference document with unique element names:
+    #
+    #INPUT:   testgen/element_ref.txt
+    #OUTPUT:  testgen/element_unique.txt
+    #INTERMEDIATE OUTPUT (hand edited):  testgen/testgen_macro.defs
+    #INTERMEDIATE OUTPUT:  testgen/testgen_non_terminal.defs
+    #INTERMEDIATE OUTPUT:  testgen/testgen_terminal.defs
+
+    CG_ROOT =       $CG_ROOT_BASE/testgen
+    %shell mkdir -p $CG_ROOT
+
+    %echo
+    %echo perl  $XMLCGUTIL -t < testgen/element_ref.txt > $CG_ROOT/testgen_terminal.defs
+    %shell perl $XMLCGUTIL -t < testgen/element_ref.txt > $CG_ROOT/testgen_terminal.defs
+
+    %echo
+    %echo perl $XMLCGUTIL -n < testgen/element_ref.txt > $CG_ROOT/testgen_non_terminal.defs
+    %shell perl $XMLCGUTIL -n < testgen/element_ref.txt > $CG_ROOT/testgen_non_terminal.defs
+
+    #WARNING:  only do this once - then hand edit!
+#    %echo
+#    %echo perl $XMLCGUTIL -m < testgen/element_ref.txt > $CG_ROOT/testgen_macro.defs
+#    %shell perl $XMLCGUTIL -m < testgen/element_ref.txt > $CG_ROOT/testgen_macro.defs
+#    %exit
+}
+
+{
+    #step 2:  generate new xml doc with unique element names:
+
+    #include newly generated files:
+    %include xml/xml_macros.cg
+    %include testgen/testgen_macro.defs
+    %include testgen/testgen_terminal.defs
+    %include testgen/testgen_non_terminal.defs
+
+    MACRO_OUTPUT_ACCUMULATOR = ECHO_TXT
+    $MACRO_OUTPUT_ACCUMULATOR =
+
+    #this is the top-level element:
+    %echo
+    %echo Generate $CG_ROOT/element_unique.txt
+    %call gen_top_element
+
+    echo         /element_unique.txt
+
+    #save frequency report of the output doc:
+    %echo
+    %echo Generating frequency report to $CG_ROOT/element_unique_freq.txt
+    ECHO_TXT = $ECHO_TXT:freq
+    echo /element_unique_freq.txt
+
+    #show any non-unique elements:
+    %echo
+    %echo  grep -v "^1" $CG_ROOT/element_unique_freq.txt
+    %shell grep -v "^1" $CG_ROOT/element_unique_freq.txt
+    %echo --------------------------
+
+    #compare new doc to old doc (this is a good check to make sure *macro.defs
+    #is reproducing the ref xml doc, *until* prefix names are added, at which point
+    #this check can be commented out):
+    %echo
+    %echo diff -c $CG_ROOT/element_unique.txt testgen/element_ref.txt
+    %shell diff -c $CG_ROOT/element_unique.txt testgen/element_ref.txt
+    %echo --------------------------
+}
+
+{
+    #step 3:  generate postfix input spec for $GENMAVENLIB:
+    #INPUT:   testgen/element_unique.txt
+    #OUTPUT:  testgen/element_names.txt
+    %echo
+    %echo  perl $XMLCGUTIL -p < $CG_ROOT/element_unique.txt > $CG_ROOT/element_names.txt
+    %shell perl $XMLCGUTIL -p < $CG_ROOT/element_unique.txt > $CG_ROOT/element_names.txt
+}
+
+{
+    #step 4:  generate m2 testgen codegen lib:
+    #INPUT:   testgen/elements.txt
+    #INPUT:   testgen/testgen_doc.defs
+    #OUTPUT:  testgen/testgen_lib.cg
+
+    CG_ROOT =       $CG_ROOT_BASE/testgen
+    top_element =   top
+    mprefix =       testgen
+    mprefix_def =   -DMACRO_PREFIX=$mprefix
+    outlib =        -DMACRO_OUTPUT_LIB=testgen_lib.cg
+    element_names = -DMAVEN_TERMINAL_DEFS=$CG_ROOT/element_names.txt
+    doc_defs =      -DMAVEN_DOC_DEFS=testgen/testgen_doc.defs
+    debug =         -DGEN_MAVEN_LIB_DEBUG=1
+    debug =
+
+    #generate maven 2.0.x testgen lib:
+    %echo
+    %echo  codegen -cgroot $CG_ROOT -u $mprefix_def $outlib $element_names $doc_defs $debug $GENMAVENLIB
+    %shell codegen -cgroot $CG_ROOT -u $mprefix_def $outlib $element_names $doc_defs $debug $GENMAVENLIB
+}
+
+{
+    #step 5:  generate full testgen doc, and diff against input reference
+    #INPUT:  testgen/testgen_lib.cg codegen macro library
+    #OUTPUT: testgen/testgen.xml
+
+    %include $CG_ROOT/testgen_lib.cg
+
+    MAVEN_LIB_GENERATE_EMPTY_ELEMENTS = 1
+    #create/clean accumulator:
+    MACRO_OUTPUT_ACCUMULATOR = ECHO_TXT
+    $MACRO_OUTPUT_ACCUMULATOR =
+
+    #generate a full settings.xml
+    %echo
+    %echo Generating test $CG_ROOT/testgen.xml
+    #skip xml header to avoid diff:
+    #%call xml_header
+    %call ${mprefix}_${top_element}
+
+    %echo
+    %echo Generating test settings.xml:  $CG_ROOT/testgen.xml
+    echo    /testgen.xml
+
+    %echo
+    %echo  diff -c $CG_ROOT/testgen.xml  testgen/element_ref.txt
+    %shell diff -c $CG_ROOT/testgen.xml  testgen/element_ref.txt
+    %echo --------------------------
+}
+
+{
+    #step 6:  generate user doc for m2 settings lib:
+    #INPUT:  testgen/testgen_lib.cg codegen macro library
+    #OUTPUT: testgen/testgen_lib_doc.txt
+
+    #show user variables, but don't dump to stdout:
+    DO_NOT_DUMP_USER_VARS = 1
+    %call show_maven_user_vars
+
+    ECHO_TXT = $maven_user_vars
+    #write the user maven var specs to a file:
+    %echo
+    %echo Generating DOC:  $CG_ROOT/testgen_lib_doc.txt
+    echo    /testgen_lib_doc.txt
+}

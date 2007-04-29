@@ -1,0 +1,15 @@
+TARGET_OS = cmn,ntcmn
+../../os/path.pl            lib/$TARGET_OS/path.pl          0444
+../../os/os.pl              lib/$TARGET_OS/os.pl            0444
+../../os/oscmn.pl           lib/$TARGET_OS/oscmn.pl         0444
+../../util/crc.pl           lib/$TARGET_OS/pcrc.pl          0444
+../../support/sp.pl         lib/$TARGET_OS/sp.pl            0444
+
+TARGET_OS = cmn
+../../os/unix.pl            lib/$TARGET_OS/unix.pl          0444
+
+TARGET_OS = ntcmn
+../../os/ntcmn.pl           lib/$TARGET_OS/ntcmn.pl         0444
+
+TARGET_OS = cmn & skel, ntcmn & skel & ksh
+../../util/crc.prl          bin/$TARGET_OS/pcrc             0555

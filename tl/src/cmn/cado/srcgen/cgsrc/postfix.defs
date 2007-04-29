@@ -1,0 +1,253 @@
+{
+POSTFIX_OPS := << EOF
+sub eval_postfix_op
+#implement postfix operations for variables
+#returns input string with operation applied.
+{
+    my ($op, $var, $varname, $linecnt) = @_;
+
+    my $fname = sprintf("%s_op", $op);
+    my $fref = \&{$fname};
+
+    #printf STDERR "eval_postfix_op:  op='%s' varname='%s' var='%s' fname='%s'\n", $op, $varname, $var, $fname if ($DEBUG);
+#printf STDERR "eval_postfix_op:  op='%s' varname='%s' var='%s' fname='%s'\n", $op, $varname, $var, $fname;
+
+    if ( defined(&{$fref}) ) {
+        $var = &{$fref}($var, $varname, $linecnt);
+        printf STDERR "eval_postfix_op:  AFTER var='%s'\n", $var if ($DEBUG);
+#printf STDERR "eval_postfix_op:  AFTER var='%s'\n", $var;
+        return $var;
+    }
+
+    #otherwise, we have an arithmetic op, or external command.
+
+    if ($op =~ /^indent(\d*)$/) {
+        #add n indent levels, as defined by CG_INDENT_STRING
+        if (defined($1) and $1 ne "") {
+            $var = &increase_indent($var, $1) unless ($var eq "");
+        } else {
+            #no indent level supplied - assume 1:
+            $var = &increase_indent($var, 1) unless ($var eq "");
+        }
+    } elsif ($op =~ /^_([^\s]*)$/) {
+        #this is the xml/html wrapper op.  $foo:_p => <p>$foo</p>
+        if (defined($1) and $1 ne "") {
+            my $ee = $1;  #save element name
+
+            #if we have CG_ATTRIBUTE_$ee defined ...
+            if (&var_defined("CG_ATTRIBUTE_$ee")) {
+                $var = sprintf "<%s %s>%s</%s>", $ee, &lookup_def("CG_ATTRIBUTE_$ee"), $var, $ee;
+            } else {
+                $var = sprintf "<%s>%s</%s>", $ee, $var, $ee;
+            }
+        }
+    } elsif ($op =~ /^plus(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var + $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^minus(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var - $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^times(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var * $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^div(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var / $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^rem(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var % $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^\s*$/) {
+        #silently ignore empty operators
+    } else {
+        #assume that operator is a valid shell command:
+        printf STDERR "%s [eval_postfix_op]: assuming '%s' is an external command\n", $p, $op if ($VERBOSE);
+        $var = &exec_shell_op($op, $var);
+    }
+
+    printf STDERR "eval_postfix_op:  AFTER var='%s'\n", $var if ($DEBUG);
+    return $var;
+}
+
+sub increase_indent
+#increase the indent level of each line in input 
+{
+    my ($var, $indent_level) = @_;
+    my $leadin = &lookup_def("CG_INDENT_STRING") x $indent_level;
+
+    my $eolpat = "\n";
+    if ($var =~ /\r/) {
+        #set to use dos line endings:
+        $eolpat = "\r\n";
+    }
+    my @tmp = split($eolpat, $var, -1);
+        #-1 => include trailing null fields, i.e., empty lines in this case
+
+#printf STDERR "increase_indent: leadin='%s' tmp=(%s)\n", $leadin, join(',', @tmp);
+
+    #this is much faster than a for loop:
+    grep ((!/^\s*$/) && ($_ = "$leadin$_"), @tmp);
+
+    return join("\n", @tmp);
+}
+
+sub exec_shell_op
+#open a command processor as a pipe, and feed <var> as stdin.
+#returns <var> unmodified if there is an error creating the pipe,
+#otherwise, the output from the command.
+{
+    my ($cmd, $var) = @_;
+
+    #write $var to a tmp file:
+    my $tmpfile = &os'TempFile;
+    if (!open(TMPFILE, ">$tmpfile")) {
+        printf STDERR "%s [exec_shell_op]: ERROR: cannot open '%s' for write: %s\n", $p, $tmpfile, $!;
+        ++ $GLOBAL_ERROR_COUNT;
+        # var is unmodified
+    } else {
+        #make sure that input to pipe has at least one EOL.
+        #otherwise, mks won't read the pipe.
+        chomp $var;
+        printf TMPFILE "%s\n", $var;
+        close TMPFILE;
+
+        #check for command line arguments:
+        my $args = "";
+        $args = $CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'} if ( defined($CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'}) );
+        $cmd = "$cmd $args" if ($args ne "");
+
+        #now open pipe to command:
+        $CG_USER_VARS{'CG_SHELL_STATUS'} = 255;    #unless shell sets status, we assume bad
+        if (!open(CMDPIPE, "sh -c '$cmd' <$tmpfile|")) {
+            printf STDERR "%s [exec_shell_op]: ERROR: cannot open pipe to command '%s': %s\n", $p, $cmd, $!;
+            ++ $GLOBAL_ERROR_COUNT;
+        } else {
+            #read stdout of pipe back into var:
+            my @var = <CMDPIPE>;
+            close CMDPIPE;
+            $CG_USER_VARS{'CG_SHELL_STATUS'} = $?;
+            #sh adds an extra newline, trim it:
+            $var = join("",@var);
+            chomp $var;
+        }
+    }
+
+    return $var;
+}
+
+sub var_defined
+#return 1 if a codegen variable is defined
+#uses same algorithm as lookup_def, but is non-destructive
+{
+    my ($varname) = @_;
+
+    if ($DEBUG) {
+        printf STDERR "var_defined(%s) e1=%d e2=%d e3=%d\n", $varname,
+            ( defined($CLASS_VAR_REF) && defined(${$CLASS_VAR_REF}{$varname}) ),
+            (defined($CG_USER_VARS{$varname}) && $CG_USER_VARS{$varname} ne "NULL"),
+            ($ENV_VARS_OKAY && defined($ENV{$varname}))
+            ;
+    }
+
+    return (
+        ( defined($CLASS_VAR_REF) && defined(${$CLASS_VAR_REF}{$varname}) ) ||
+        (defined($CG_USER_VARS{$varname}) && $CG_USER_VARS{$varname} ne "NULL") ||
+        ($ENV_VARS_OKAY && defined($ENV{$varname}))
+    );
+}
+
+sub is_number
+#true if <var> is a number (integer or decimal).
+{
+    my ($var) = @_;
+    my $result = ( ($var =~ /^\s*[-+]?\s*\d+(\.\d+)?\s*$/) ? 1 : 0 );
+
+#printf STDERR "is_number: var='%s' result=%d\n", $var, $result;
+
+    return $result;
+}
+
+sub is_integer
+#true if <var> is an integer
+{
+    my ($var) = @_;
+    return ($var =~ /^\s*[-+]?\s*\d+\s*$/);
+}
+
+sub is_java_comment
+{
+    my ($lref) = @_;
+    my (@lines) = @{$lref};
+    my ($ans) = 0;
+
+    while ($#lines >= 0) {
+        if (&is_java_line_comment($lines[0])) {
+            $ans = 1;
+            shift @lines;
+        } elsif (&is_java_block_comment_start($lines[0])) {
+            #loop until we find the end:
+            shift @lines;
+            while ($#lines >= 0 && !($ans = &is_java_block_comment_end($lines[0]))) {
+                shift @lines;
+            }
+            shift @lines if ($ans);
+        } else {
+            last;
+        }
+    }
+
+    #replace original only if we modified it:
+    @{$lref} = @lines if ($ans);
+
+    return $ans;
+}
+
+sub is_java_block_comment_start
+{
+    my ($txt) = @_;
+
+    #look for /*, but not /** ..
+    return 1 if ($txt =~ /^\s*\/\*/ && $txt !~ /^\s*\/\*\*/);
+    return 0;
+}
+
+sub is_java_block_comment_end
+{
+    my ($txt) = @_;
+    return ($txt =~ /\*\//) ? 1 : 0;
+}
+
+sub is_java_line_comment
+{
+    my ($txt) = @_;
+
+    #look for // ...
+    return 1 if ($txt =~ /^\s*\/\//);
+
+    #look for /* ... */, but not /** .. */
+    if ($txt =~ /^\s*\/\*/ && $txt =~ /\*\//) {
+        #we don't count javadoc as part of the header:
+        return 1 unless $txt =~ /^\s*\/\*\*/;
+    }
+
+    return 0;
+}
+
+sub is_wsp
+{
+    my ($lref) = @_;
+    my (@lines) = @{$lref};
+    my ($ans) = 0;
+
+    while ($#lines >= 0 && $lines[0] =~ /^\s*$/) {
+        shift @lines;
+        $ans = 1;
+    }
+
+    #replace original only if we modified it:
+    @{$lref} = @lines if ($ans);
+
+    return $ans;
+}
+
+EOF
+}

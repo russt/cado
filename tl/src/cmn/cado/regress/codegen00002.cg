@@ -1,0 +1,161 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+# 
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)test2.cg - ver 1.1 - 01/04/2006
+#
+# Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
+# 
+# END_HEADER - DO NOT EDIT
+#
+
+%ifndef CG_ROOT    CG_ROOT = bld
+CG_ROOT_BASE =     $CG_ROOT
+
+IMPORT_LIST= a,b,c
+JAVDOC_TEXT= this is a description of the $TESTNAME.gen class\n\twhich is pretty \n\tsilly - don't you think?
+$TESTNAME.txt    /$TESTNAME.gen
+
+IMPORT_LIST=
+JAVDOC_TEXT=
+$TESTNAME.txt    /${TESTNAME}a.gen
+
+JAVDOC_TEXT= << EOF
+this is a description of the $TESTNAME.gen class
+but this time is is comming from a here-now string,
+which is pretty cool if you ask me.
+EOF
+$TESTNAME.txt    /${TESTNAME}b.gen
+
+#test un-interprolated assignment (:= operator):
+somevar = somevalue
+rawvar := ${somevar}$somevar
+
+%echo raw assign test 1 rawvar='$rawvar'
+%echo
+
+rawvar := << EOF
+$JAVDOC_TEXT
+$somevar
+$rawvar
+EOF
+
+%echo raw assign test 2 rawvar='$rawvar'
+%echo
+
+#test that we can evaluate macros using tmpfiles in a new cg_root:
+CG_ROOT = $CG_ROOT_BASE/macrotests
+%shell rm -rf bld/macrotests
+
+#####
+#test %readtemplate
+#####
+%readtemplate echo_macro echo
+%echo test readtemplate 1:  echo_macro='$echo_macro'
+%echo
+
+macronvarname=echo_macro
+templatefn=echo
+%readtemplate $macronvarname $templatefn
+%echo test readtemplate 2:  $macronvarname='$echo_macro'
+%echo
+
+#####
+#test %evalmacro
+#####
+#NOTE the evalmacro tests depend on readtemplate tests, which read echo template into $echo_macro:
+ECHO_TXT=evalmacro test 1
+%evalmacro evalmacro_test1 echo_macro
+%echo evalmacro_test1='$evalmacro_test1'
+%echo
+
+ECHO_TXT=evalmacro test 2
+macronvarname=echo_macro
+%evalmacro evalmacro_test2 $macronvarname
+%echo evalmacro_test2='$evalmacro_test2'
+%echo
+
+ECHO_TXT= .evalmacro test 3a (init)
+%evalmacro >>evalmacro_test3 $macronvarname
+%echo test evalmacro 3a: evalmacro_test3='$evalmacro_test3'
+
+ECHO_TXT= .evalmacro test 3b (append)
+%evalmacro >> evalmacro_test3 $macronvarname
+%echo test evalmacro 3b: evalmacro_test3='$evalmacro_test3'
+
+ECHO_TXT= .evalmacro test 3c (no white-space for >>)
+%evalmacro>>evalmacro_test3 $macronvarname
+%echo test evalmacro 3c: evalmacro_test3='$evalmacro_test3'
+%echo
+
+ECHO_TXT= << EOF
+evalmacro test 3d multiline line 01
+evalmacro test 3d multiline line 02
+evalmacro test 3d multiline line 03
+EOF
+
+%evalmacro evalmacro_test3d echo_macro
+%echo test evalmacro 3d: evalmacro_test3d='$evalmacro_test3d'
+%echo
+
+#####
+#test %evaltemplate
+#####
+ECHO_TXT=evaltemplate test 1
+%evaltemplate echo_out echo
+%echo test evaltemplate 1: echo_out='$echo_out'
+%echo
+
+ECHO_TXT=evaltemplate test 2
+templatefn=echo
+%evaltemplate echo_out2 $templatefn
+%echo test evaltemplate 2: echo_out2='$echo_out2'
+%echo
+
+ECHO_TXT=.evaltemplate test 3a (init)
+%evaltemplate >> echo_out3 $templatefn
+%echo test evaltemplate 3a: echo_out3='$echo_out3'
+
+ECHO_TXT=.evaltemplate test 3b (append)
+%evaltemplate >> echo_out3 $templatefn
+%echo test evaltemplate 3b: echo_out3='$echo_out3'
+
+ECHO_TXT= .evaltemplate test 3c (no white-space for >>)
+%evaltemplate>>echo_out3 $templatefn
+%echo test evaltemplate 3c: echo_out3='$echo_out3'
+%echo
+
+#####
+#test %evalmacro with input that has % chars in it.
+#####
+
+somevarwithpercents = %a %b %c
+
+amacro := {=somevarwithpercents=}
+
+%evalmacro output amacro
+
+%echo output='$output'
+result=FAILED
+CG_COMPARE_SPEC = $somevarwithpercents
+%if $output:eq result=PASSED
+%echo somevarwithpercents test $result

@@ -1,0 +1,6 @@
+{=%include copyright.jtpl=}
+{=%include $CLASS_IMPORTS=}
+{=%include $CLASS_JAVADOC=}
+public class {=CG_CLASSNAME=}{=$CLASS_EXTENDS:lspace:eoltrim=}{=$CLASS_IMPLEMENTS:lspace:eoltrim=}{=CG_NEWLINE_BEFORE_CLASS_BRACE=}{
+{=%include $CLASS_METHODS=}
+}

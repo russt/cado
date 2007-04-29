@@ -1,0 +1,181 @@
+%ifndef CG_ROOT CG_ROOT = .
+
+CG_TEMPLATE_PATH = ..;$CG_TEMPLATE_PATH
+
+%include xml/xml_macros.cg
+
+{
+INTRO := << !
+This is a test program to illustrate an algorithm to allow multiple
+xml parent child relationships.
+
+Suppose we have a tree as follows:
+
+a_01
+    b_01
+        c_01
+        c_02
+    b_02
+        c_03
+        c_04
+    b_03
+        c_05
+        c_06
+a_02
+    b_04
+        c_07
+        c_08
+    b_05
+        c_09
+        c_10
+    b_06
+        c_11
+        c_12
+
+!
+}
+
+{#then we specify as follows:
+
+A_COUNT = 01..02
+B_COUNT_01 = 01..03
+B_COUNT_02 = 04..06
+
+C_COUNT_01 = 01..02
+C_01 = value_01_01
+C_02 = value_01_02
+
+C_COUNT_02 = 03..04
+C_03 = value_02_03
+C_04 = value_02_04
+
+C_COUNT_03 = 05..06
+C_05 = value_03_05
+C_06 = value_03_06
+
+C_COUNT_04 = 07..08
+C_07 = value_04_07
+C_08 = value_04_08
+
+C_COUNT_05 = 09..10
+C_09 = value_05_09
+C_10 = value_05_10
+
+C_COUNT_06 = 11..12
+C_11 = value_06_11
+C_12 = value_06_12
+}
+
+{
+######### MAIN #########
+main := << EOF
+    MACRO_OUTPUT_ACCUMULATOR = ECHO_TXT
+    $MACRO_OUTPUT_ACCUMULATOR =
+
+    pi=00
+    %foreach ic A_COUNT %call gen_A
+
+    %echo -n $MACRO_OUTPUT_ACCUMULATOR:valueof
+EOF
+}
+
+{
+gen_A := << EOF
+    _a_save_accumulator = $MACRO_OUTPUT_ACCUMULATOR
+    _a_save_pi = $pi
+    pi=$ic
+
+    #re-assign to temporary accumulator to pick up kids:
+    MACRO_OUTPUT_ACCUMULATOR = _a_kid_accumulator
+    #clear the kid accumulator:
+    $MACRO_OUTPUT_ACCUMULATOR =
+
+    #make calls to generate my kid elements:
+    %foreach ic B_COUNT_$pi %call gen_B
+    %foreach ic B_COUNT_$pi %call gen_D
+    
+    #now generate me:
+    XML_ELEMENT_NAME =  a
+    #the kids are our body:
+    XML_ELEMENT_BODY =  $MACRO_OUTPUT_ACCUMULATOR:valueof
+    #restore the output accumulator varaible name:
+    MACRO_OUTPUT_ACCUMULATOR    = $_a_save_accumulator
+
+    %call xml_nested_element
+
+    #restore parent instance count:
+    pi = $_a_save_pi
+EOF
+}
+
+{
+gen_B := << EOF
+    _b_save_accumulator = $MACRO_OUTPUT_ACCUMULATOR
+    _b_save_pi = $pi
+    pi=$ic
+
+    #re-assign to temporary accumulator to pick up kids:
+    MACRO_OUTPUT_ACCUMULATOR = _b_kid_accumulator
+    #clear the kid accumulator:
+    $MACRO_OUTPUT_ACCUMULATOR =
+
+    #make calls to generate my kid elements:
+    %foreach ic C_COUNT_${pi}  %call gen_C
+
+    #now generate me:
+    XML_ELEMENT_NAME =  b
+    #the kids are our body:
+    XML_ELEMENT_BODY =  $MACRO_OUTPUT_ACCUMULATOR:valueof
+    #restore the output accumulator varaible name:
+    MACRO_OUTPUT_ACCUMULATOR    = $_b_save_accumulator
+
+    %call xml_nested_element
+
+    #restore parent instance count:
+    pi = $_b_save_pi
+EOF
+}
+
+{
+gen_D := << EOF
+    _d_save_accumulator = $MACRO_OUTPUT_ACCUMULATOR
+    _d_save_pi = $pi
+    pi=$ic
+
+    #re-assign to temporary accumulator to pick up kids:
+    MACRO_OUTPUT_ACCUMULATOR = _d_kid_accumulator
+    #clear the kid accumulator:
+    $MACRO_OUTPUT_ACCUMULATOR =
+
+    #make calls to generate my kid elements:
+    %foreach ic C_COUNT_${pi}  %call gen_C
+
+    #now generate me:
+    XML_ELEMENT_NAME =  d
+    #the kids are our body:
+    XML_ELEMENT_BODY =  $MACRO_OUTPUT_ACCUMULATOR:valueof
+    #restore the output accumulator varaible name:
+    MACRO_OUTPUT_ACCUMULATOR    = $_d_save_accumulator
+
+    %call xml_nested_element
+
+    #restore parent instance count:
+    pi = $_d_save_pi
+EOF
+}
+
+{
+gen_C := << EOF
+    cvaluevar = C_$ic
+
+    XML_ELEMENT_NAME =  c
+    XML_ELEMENT_BODY =  $cvaluevar:valueof
+    %call xml_line_element
+EOF
+}
+
+%echo $INTRO
+%echo OUTPUT:
+%echo -----------------------
+%call main
+%echo -----------------------

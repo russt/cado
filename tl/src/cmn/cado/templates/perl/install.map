@@ -1,0 +1,9 @@
+TARGET_OS=cmn, ntcmn
+get.ptpl                    lib/$TARGET_OS/templates/perl/get.ptpl                  0444
+getlist.ptpl                lib/$TARGET_OS/templates/perl/getlist.ptpl              0444
+getset.ptpl                 lib/$TARGET_OS/templates/perl/getset.ptpl               0444
+getsetlist.ptpl             lib/$TARGET_OS/templates/perl/getsetlist.ptpl           0444
+newobj.cg                   lib/$TARGET_OS/templates/perl/newobj.cg                 0444
+prlobj.ptpl                 lib/$TARGET_OS/templates/perl/prlobj.ptpl               0444
+prlskel.ptpl                lib/$TARGET_OS/templates/perl/prlskel.ptpl              0444
+reset_template_vars.ptpl    lib/$TARGET_OS/templates/perl/reset_template_vars.ptpl  0444

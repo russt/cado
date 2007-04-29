@@ -1,0 +1,103 @@
+TESTNAME is codegen00016
+01
+02
+03
+amacro: cnt=49
+amacro: cnt=48
+amacro: cnt=47
+amacro: cnt=46
+amacro: cnt=45
+amacro: cnt=44
+amacro: cnt=43
+amacro: cnt=42
+amacro: cnt=41
+amacro: cnt=40
+amacro: cnt=39
+amacro: cnt=38
+amacro: cnt=37
+amacro: cnt=36
+amacro: cnt=35
+amacro: cnt=34
+amacro: cnt=33
+amacro: cnt=32
+amacro: cnt=31
+amacro: cnt=30
+amacro: cnt=29
+amacro: cnt=28
+amacro: cnt=27
+amacro: cnt=26
+amacro: cnt=25
+amacro: cnt=24
+amacro: cnt=23
+amacro: cnt=22
+amacro: cnt=21
+amacro: cnt=20
+amacro: cnt=19
+amacro: cnt=18
+amacro: cnt=17
+amacro: cnt=16
+amacro: cnt=15
+amacro: cnt=14
+amacro: cnt=13
+amacro: cnt=12
+amacro: cnt=11
+amacro: cnt=10
+amacro: cnt=09
+amacro: cnt=08
+amacro: cnt=07
+amacro: cnt=06
+amacro: cnt=05
+amacro: cnt=04
+amacro: cnt=03
+amacro: cnt=02
+amacro: cnt=01
+amacro: cnt=00
+
+%while 004 is true
+%while 003 is true
+%while 002 is true
+%while 001 is true
+%while -004 is true
+%while -003 is true
+%while -002 is true
+%while -001 is true
+%while 4 is true
+%while 3 is true
+%while 2 is true
+%while 1 is true
+%while 0 is true
+%if cntptr:valueof is true
+%ifdef cntptr is true
+
+%void test 1 PASSED
+
+%undef test 1 PASSED
+%undef test 2 PASSED
+%undef test 3 PASSED
+%undef test 4 PASSED
+%undef test 5 PASSED
+%undef test 6 PASSED
+
+:undef test 1 PASSED
+:undef test 2 PASSED
+foo=${foo:undef}
+:undef test 3 PASSED (foo=${foo:undef})
+foo=    xxx
+foo=${foo:undef}
+:undef test 4 PASSED
+foo=${foo:undef}
+:undef test 5 PASSED
+
+foo=${foo:undef} foo:zero=0
+:clr/:zero test 1 PASSED
+foo=${foo:undef} foo:clr=
+:clr/:zero test 2 PASSED
+
+foo:xmlcomment is <!-- this is a comment -->
+foo:xmlcommentblock:
+<!--
+ # The <project> element specifies various attributes about a project. This
+ # is the root element of the project descriptor. The following table lists
+ # all of the possible child elements. Child elements with children are
+ # then documented further in subsequent sections.
+-->

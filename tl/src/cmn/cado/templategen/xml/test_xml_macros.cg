@@ -1,0 +1,56 @@
+%include xml/xml_macros.cg
+
+MACRO_DEBUG = true
+MACRO_OUTPUT_ACCUMULATOR =	PROJECT_BODY
+
+XML_ELEMENT_NAME=name
+XML_ELEMENT_BODY=open-esb
+%interpret xml_line_element
+
+XML_ELEMENT_NAME=pomVersion
+XML_ELEMENT_BODY=1.3
+%interpret xml_line_element
+
+MACRO_OUTPUT_ACCUMULATOR =	PROJECT_SHELL
+XML_ELEMENT_NAME=project
+XML_ELEMENT_BODY=$PROJECT_BODY
+%interpret xml_nested_element
+
+%echo -n $PROJECT_SHELL
+#generates:
+#<project>
+#    <name>open-esb</name>
+#    <pomVersion>1.3</pomVersion>
+#</project>
+
+#####
+#with nesting:
+#####
+MACRO_OUTPUT_ACCUMULATOR =	PROJECT_BODY
+$MACRO_OUTPUT_ACCUMULATOR =
+
+XML_ELEMENT_NAME=name
+XML_ELEMENT_BODY=open-esb
+%interpret xml_nested_element
+
+XML_ELEMENT_NAME=pomVersion
+XML_ELEMENT_BODY=1.3
+%interpret xml_nested_element
+
+MACRO_OUTPUT_ACCUMULATOR =	PROJECT_SHELL
+$MACRO_OUTPUT_ACCUMULATOR =
+XML_ELEMENT_NAME=project
+XML_ELEMENT_BODY=$PROJECT_BODY
+%interpret xml_nested_element
+
+%echo -n $PROJECT_SHELL
+
+#generates:
+#<project>
+#    <name>
+#        open-esb
+#    </name>
+#    <pomVersion>
+#        1.3
+#    </pomVersion>
+#</project>

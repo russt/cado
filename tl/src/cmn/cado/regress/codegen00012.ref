@@ -1,0 +1,4 @@
+TESTNAME is codegen00012
+D=$
+antvar=${somevar}
+antvar=${anothervar}

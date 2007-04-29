@@ -1,0 +1,214 @@
+%ifndef CG_ROOT  CG_ROOT = bld
+%ifndef TESTNAME %echo you must define TESTNAME!
+%ifndef TESTNAME %halt
+
+#make test repeatable:
+%shell rm -rf $CG_ROOT/$TESTNAME.dir
+CG_ROOT = $CG_ROOT/$TESTNAME.dir
+
+#add our output dir to the template path:
+CG_TEMPLATE_PATH=$CG_ROOT;$CG_TEMPLATE_PATH
+
+#test %pragma statement
+
+#####
+%echo
+%echo TEST preserve_multiline_lnewline pragma
+#####
+%pragma preserve_multiline_lnewline 1
+
+FOO = << EOF
+line1
+line2
+EOF
+%echo pragma ON  FOO='$FOO'
+
+%pragma preserve_multiline_lnewline 0
+
+FOO = << EOF
+line1
+line2
+EOF
+%echo pragma OFF FOO='$FOO'
+
+#try an unrecognized pragma:
+%pragma XYZ 1
+
+#try bad pragma statements:
+%pragma
+%pragma preserve_multiline_lnewline
+
+#####
+%echo
+%echo TEST copy pragma
+#####
+ECHO_TXT = Hello World
+ECHO_TXT = $ECHO_TXT:rnewline
+
+%pragma copy 1
+outfile = ${CG_INFILE}.out
+echo	/$outfile
+%echo ----- $CG_ROOT/${outfile}:
+%shell cat $CG_ROOT/$outfile
+%echo -----
+%shell rm -f $CG_ROOT/$outfile
+%pragma copy 0
+
+#now write again:
+echo	/$outfile
+%echo ----- $CG_ROOT/${outfile}:
+%shell cat $CG_ROOT/$outfile
+%echo -----
+%shell rm -f $CG_ROOT/$outfile
+
+#####
+tname=%pragma_require
+tnum = 0
+%echo
+%echo TEST $tname
+#####
+
+{
+#create a new :foo postfix op:
+foo_op := << EOF
+#note package defaults to current package, which is already codegen.
+#codegen internal variables are protected; can only be set via function calls.
+use strict;
+
+sub foo_op
+#:foo - add a "_foo" suffix to input <var>.
+{
+    my ($var) = @_;
+    return $var .= "_foo";
+}
+
+sub newvar_op
+#create a new variable reflects var name of new var.
+#this is to test use of %CG_USER_VARS hash.
+{
+    my ($var, $varname, $linecnt) = @_;
+    return 0 if ($var !~ /^[a-zA-Z_][a-zA-Z_0-9]*$/);
+
+    &add_definition($var, "", $linecnt, 0);
+#printf STDERR "newvar_op:  get_user_vars()=(%s)\n", join(",", get_user_vars());
+    return 1;
+}
+
+1;
+EOF
+
+#write it out:
+ECHO_TXT=$foo_op
+echo	/foo_op.pl
+
+#require good foo_op:
+%echo
+%echo %pragma require foo_op.pl
+%pragma require foo_op.pl
+%echo
+
+#now, can we use it?
+foo = blah
+CG_COMPARE_SPEC := blah_foo
+result=FAILED
+%if $foo:foo:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:assign $result
+
+#check newvar op:
+varname=myvar01
+result=FAILED
+%if $varname:newvar	result=PASSED
+%echo $tname TEST #$tnum:incr:assign $result
+%echo $tname TEST #${tnum}:  myvar01=$myvar01
+
+#check that var is really defined:
+result=FAILED
+%ifdef myvar01	result=PASSED
+%echo $tname TEST #$tnum:incr:assign $result
+}
+
+{
+#create :badA postfix op:
+badA_op := << EOF
+package bad_package;
+sub badA_op
+#:badA - add a "_badA" suffix to input <var>.
+{
+    my ($var) = @_;
+    return $var .= "_badA";
+}
+1;
+EOF
+
+#write it out:
+ECHO_TXT=$badA_op
+echo	/badA_op.pl
+
+#require badA_op:
+%echo %pragma require badA_op.pl
+%pragma require badA_op.pl
+
+foo = blah
+CG_COMPARE_SPEC := blah_badA
+result=FAILED
+%if $foo:badA:ne	result=PASSED
+%echo $tname TEST #$tnum:incr:assign $result
+}
+
+{
+#create a perl file with syntax errors:
+ECHO_TXT=(
+echo	/bad_syntax.pl
+
+CG_EXIT_STATUS=0
+result=FAILED
+%echo %pragma require bad_syntax.pl
+%pragma require bad_syntax.pl
+%if $CG_EXIT_STATUS	result=PASSED
+%echo $tname TEST #$tnum:incr:assign $result
+CG_EXIT_STATUS=0
+}
+
+{
+#try requiring a bogus file - this sets CG_EXIT_STATUS
+CG_EXIT_STATUS=0
+result=FAILED
+%pragma require no_such_file.pl
+%if $CG_EXIT_STATUS	result=PASSED
+%echo $tname TEST #$tnum:incr:assign $result
+CG_EXIT_STATUS=0
+}
+
+#####
+tnum = 0
+%echo
+%echo OPTION pragma tests
+#####
+
+tname=%pragma debug
+%echo $tname TEST #$tnum:incr:assign debug ON
+%pragma debug 1
+
+%echo $tname TEST #$tnum:incr:assign debug OFF
+%pragma debug 0
+
+tname=%pragma ddebug
+%echo $tname TEST #$tnum:incr:assign ddebug ON
+%pragma ddebug 1
+
+%echo $tname TEST #$tnum:incr:assign ddebug OFF
+%pragma ddebug 0
+
+tname=%pragma quiet
+%echo $tname TEST #$tnum:incr:assign quiet ON
+%pragma quiet 1
+
+%echo $tname TEST #$tnum:incr:assign quiet OFF
+%pragma quiet 0
+
+tname=%pragma verbose
+%echo $tname TEST #$tnum:incr:assign verbose ON
+%pragma verbose 1
+
+%echo $tname TEST #$tnum:incr:assign verbose OFF
+%pragma verbose 0

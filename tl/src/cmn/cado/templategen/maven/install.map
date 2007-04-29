@@ -1,0 +1,10 @@
+TARGET_OS=cmn, ntcmn
+
+#this is the library that generates maven 1.x project.xml files:
+maven_lib.cg                lib/$TARGET_OS/templates/maven/maven_lib.cg                0444
+
+#documentation for project.xml declarative elements:
+maven_lib_doc.txt           lib/$TARGET_OS/templates/maven/maven_lib_doc.txt           0444
+
+#used by generator to insert maven element doc in project.xml:
+maven_doc.defs              lib/$TARGET_OS/templates/maven/maven_doc.defs              0444

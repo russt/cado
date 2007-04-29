@@ -1,0 +1,2 @@
+{=%gen_imports $IMPORT_LIST=}
+{=%gen_javadoc $JAVDOC_TEXT=}

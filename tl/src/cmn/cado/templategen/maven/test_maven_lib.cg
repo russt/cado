@@ -1,0 +1,27 @@
+#%include ../maven_project.defs
+%include maven/maven_lib.cg
+
+#generate documentation for elements the first time they are seen:
+INCLUDE_XML_ELEMENT_DOC =	true
+#%undef INCLUDE_XML_ELEMENT_DOC
+
+#set this to 0 if you don't want empty elements
+#MAVEN_LIB_GENERATE_EMPTY_ELEMENTS = 0
+MAVEN_LIB_GENERATE_EMPTY_ELEMENTS = 1
+
+MACRO_OUTPUT_ACCUMULATOR =	PROJECT_SHELL
+#create/clean accumulator:
+$MACRO_OUTPUT_ACCUMULATOR =
+
+#MACRO_DEBUG = true
+#MACRO_DDEBUG = true
+
+#generate a project.xml:
+%call xml_header
+#%eecho -n BEFORE maven_project: $MACRO_OUTPUT_ACCUMULATOR='$PROJECT_SHELL'
+%call maven_project
+#%eecho -n AFTER maven_project: $MACRO_OUTPUT_ACCUMULATOR='$PROJECT_SHELL'
+
+%echo -n $PROJECT_SHELL
+
+%call show_maven_user_vars

@@ -1,0 +1,8 @@
+TEMPLATE    = file.mmf
+
+PKG     =  lib
+DEST    =  ${BASE}/${PKG}/${TARGET_OS}/templates/xml
+
+MODE    =  0444
+
+FILES  = xml_macros.cg xmlcg_ops.pl

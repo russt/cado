@@ -1,0 +1,517 @@
+#this script generates the maven library for terminal elements.
+#we do this by reading in a list of symbols to generate, and then
+#generate a single codegen macro for each element.
+
+{#################################### PRELUDE ###################################
+
+gen_maven_lib_header := << EOF_DEF
+#
+# WARNING:  this library is generated, DO NOT EDIT.  Run "codegen genmavenlib.cg: instead
+#
+# This library is used to xml files, from simple declarations.
+#
+
+#only include this once:
+%ifdef {=UMACRO_PREFIX=}_POM_GENERATOR_INCLUDED %return
+
+%include xml/xml_macros.cg
+#use special xml
+
+#load special codegen support operators:
+%pragma require xml/xmlcg_ops.pl
+
+#this must be in CG_TEMPLATE_PATH:
+%include {=MAVEN_DOC_DEFS=}
+
+EOF_DEF
+}
+
+{################################## POSTSCRIPT ##################################
+
+gen_maven_lib_trailer := << EOF_DEF
+#avoid multiple includes:
+{=UMACRO_PREFIX=}_POM_GENERATOR_INCLUDED = 1
+EOF_DEF
+}
+
+{################################### TERMINALS ##################################
+
+gen_maven_terminal := << EOF_DEF
+    #save terminal user-settable variables on separate stack:
+    %push MACRO_TERMINALS $MACRO_NAME
+
+    %push children $macro_name
+    %evalmacro >> MAVEN_LIB_OUT terminal_template
+EOF_DEF
+
+terminal_template := << EOF_DEF
+{=macro_name=} := << EOF
+{# {=macro_name=}: TERMINAL ELEMENT
+    {=macro_name=}_valuevar = {=MACRO_NAME=}_$instance_count:pad:assign
+    %ifndef ${=macro_name=}_valuevar    {=macro_name=}_valuevar = {=MACRO_NAME=}
+
+    #set element contents to nil if not defined:
+    %ifndef ${=macro_name=}_valuevar    ${=macro_name=}_valuevar =
+
+    XML_ELEMENT_NAME = {=element_name=}
+    XML_ELEMENT_BODY = ${=macro_name=}_valuevar:valueof
+    %call xml_line_element
+}
+EOF
+
+EOF_DEF
+}
+
+{################################# NON-TERMINALS ################################
+
+{
+kid_call_template_terminal := << EOF
+    { #generate {=kid=} terminal element:
+#%eecho CALL <T> {=kid=}: parent_instance_count=$parent_instance_count
+
+        #did user specify a value for the first instance of this element?
+        %ifdef {=KID_MACRO=} {=KID_MACRO=}_01 = ${=KID_MACRO=}
+#%eecho B: {=KID_MACRO=}=${=KID_MACRO=} {=KID_MACRO=}_01=${=KID_MACRO=}_01
+
+        #if value is specified, but count is not, then specify count:
+        %ifdef {=KID_MACRO=}_01 %ifndef {=KID_MACRO=}_COUNT_01 {=KID_MACRO=}_COUNT_01 = 01..01
+
+#%eecho C: {=KID_MACRO=}_COUNT=${=KID_MACRO=}_COUNT {=KID_MACRO=}_COUNT_01=${=KID_MACRO=}_COUNT_01
+
+        _{=kid=}_rangevar = {=KID_MACRO=}_COUNT_$parent_instance_count
+
+        #if count for this element is unspecified, then only generate if we are generating empties:
+        %ifndef $_{=kid=}_rangevar %if ${=UMACRO_PREFIX=}_GENERATE_EMPTY_ELEMENTS $_{=kid=}_rangevar = 01..01
+
+        #if this is an orphaned value, we attach instance n to parent n:
+        %ifndef $_{=kid=}_rangevar $_{=kid=}_rangevar = $_{=kid=}_rangevar:xmlcg_default_value_range
+
+        #if count is now specified, but value is not, then set to nil:
+        %ifdef {=KID_MACRO=}_COUNT_01 %ifndef {=KID_MACRO=}_01 {=KID_MACRO=}_01=
+#%eecho D: {=KID_MACRO=}_COUNT_01=${=KID_MACRO=}_COUNT_01 {=KID_MACRO=}_01=${=KID_MACRO=}_01
+
+        #if count is specified as a simple count, then adjust to be 01..<count>:
+        %if $_{=kid=}_rangevar:valueof:isint   $_{=kid=}_rangevar = 01..$_{=kid=}_rangevar:valueof
+
+        ########
+#%eecho CALL <T> {=kid=}: _{=kid=}_rangevar=$_{=kid=}_rangevar -> $_{=kid=}_rangevar:valueof
+        %foreach instance_count $_{=kid=}_rangevar %call {=kid=}
+        ########
+    }
+EOF
+}
+
+{
+kid_call_template_non_terminal := << EOF
+    { #generate {=kid=} non-terminal element:
+#%eecho A: CALL <NT> {=kid=}: parent_instance_count=$parent_instance_count
+
+        _{=kid=}_rangevar = {=KID_MACRO=}_COUNT_$parent_instance_count
+
+        #if count for this non-terminal element is unspecified, then only generate if we are generating empties:
+#%eecho B: CALL <NT> {=kid=}: _{=kid=}_rangevar=$_{=kid=}_rangevar -> $_{=kid=}_rangevar:valueof
+        %ifndef $_{=kid=}_rangevar %if ${=UMACRO_PREFIX=}_GENERATE_EMPTY_ELEMENTS $_{=kid=}_rangevar = 01..01
+
+        #if count is still undefined for this terminal, then we're done:
+        %ifndef $_{=kid=}_rangevar $_{=kid=}_rangevar = 01..00
+
+        #if count is specified as a simple count, then adjust to be 01..<count>:
+        %if $_{=kid=}_rangevar:valueof:isint   $_{=kid=}_rangevar = 01..$_{=kid=}_rangevar:valueof
+
+        ########
+#%eecho C: CALL <NT> {=kid=}: _{=kid=}_rangevar=$_{=kid=}_rangevar -> $_{=kid=}_rangevar:valueof
+        %foreach instance_count $_{=kid=}_rangevar %call {=kid=}
+        ########
+    }
+EOF
+}
+
+{# this script creates calls to generate kid elements of a non-terminal
+gen_maven_non_terminal := << EOF
+
+    #save non-terminals on separate stack:
+    %push MACRO_NON_TERMINALS $MACRO_NAME
+    ${MACRO_NAME}_IS_NOTERM = 1
+
+    {#append a call to a child-element macro from a non-terminal element:
+loop := << EOFLOOP
+    KID_MACRO = $kid:toupper
+    kid_call_template=kid_call_template_terminal
+    isnontermvar = ${KID_MACRO}_IS_NONTERM
+    %if $isnontermvar:valueof kid_call_template=kid_call_template_non_terminal
+
+    ##########
+    %evalmacro KID_TEXT $kid_call_template
+    ##########
+
+    CALL_KID_TEXT= ${CALL_KID_TEXT}$KID_TEXT
+    %shift kid children
+EOFLOOP
+
+    CALL_KID_TEXT=
+    %shift kid children
+    %whiledef kid %call loop
+    }
+
+    %ifdef GEN_MAVEN_LIB_DEBUG %eecho CALL_KID_TEXT for $macro_name='$CALL_KID_TEXT'
+
+    %evalmacro >> MAVEN_LIB_OUT  non_terminal_template
+EOF
+}
+
+#
+# this template generates a macro to process a maven non-terminal element
+#
+
+non_terminal_template := << EOF_DEF
+{# {=macro_name=}: NON-TERMINAL ELEMENT
+{=macro_name=} := << EOF
+#%eecho ENTER {=macro_name=}: parent_instance_count=$parent_instance_count
+    #parent_instance_count is zero for top element - normalize spec and increment:
+    %ifnot $parent_instance_count NORMALIZE RESULT=${=UMACRO_PREFIX=}_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho {=macro_name=}: ERROR: {=UMACRO_PREFIX=}_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+
+    %ifnot $parent_instance_count parent_instance_count = 01
+
+    _{=macro_name=}_save_accumulator = $MACRO_OUTPUT_ACCUMULATOR
+    _{=macro_name=}_save_parent_ic = $parent_instance_count
+    parent_instance_count = $instance_count:pad
+
+    #re-assign to temporary accumulator to pick up kids:
+    MACRO_OUTPUT_ACCUMULATOR = _{=macro_name=}_kid_accumulator
+    #clear the kid accumulator:
+    $MACRO_OUTPUT_ACCUMULATOR =
+
+    #make calls to generate my kid elements:
+    ########### GENERATE KIDS: ###########
+{=CALL_KID_TEXT=}
+    ###########
+
+    #now generate me:
+    XML_ELEMENT_NAME =  {=element_name=}
+    #the kids are our body:
+    XML_ELEMENT_BODY =  $MACRO_OUTPUT_ACCUMULATOR:valueof
+    #restore the output accumulator varaible name:
+    MACRO_OUTPUT_ACCUMULATOR    = $_{=macro_name=}_save_accumulator
+
+    %call xml_nested_element
+
+    #restore parent instance count:
+    parent_instance_count = $_{=macro_name=}_save_parent_ic
+#%eecho EXIT {=macro_name=}: parent_instance_count=$parent_instance_count
+EOF
+}
+
+EOF_DEF
+}
+
+{################################# PROCESS LOOP #################################
+
+
+# process a line from the maven input tokens
+process_an_input_token := << EOF
+#%echo ${infile}:  line $infile:currentlinenumber=$infile:currentline
+
+macro_name = $infile:currentline
+
+#ignore comment lines:
+CG_MATCH_SPEC = /^\s*#/
+%if $macro_name:match %exit 
+
+#ignore blank lines:
+CG_MATCH_SPEC = /^\s*$/
+%if $macro_name:match %exit 
+
+#lines starting with with ',' are non-terminals
+CG_MATCH_SPEC = /^\s*,/
+is_non_terminal = 0
+%if $macro_name:match is_non_terminal = 1
+
+%ifdef GEN_MAVEN_LIB_DEBUG %eecho is_non_terminal='$is_non_terminal'
+
+CG_SUBSTITUTE_SPEC = s/^\s*,?\s*//
+macro_name = $macro_name:substitute
+CG_SUBSTITUTE_SPEC = s/\s*$//
+macro_name = $macro_name:substitute
+
+#prepend macro names with MACRO_PREFIX:
+macro_name = ${MACRO_PREFIX}_$macro_name
+
+#convert to uppercase:
+MACRO_NAME = $macro_name:toupper
+
+CG_SUBSTITUTE_SPEC = s/^([^_]+_)+//
+element_name = $macro_name:substitute
+
+#if the macro is already defined (we define non-terminals first), then exit:
+%ifdef ${macro_name}_defined %push children $macro_name
+%ifdef ${macro_name}_defined %exit 
+
+${MACRO_NAME}_IS_NONTERM = $is_non_terminal
+isnontermvar = ${MACRO_NAME}_IS_NONTERM
+%ifdef GEN_MAVEN_LIB_DEBUG %eecho macro_name='$macro_name' $isnontermvar=$isnontermvar:valueof
+
+%if    $is_non_terminal %call gen_maven_non_terminal
+%ifnot $is_non_terminal %call gen_maven_terminal
+
+varptr = ${macro_name}_defined
+$varptr = defined
+EOF
+}
+
+{ #gen reset
+{
+gen_maven_lib_reset := << EOF_DEF
+
+LOOP := << EOFLOOP
+    MAVEN_UNDEF_TXT = ${MAVEN_UNDEF_TXT:newline}%undef ${MACRO_NAME}(_.*)?
+    %shift MACRO_NAME theStack
+EOFLOOP
+LOOP2 := << EOFLOOP
+    MAVEN_UNDEF_TXT = ${MAVEN_UNDEF_TXT:newline}${MACRO_NAME}_IS_NONTERM = 1
+    %shift MACRO_NAME theStack
+EOFLOOP
+
+    #combine non-terminals & terminals on one stack:
+    theStack = $MACRO_NON_TERMINALS
+    %push theStack $MACRO_TERMINALS
+
+    #clear output:
+    MAVEN_UNDEF_TXT =
+
+    %shift MACRO_NAME theStack
+    %whiledef MACRO_NAME %call LOOP
+
+#this will generate & set variables of the form <MACRO_NAME>_IS_NONTERM:
+#(not currently needed):
+#    theStack = $MACRO_NON_TERMINALS
+#    %shift MACRO_NAME theStack
+#    %whiledef MACRO_NAME %call LOOP2
+
+    %evalmacro >> MAVEN_LIB_OUT maven_lib_reset_template
+EOF_DEF
+}
+
+{
+maven_lib_reset_template := << EOF_MACRO
+{=MACRO_PREFIX=}_lib_reset := << EOF
+{
+    %call {=MACRO_PREFIX=}_lib_reset_globals
+
+{=$MAVEN_UNDEF_TXT:trim:newline=}
+}
+EOF
+
+EOF_MACRO
+}
+
+{
+maven_lib_reset_globals_template := << EOF_MACRO
+{=MACRO_PREFIX=}_lib_reset_globals := << EOF
+{
+    #initialize globals:
+    parent_instance_count = 00
+    instance_count = 01
+
+    parent_macro_name_ptr = headless_macro_name
+    $parent_macro_name_ptr = NULL_PARENT
+
+    #set this to zero to avoid generating empty elements:
+    %ifndef {=UMACRO_PREFIX=}_GENERATE_EMPTY_ELEMENTS   {=UMACRO_PREFIX=}_GENERATE_EMPTY_ELEMENTS = 01
+    #pad if set:
+    %if ${=UMACRO_PREFIX=}_GENERATE_EMPTY_ELEMENTS      {=UMACRO_PREFIX=}_GENERATE_EMPTY_ELEMENTS = 01
+
+    #always generate the top element:
+    {=TOP_ELEMENT_NAME=}_COUNT = 01
+
+    %undef {=UMACRO_PREFIX=}_LIB_VERBOSE 
+
+    children =
+
+    #zero pad instance counters:
+    CG_PAD_SPEC = %02d
+}
+EOF
+
+#ensure globals are initialized on first include:
+%call {=MACRO_PREFIX=}_lib_reset_globals
+EOF_MACRO
+}
+} #end of gen reset
+
+{
+gen_maven_lib_user_settable := << EOF_DEF
+
+    {
+nt_loop := << EOFLOOP
+    MAVEN_NON_TERMINAL_VARS = ${MAVEN_NON_TERMINAL_VARS:newline}${MACRO_NAME}_COUNT = 01
+    %shift MACRO_NAME theStack
+EOFLOOP
+
+t_loop := << EOFLOOP
+    MAVEN_TERMINAL_VARS = ${MAVEN_TERMINAL_VARS:newline}${MACRO_NAME} =
+    %shift MACRO_NAME theStack
+EOFLOOP
+
+
+    #first, create non-terminal list:
+    MAVEN_NON_TERMINAL_VARS =
+    theStack = $MACRO_NON_TERMINALS
+    %shift MACRO_NAME theStack
+    %whiledef MACRO_NAME %call nt_loop
+
+    #now do terminals:
+    MAVEN_TERMINAL_VARS =
+    theStack = $MACRO_TERMINALS
+    %shift MACRO_NAME theStack
+    %whiledef MACRO_NAME %call t_loop
+    }
+
+    #now, generate the routine to just dump it out:
+    %evalmacro >> MAVEN_LIB_OUT maven_show_user_vars_template
+
+EOF_DEF
+}
+
+{
+maven_show_user_vars_template := << EOF_MACRO
+{
+show_maven_user_vars := << EOF
+
+#create list of variables to show
+maven_user_vars := << EOF2
+#############
+#non-terminal elements:
+#NOTE:  here is where you specify how many elements to generate for a repeating
+#       non-terminal element.  For example, if you have 2 developers, specify:
+# MAVEN_PROJECT_DEVELOPERS_COUNT = 1
+# MAVEN_DEVELOPER_COUNT = 2
+#############
+{=$MAVEN_NON_TERMINAL_VARS:trim:newline=}
+
+#########
+#terminal elements:
+#
+#NOTE:  if a terminal's parent has multiple instances,
+#       then specifiy instance number.  For example:
+#
+# E_ID_01 = fred
+# E_NAME_01 = Fred Foo
+# ...
+#
+# E_ID_02 = bob
+# E_NAME_02 = Bob Fu
+# ...
+#
+# IFF there is only one element value, you can drop the _01, for example:
+#     E_VERSION = 3
+#         is the same as:
+#     E_VERSION_01 = 3
+#
+# IFF there are multiple sub-instance elements, then number the elements sequentially:
+#     E_01
+#     E_02
+#     ...
+#     E_nn
+#     E_mm
+# And then specify the parent instance in the element count variable,
+# while setting the value to the range of each subset:
+#     E_COUNT_01 = 01..02
+#     E_COUNT_ii = nn..mm
+# This specifies that elements {E_01, E_02} will attach to parent instance 01,
+# an elements {E_nn, E_mm} will attach to parent instance ii, etc.
+#
+#########
+{=$MAVEN_TERMINAL_VARS:trim:newline=}
+EOF2
+
+#show them:
+%ifndef DO_NOT_DUMP_USER_VARS %echo -n $maven_user_vars
+EOF
+}
+EOF_MACRO
+}
+
+{##################################### MAIN #####################################
+
+######
+#setup
+######
+PWD=
+PWD=$PWD:pwd
+
+#if CG_ROOT is not defined ...
+%ifndef CG_ROOT %eecho WARNING: defaulting CG_ROOT to $PWD/bld
+%ifndef CG_ROOT CG_ROOT = $PWD/bld
+###### end setup
+
+#pass -DGEN_MAVEN_LIB_DEBUG=true to turn on debugging:
+#GEN_MAVEN_LIB_DEBUG = true
+#%undef GEN_MAVEN_LIB_DEBUG
+
+#Set MACRO_PREFIX:
+%ifndef MACRO_PREFIX      MACRO_PREFIX     = maven
+UMACRO_PREFIX = $MACRO_PREFIX:toupper
+
+%ifndef MACRO_OUTPUT_LIB  MACRO_OUTPUT_LIB = ${MACRO_PREFIX}_lib.cg
+
+#output variable:
+MAVEN_LIB_OUT =
+
+#pass -DMAVEN_TERMINAL_DEFS=<testfile> to test:
+#MAVEN_TERMINAL_DEFS = test_elements.txt
+%ifndef MAVEN_TERMINAL_DEFS MAVEN_TERMINAL_DEFS = maven/element_names.txt
+
+#this file is included by the generated code:
+%ifndef MAVEN_DOC_DEFS      MAVEN__DOC_DEFS =      maven/maven_doc.defs
+
+err = $MAVEN_TERMINAL_DEFS:openfile
+
+%ifdef GEN_MAVEN_LIB_DEBUG %eecho err='$err'
+
+%if $err CG_EXIT_STATUS = 1
+%if $err %exit ${CG_INFILE}: could not open ${MAVEN_TERMINAL_DEFS}:  $err
+
+#####
+#LOOP
+#####
+infile = $MAVEN_TERMINAL_DEFS
+%whiledef $infile:getnextline %call process_an_input_token
+
+#save the top element, which is the last line processed:
+TOP_ELEMENT_NAME = $MACRO_NAME
+#%eecho TOP_ELEMENT_NAME = $TOP_ELEMENT_NAME
+
+err = $MAVEN_TERMINAL_DEFS:closefile
+%if $err %eecho  could not close ${MAVEN_TERMINAL_DEFS}:  $err
+
+#######
+#header
+#######
+%evalmacro >> MAVEN_LIB_HEADER gen_maven_lib_header
+%evalmacro >> MAVEN_LIB_HEADER maven_lib_reset_globals_template
+
+#####
+#user settable variable list
+#####
+%call gen_maven_lib_user_settable
+
+######
+#reset user-level variables:
+######
+%call gen_maven_lib_reset
+
+########
+#trailer
+########
+%evalmacro >>MAVEN_LIB_OUT gen_maven_lib_trailer
+
+#add header:
+ECHO_TXT = << EOF
+$MAVEN_LIB_HEADER
+
+$MAVEN_LIB_OUT 
+EOF
+
+echo	/$MACRO_OUTPUT_LIB
+}

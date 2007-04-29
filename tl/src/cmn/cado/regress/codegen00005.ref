@@ -1,0 +1,6 @@
+TESTNAME is codegen00005
+hello        world
+IGNORE Sun Jun 18 11:59:35 PDT 2006
+in codegen:  FOOVAR=blah
+after export, shell reports FOOVAR=blah
+after unexport, shell reports FOOVAR=

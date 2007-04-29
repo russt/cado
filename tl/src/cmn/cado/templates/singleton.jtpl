@@ -1,0 +1,25 @@
+{=%include copyright.jtpl=}
+package {=CG_FULL_PKGNAME=};
+
+{=%include $CLASS_IMPORTS=}
+{=%include $CLASS_JAVADOC=}
+public final class {=CG_CLASSNAME=}{=$CLASS_EXTENDS:lspace:eoltrim=}{=$CLASS_IMPLEMENTS:lspace:eoltrim=}{=CG_NEWLINE_BEFORE_CLASS_BRACE=}{
+    /** Singleton */
+    private final static {=CG_CLASSNAME=} SINGLETON = new {=CG_CLASSNAME=}();
+
+    /** Constructor is private to enforce singleton access.  */
+    private {=CG_CLASSNAME=}()
+    {
+    }
+
+    /**
+     * Method used for accessing the singleton instance.
+     * @return {=CG_CLASSNAME=} instance
+     */
+    public static {=CG_CLASSNAME=} getInstance()
+    {
+        return SINGLETON;
+    }
+
+{=%include $CLASS_METHODS=}
+}

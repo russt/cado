@@ -1,0 +1,12 @@
+TEMPLATE    = file.mmf
+
+PKG =  bin
+PKG2    =  lib
+
+MODE    =  0555
+MODE2   =  0444
+
+FILES   = ../../util/crc.prl
+FILES2  = ../../os/path.pl ../../os/os.pl ../../os/oscmn.pl\
+		  ../../os/unix.pl ../../os/ntcmn.pl ../../util/crc.pl\
+		  ../../support/sp.pl

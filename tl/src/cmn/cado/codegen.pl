@@ -1,0 +1,4534 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+#
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)codegen.pl - ver 1.1 - 01/04/2006
+#
+# Copyright 2003-2007 Sun Microsystems, Inc. All Rights Reserved.
+#
+# END_HEADER - DO NOT EDIT
+#
+
+#
+# codegen - create a tree full of source code
+#
+# Author: Russ Tremain
+#
+#  12-Nov-2003 (russt)
+#       Initial revision
+#  06-Jan-2004 (russt)
+#       add TEMPLATE_PATHS - search path for templates
+#  21-Jan-2004 (russt)
+#       add here-now defs, {} comments, %echo macro
+#  12-Mar-2004 (russt)
+#       add ifn?def, echo statements
+#  19-Mar-2004 (russt)
+#       implement -u (update) option
+#  29-Sep-2004 (russt)
+#       add postfix operators
+#  28-Oct-2004 (russt)
+#       add append file-spec directive
+#  30-Apr-2005 (russt)
+#       add := operator, %evalmacro, %evaltemplate, %readtemplate
+#  27-Jul-2005 (russt)
+#       add %if, %ifnot
+#  29-Jul-2005 (russt)
+#       add CG_SHELL_STATUS, user defined CG_EXIT_STATUS, correct exit status
+#  02-Aug-2005 (russt)
+#       add -V -version args
+#       add %interpret statement
+#       add %echo -n
+#       add :valueof op
+#       add :nameof op
+#       add :env op
+#       allow assignment to contents of a variable ($var on lhs).
+#       allow $var in %if?ndef, %undef expressions (now works like %if and %ifnot).
+#       fix :indent<integer> macro to indent all lines.
+#       if CGROOT undefined, set to "." on first use instead of creating "NULL" directory.
+#  04-Aug-2005 (russt) [Version 1.41]
+#       add %whiledef, %while statements.
+#       add :xmlcomment, :xmlcommentblock operators.
+#       changed semantics of %if, %ifnot:  false <==> zero or empty string, true <==> !false
+#       change :incr, :decr, :plus, etc. to preserve width of input, e.g., 00, 01, etc.
+#       variable names in %ifndef, etc, no longer incorporate leading/trailing white space.
+#  11-Aug-2005 (russt) [Version 1.42]
+#       add file i/o operators:
+#           :openfile
+#           :getnextline
+#           :currentline
+#           :currentlinenumber (1..nlines), 0 => file closed
+#           :closefile
+#       add match, compare operators:
+#           :match or :m - will match against CG_MATCH_SPEC
+#           :substitute or :s - will match against CG_SUBSTITUTE_SPEC
+#           :eq, :ne, :gt, :lt, :ge, :le - will compare against CG_COMPARE_SPEC
+#       add %push, %pop statements.
+#       add %call alias for %interpret
+#       %exit was requiring spaces after keyword
+#       add %return alias for %exit
+#       add %halt <status>, also aliased to %abort <status>
+#       add %eecho (echo to stderr).
+#       add tracing for allocate/free of file handles, and the limit 40 from 30
+#       fix &is_number(..) (was requiring '.').
+#       set result of perl =~ expressions to {0,1}, as they're undefined if false.
+#       standardize most of the error/warning messages.  needs more work.
+#  20-Aug-2005 (russt) [Version 1.43]
+#       add %shift operator
+#       allow patterns in %undef operator
+#       no longer need to escape % in input (existing scripts using %% have to be updated).
+#       ignore leading space in file spec statements
+#       %exit/%return - ignore exit message if empty string.
+#       add built-in CG_ARGV stack variable, which saves arguments to codegen
+#       add :basename :dirname :suffix operators
+#       add :stripjavaheader operator
+#  22-Aug-2005 (russt) [Version 1.44]
+#       add -Dvar[=value] command line arg
+#  29-Aug-2005 (russt) [Version 1.45]
+#       :env now returns empty string if variable is undefined.
+#       add %export/%unexport operators to modify environment of sub-shells
+#       handle binary files specs.
+#       fix bug where $foovar:nameof[:op]+ was not updating var contents with [:op]+.
+#  17-Oct-2005 (russt) [Version 1.46]
+#       double the number of available file-descriptors to 80, add -debugfd option.
+#       fix bug in get_avaliable_filehandle() - was failing with descriptors available.
+#  18-Oct-2005 (russt) [Version 1.47]
+#       fix pathname creation in write_string_to_cg_tmp_file()
+#           (cygwin thinks //tmp is a network drive).
+#  20-Oct-2005 (russt) [Version 1.48]
+#       we were not freeing file-descriptors in close_fileop().
+#  05-Jun-2006 (russt) [Version 1.49]
+#       CG_TEMPLATE_PATH: . was overriding path. added :freq postfix op.
+#  15-Jun-2006 (russt) [Version 1.50]
+#       added %pragma statement, preserve_multiline_lnewline pragma.
+#  18-Jun-2006 (russt) [Version 1.51]
+#       added copy pragma, :rangelb, :rangeub, :split operators.
+#       move tests to regress subdir and adapt to jregress requirements.
+#  18-Jun-2006 (russt) [Version 1.52]
+#       restructure postfix eval to use function pointers.
+#  20-Jun-2006 (russt) [Version 1.53]
+#       add %foreach statement
+#  21-Jun-2006 (russt) [Version 1.54]
+#       match operator was generating spurious errors.
+#  25-Jun-2006 (russt) [Version 1.55]
+#       Add :pad operator.
+#       Add warning if -u option not specified.
+#       Add %print (%echo) & %printe (%eecho) aliases
+#       Re-work numeric %foreach to pad iterator, improve efficiency.
+#       Add pattern matching foreach variant.
+#       Fix "cascading failure" bug in &interpret.
+#       Rename %SPEC_VARS to %CG_USER_VARS, and add get_user_vars() function to access.
+#       Add debug, ddebug, quiet, verbose %pragma statements.  
+#       Change :valueof to return ${var:undef} instead of NULL for undefined variables.
+#  04-Oct-2006 (russt) [Version 1.56]
+#       Fix checkforexistingheader -> checkforexistingheader_op when called internally.
+#  14-Dec-2006 (russt) [Version 1.57]
+#       delete signsrc operators (not part of core codegen).  add :fixeol op.
+#  20-Dec-2006 (russt) [Version 1.58]
+#       add -x -S options to allow "#!/bin/codegen" scripts.
+#       add :crc :crcstr :crcfile ops.  add CG_LINE_NUMBER user variable.
+#       enhance -help message: add %pragma section, update user-variables, etc.
+#  21-Dec-2006 (russt) [Version 1.59]
+#       add :tounix :todos ops.
+#       add :cap, :uncap ops to capitalize or uncapitalize a string (first letter only).
+#       add file-test ops: :r,:w,:x,:e,:z,:sz,:f,:d,:l,:T,:B (same as perl, except :sz = -s).
+#       fix bug in %undef - was matching all vars with indicated prefix.
+#  22-Dec-2006 (russt) [Version 1.60]
+#       :crcstr op was not cleaning tmp file. eliminated redundant string copy in %readtemplate.
+#  22-Dec-2006 (russt) [Version 1.61]
+#       add %void statement.  re-order main interpreter loop based on estimated frequency of use.
+#       add :clr op.  %undef was not clearing CG_* vars.  :undef op now returns ${var:undef} like %undef.
+#       move test CG_ROOT to ../bld/cgtstroot, and clear it before first test.
+#  21-Feb-2007 (russt) [Version 1.62]
+#       filetest ops were emitting "unititialized" messages when result was false (undefined).
+#       add %upush statement, to maintain stack with unique elements.
+#       add $CG_STACK_DELIMITER user variable, to allow user to %push lists.
+#       add %pragma reset_stack_delimiter to restore CG_STACK_DELIMITER to default value.
+#       add :stackminus to subtract elements of $CG_STACK_SPEC from a named stack.
+#  02-Apr-2007 (russt) [Version 1.63]
+#       Add :_<iden> op to wrap xml/html elements, and CG_ATTRIBUTE_<n> spec to
+#       decorate element with optional attributes.
+#       Fix bug in :indent op - was using stale value for CG_INDENT_STRING.
+#  14-Apr-2007 (russt) [Version 1.64]
+#       add -T <tmpdir> option.
+#
+
+use strict;
+
+package codegen;
+
+require "path.pl";
+require "os.pl";
+require "pcrc.pl";
+
+# declare global variables, SCALARS only in this section:
+my (
+    $p,
+    $VERSION,
+    $VERSION_DATE,
+    $VERBOSE,
+    $QUIET,
+    $DEBUG,
+    $DDEBUG,
+    $DEBUG_FD,
+    $HELPFLAG,
+    $ENV_VARS_OKAY,
+    $FORCE_GEN,
+    $UPDATE,
+    $CG_TEMPLATES,
+    $CG_TEMPLATE_PATH,
+    $CG_ROOT,
+    $CG_TMPDIR,
+    $INPUT_FILE,
+    $LOGNAME,
+    $CLASS_VAR_REF,
+    $DOT,
+    $CG_NEWLINE_BEFORE_CLASS_BRACE,
+    $CG_INDENT_STRING,
+    $GLOBAL_ERROR_COUNT,
+    $CG_TMPFILE_CNT,
+    $LINE_CNT,
+    $LINE_CNT_REF,
+    $pragma_preserve_multiline_lnewline,
+    $pragma_copy,
+    $pragma_require,
+    $pragma_debug,
+    $pragma_ddebug,
+    $pragma_quiet,
+    $pragma_verbose,
+    $STRIPTOSHARPBANG,
+    $LOOKINPATH,
+) = (
+    $main::p,       #program name inherited from prlskel caller.
+    "1.64",         #VERSION - the program version number.
+    "14-Apr-2007",  #VERSION_DATE - date this version was released.
+    0,              #VERBOSE
+    0,              #QUIET
+    0,              #DEBUG
+    0,              #DDEBUG
+    0,              #DEBUG_FD - debug allocation of file descriptors
+    0,              #HELPFLAG
+    0,              #ENV_VARS_OKAY - true if we allow environment vars in templates and spec
+    0,              #FORCE_GEN - overwrite all output files, even if they already exist
+    0,              #UPDATE - update generated files only if different
+    "NULL",         #CG_TEMPLATES - where to find code generation template files (DEPRECATED)
+    "NULL",         #CG_TEMPLATE_PATH - semicolon separated search path for template files.
+    "NULL",         #CG_ROOT - output code generation root.
+    "NULL",         #CG_TMPDIR - directory for temporary files.
+    "",             #INPUT_FILE
+    "",             #LOGNAME
+    undef,          #CLASS_VAR_REF - holds reference to local class vars during codegen
+    $main::DOT,
+    " ",            #CG_NEWLINE_BEFORE_CLASS_BRACE - default is not
+    " " x 4,        #CG_INDENT_STRING - define one level of indent, usually 4 spaces
+    0,              #GLOBAL_ERROR_COUNT - global error count
+    0,              #CG_TMPFILE_CNT - counter to create unique filename for %interpret specs
+    0,              #LINE_CNT - current line of file being interpreted
+    undef,          #LINE_CNT_REF - reference to user-level line count var CG_LINE_NUMBER
+    0,              #pragma_preserve_multiline_lnewline - preserve left newline in here-now defs.
+    0,              #pragma_copy - generate files without macro interpolation
+    0,              #pragma_require - require a new perl file to allow user to add postfix ops dynamically
+    0,              #pragma_debug - set DEBUG option
+    0,              #pragma_ddebug - set DDEBUG option
+    0,              #pragma_quiet - set QUIET option
+    0,              #pragma_verbose - set VERBOSE option
+    0,              #STRIPTOSHARPBANG -  true if we have a -x option
+    0,              #LOOKINPATH - true if we have a -S option
+);
+
+#these are the user names for pragmas.  internal variable is prefixed with "pragma_".
+my %PRAGMAS = (
+    'preserve_multiline_lnewline', 1,
+    'copy', 1,
+    'require', 1,
+    'debug', 1,
+    'ddebug', 1,
+    'verbose', 1,
+    'quiet', 1,
+    'reset_stack_delimiter', 1,
+);
+
+my @INPUT_DATA;
+my %CG_USER_VARS;     #holds varible,value pairs defined in INPUT_FILE
+my %CLASS_VARS;    #storage for local class vars - scope is valid between generation directives
+
+#holds implementations of all of our %macro functions for templates
+my %MACRO_FUNCTIONS = (
+    'include', \&cg_include,
+    'perl', \&cg_perl,
+    'gen_imports', \&cg_gen_imports,
+    'gen_javadoc', \&cg_gen_javadoc,
+    'echo', \&cg_echo,
+);
+
+#keep track of template file descriptors for nested includes:
+my ($TEMPLATE_FD_KEY, $LAST_TEMPLATE_FD_KEY, $TEMPLATE_FD_MAX_USED) = (0,79,0);
+my @TEMPLATE_FD_REFS = (
+    \*TEMPLATE00, \*TEMPLATE01, \*TEMPLATE02, \*TEMPLATE03, \*TEMPLATE04,
+    \*TEMPLATE05, \*TEMPLATE06, \*TEMPLATE07, \*TEMPLATE08, \*TEMPLATE09,
+    \*TEMPLATE10, \*TEMPLATE11, \*TEMPLATE12, \*TEMPLATE13, \*TEMPLATE14,
+    \*TEMPLATE15, \*TEMPLATE16, \*TEMPLATE17, \*TEMPLATE18, \*TEMPLATE19,
+    \*TEMPLATE20, \*TEMPLATE21, \*TEMPLATE22, \*TEMPLATE23, \*TEMPLATE24,
+    \*TEMPLATE25, \*TEMPLATE26, \*TEMPLATE27, \*TEMPLATE28, \*TEMPLATE29,
+    \*TEMPLATE30, \*TEMPLATE31, \*TEMPLATE32, \*TEMPLATE33, \*TEMPLATE34,
+    \*TEMPLATE35, \*TEMPLATE36, \*TEMPLATE37, \*TEMPLATE38, \*TEMPLATE39,
+    \*TEMPLATE40, \*TEMPLATE41, \*TEMPLATE42, \*TEMPLATE43, \*TEMPLATE44,
+    \*TEMPLATE45, \*TEMPLATE46, \*TEMPLATE47, \*TEMPLATE48, \*TEMPLATE49,
+    \*TEMPLATE50, \*TEMPLATE51, \*TEMPLATE52, \*TEMPLATE53, \*TEMPLATE54,
+    \*TEMPLATE55, \*TEMPLATE56, \*TEMPLATE57, \*TEMPLATE58, \*TEMPLATE59,
+    \*TEMPLATE60, \*TEMPLATE61, \*TEMPLATE62, \*TEMPLATE63, \*TEMPLATE64,
+    \*TEMPLATE65, \*TEMPLATE66, \*TEMPLATE67, \*TEMPLATE68, \*TEMPLATE69,
+    \*TEMPLATE70, \*TEMPLATE71, \*TEMPLATE72, \*TEMPLATE73, \*TEMPLATE74,
+    \*TEMPLATE75, \*TEMPLATE76, \*TEMPLATE77, \*TEMPLATE78, \*TEMPLATE79,
+);
+
+#this array tracks which TEMPLATE_FD_REFS are in use
+my @TEMPLATE_FD_INUSE = (
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0,
+);
+
+my %CG_OPEN_FILE_DESCRIPTORS = ();
+my %CG_OFD_CURRENTLINE = ();
+my %CG_OFD_CURRENTLINECOUNT = ();
+my %CG_OPEN_FILE_FD_INDEXES = ();
+
+&init;      #init globals
+
+sub main
+{
+    local (*ARGV, *ENV) = @_;
+
+    #unbuffer stdout, stderr:
+    my $oldfh;
+    $oldfh = select(STDOUT); $| = 1; select($oldfh);
+    $oldfh = select(STDERR); $| = 1; select($oldfh);
+
+    #set global flags:
+    return (1) if (&parse_args(*ARGV, *ENV) != 0);
+    return (0) if ($HELPFLAG);
+
+    #initialize built-in variables:
+    &init_spec_vars();
+
+    $INPUT_FILE = &findInputFileInPath($INPUT_FILE) if ( $LOOKINPATH );
+
+    my $rval = &interpret($INPUT_FILE, 1);
+
+    #check to see if any file-descriptors have not been returned:
+    printf STDERR "%s:  Allocated max of %d file-handles,  %d/%d free at program end.\n",
+        $p, $TEMPLATE_FD_MAX_USED, &free_filehandle_count(), $LAST_TEMPLATE_FD_KEY+1
+        if ($DEBUG_FD);
+
+    return $rval;
+}
+
+sub interpret
+#returns 0 if success, error count if problems.
+#read input a line at a time, parse, and execute.
+{
+    my ($infile, $return_global_status) = @_;
+    $return_global_status = 0 if (!defined($return_global_status));  #ignore global errs
+
+    my ($linecnt) = 0;
+    my ($line) = "";
+    my ($errcnt) = 0;
+    my ($use_stdin) = ($infile eq '<STDIN>');
+    my ($fhref) = undef;
+    my ($fhidx) = -1;
+    my ($exit_early) = 0;
+    my ($halt_program) = 0;
+    my ($is_raw) = 0;
+
+    #initialize line counts:
+    $LINE_CNT = $$LINE_CNT_REF = $linecnt;
+
+    my ($save_infile) = "";
+    $save_infile = $CG_USER_VARS{'CG_INFILE'} if (defined($CG_USER_VARS{'CG_INFILE'}));
+    $CG_USER_VARS{'CG_INFILE'} = $infile;
+
+    if (!$use_stdin) {
+        $fhidx = &get_avaliable_filehandle("interpret");
+
+        if ($fhidx < 0) {
+            printf STDERR "%s [interpret]: ERROR: out of file descriptors for nested templates (max is %d).\n", $p, $LAST_TEMPLATE_FD_KEY+1;
+            return 1;
+        }
+
+        $fhref = $TEMPLATE_FD_REFS[$fhidx];
+        if (!open($fhref, $infile)) {
+            printf STDERR "%s [interpret]: ERROR: cannot open definition file '%s' (%s)\n", $p, $infile, $!;
+            &free_filehandle($fhidx, "interpret");   #free our allocated filehandle
+            return 1;
+        }
+    }
+
+    $line = $use_stdin? <STDIN> : <$fhref>;    #read one line of input
+
+    #do we need to ignore lines before #! ?
+    #note that this could eat the whole file
+    while ($STRIPTOSHARPBANG && defined($line)) {
+        last if ( $line =~ /^#!/ );    #don't increment line number yet
+        chomp $line; ++$linecnt; ++$LINE_CNT; ++$$LINE_CNT_REF;
+
+        $line = $use_stdin? <STDIN> : <$fhref>;    #read one line of input
+    }
+
+    #IMPORTANT:  we only do this when called from main the first time:
+    $STRIPTOSHARPBANG = 0;
+
+    while (!$exit_early && defined($line)) {
+        ++$linecnt; chomp $line; ++$LINE_CNT; ++$$LINE_CNT_REF;
+        printf STDERR "line[%d] (%s)='%s'\n", $linecnt, $infile, $line if ($DEBUG);
+
+        #definitions can extend over multiple lines:
+        my ($lhs, $rhs, $is_multiline, $eoi_tok) = ("", "", 0, "");
+
+        my ($dointerpret) = 1;  #used by %ifdef/ifndef
+
+        while ($dointerpret) {
+            $dointerpret = 0;   #used by %ifdef/ifndef
+
+            if ($line =~ /^\s*$/ || &comment($line)) {
+                ;       #comment or blank:  SKIP
+            } elsif (&includespec($line, $linecnt)) {
+                ;       #process the named include file.
+            } elsif (&interpretspec($line, $linecnt)) {
+                ;       #create an include file from a variable and include it.
+            } elsif (&echospec($line, $linecnt)) {
+                ;       #echo some text to stdout
+            } elsif (&ifdefspec(\$line, $linecnt, \$dointerpret)) {
+                #this may force another loop
+                printf STDERR "AFTER ifn?def: line='%s' dointerpret=%d\n", $line, $dointerpret if ($DEBUG);
+            } elsif (&ifspec(\$line, $linecnt, \$dointerpret)) {
+                #this may force another loop
+                printf STDERR "AFTER if[not]: line='%s' dointerpret=%d\n", $line, $dointerpret if ($DEBUG);
+            } elsif (&shellspec($line, $linecnt)) {
+                ;       #process a shell command.
+            } elsif (&foreachspec($line, $linecnt)) {
+                ;
+            } elsif (&whiledefspec($line, $linecnt)) {
+                ;
+            } elsif (&whilespec($line, $linecnt)) {
+                ;
+            } elsif (&pushspec($line, $linecnt)) {
+                ;
+            } elsif (&popspec($line, $linecnt)) {
+                ;
+            } elsif (&evalmacro_spec($line, $linecnt)) {
+                ;       #evaluate a template-var into an output var
+            } elsif (&evaltemplate_spec($line, $linecnt)) {
+                ;       #evaluate a template file into an output var
+            } elsif (&readtemplate_spec($line, $linecnt)) {
+                ;       #read a template file into an output var
+            } elsif (&voidspec($line, $linecnt)) {
+                ;       #allows uni-variable assignments
+            } elsif (&returncommand($line, $linecnt)) {
+                #exit intepreter:
+                $exit_early = 1;
+            } elsif (&undefspec($line, $linecnt)) {
+                ;       #undefine a variable
+            } elsif (&pragma_spec($line, $linecnt, $infile)) {
+                ;       #process a %pragma
+            } elsif (&exportspec($line, $linecnt)) {
+                ;       #export a variable to the environment
+            } elsif (&haltcommand($line, $linecnt)) {
+                #exit to shell:
+                $exit_early = 1;
+                $halt_program = 1;
+            } elsif (&definition($line, $linecnt, \$lhs, \$rhs, \$is_multiline, \$eoi_tok, \$is_raw)) {
+                #if we have a here-now doc...
+                if ($is_multiline) {
+                    $line = $use_stdin? <STDIN> : <$fhref>;   #get next line
+                    $rhs = "\n" if ($pragma_preserve_multiline_lnewline && defined($line)); #preserve left newline
+                    while (defined($line)) {
+                        ++$linecnt; chomp $line; ++$LINE_CNT; ++$$LINE_CNT_REF;
+                        printf STDERR "<< %s line[%d] (%s)='%s'\n", $eoi_tok, $linecnt, $infile, $line if ($DDEBUG);
+
+                        if ($line eq $eoi_tok) {
+                            #then close up this definition:
+                            &add_definition($lhs, $rhs, $linecnt, $is_raw);  #this does variable expansion
+                            last;   #DONE
+                        } else {
+                            $rhs .= "$line\n";    #put the newline back
+                            $line = $use_stdin? <STDIN> : <$fhref>;   #get next line
+                        }
+                    }
+                }
+            } elsif (&filespec($line, $linecnt)) {
+                ;       #process filespec and generate source file
+            } else {
+                #unrecognized input - generate error:
+                printf STDERR "Unrecognized input, line %d:\n'%s'\n", $linecnt, $line;
+                ++$errcnt;
+            }
+        }
+
+        $line = $use_stdin? <STDIN> : <$fhref>;   #get next line
+    }
+
+    if (!$use_stdin) {
+        close $fhref;
+        &free_filehandle($fhidx, "interpret");   #free our allocated filehandle
+    }
+
+    #restore the previous input filename if we saved it:
+    $CG_USER_VARS{'CG_INFILE'} = $save_infile if ($save_infile ne "");
+
+    #if we are called from %foreach, etc, ignore global errors.
+    return $errcnt unless ($return_global_status);
+
+    #if user has set exit status, use it:
+    my $status = 0;
+    if (defined($CG_USER_VARS{'CG_EXIT_STATUS'})) {
+        $status =  $CG_USER_VARS{'CG_EXIT_STATUS'};
+    } else {
+        #otherwise, return codegen processing error count:
+        $status =  $errcnt + $GLOBAL_ERROR_COUNT;
+    }
+
+    exit $status if ($halt_program);
+    return $status;
+}
+
+sub pushspec
+#returns true if we have an %push spec
+{
+    my ($line, $linecnt) = @_;
+
+    return 0 unless ($line =~ /^\s*(%u?push)\s+/);
+    my $token = $1;
+    $line =~ s/^\s*$token\s*//;
+
+    #true if we have $upush statement:
+    my ($push_unique) = ($token eq "%upush") ? 1 : 0;
+
+#printf STDERR "pushspec T2 token='%s' line='%s' push_unique=%d\n", $token, $line, $push_unique;
+
+    #note:  we do not trim trailing white-space, remainder of line is
+    #       treated in the same way as the rhs of an assignment.
+
+    my ($lhs, $rhs)  = split(/\s+/, $line, 2);
+    if (!defined($lhs)) {
+        printf STDERR "%s: missing stack name in input, line %d:\n'%s'\n", $linecnt, $line;
+        return 1;
+    }
+
+    #if no value, then we're done:
+    return 1 unless (defined($rhs));
+
+    #expand varible refs in statement:
+    $lhs = &expand_macros($lhs);
+    my $lhs_contents = $CG_USER_VARS{$lhs};
+    my $rhs_contents = &expand_macros($rhs);
+
+    #split rhs using CG_STACK_DELIMITER (defauts to $;):
+    my @rhs_contents = split(&get_stack_delimiter(), $rhs_contents);
+
+#printf STDERR "pushspec T8 delimiter='%s' rhs_contents='%s' \@rhs_contents=(%s)\n", &get_stack_delimiter(), $rhs_contents, join(',', @rhs_contents) ;
+
+    if (defined($lhs_contents)) {
+        if ($lhs_contents ne "" && $push_unique == 1) {
+            my @lhs_contents = split($;, $lhs_contents);
+
+            #if we are maintaining a unique stack, do not add unless new:
+            my @new = &MINUS(\@rhs_contents, \@lhs_contents);
+            $CG_USER_VARS{$lhs} = join($;, $lhs_contents, @new) if ($#new >= 0);
+        } elsif ($lhs_contents ne "") {
+            $CG_USER_VARS{$lhs} = join($;, $lhs_contents, @rhs_contents);
+        } else {
+            $CG_USER_VARS{$lhs} = join($;, @rhs_contents);
+        }
+    } else {
+        $CG_USER_VARS{$lhs} = join($;, @rhs_contents);
+    }
+
+    return 1;
+}
+
+sub MINUS
+#returns A - B
+#usage:  my (@a, @b); ... ; @difference = &MINUS(\@a, \@b);
+{
+    my($A, $B) = @_;
+    my(%mark);
+
+    for (@{$B}) { $mark{$_}++;}
+    return(grep(!$mark{$_}, @{$A}));
+}
+
+sub popspec
+#returns true if we have an %pop or %shift spec
+{
+    my ($line, $linecnt) = @_;
+    return 0 unless ($line =~ /^\s*%(pop|shift)\s+/);
+
+    my ($ispop) = ($line =~ /^\s*%pop\s+/) ? 1 : 0;
+    my ($token) = ($ispop) ? "%pop" : "%shift";
+
+    $line =~ s/^\s*$token\s*//;
+    #trim trailing spaces too:
+    $line =~ s/\s*$//;
+
+    #the rhs is the stack var, lhs is going to get the top element:
+    my ($topvarname, $stackvarname)  = split(/\s+/, $line, 2);
+
+    #expand varible refs in statement:
+    $stackvarname = &expand_macros($stackvarname);
+    $topvarname = &expand_macros($topvarname);
+
+    #stack var must be defined:
+    if (!defined($CG_USER_VARS{$stackvarname})) {
+        printf STDERR "%s[%s]: ERROR: line %d: variable '%s' is undefined.\n",
+            $p, $token, $linecnt, $stackvarname unless($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;   #return true because we parsed a popspec
+    }
+
+    my $stack_contents = $CG_USER_VARS{$stackvarname};
+    #if stack is empty (by definition, we do not pop empty strings):
+    if ($stack_contents eq "") {
+        #undefine the caller's "top" variable:
+        delete $CG_USER_VARS{$topvarname} if (defined($CG_USER_VARS{$topvarname}));
+        return 1;   #done
+    }
+
+    my (@stack) = split($;, $CG_USER_VARS{$stackvarname});
+
+    if ($ispop) {
+        #get the top (right end) of the stack:
+        $CG_USER_VARS{$topvarname} = pop @stack;
+    } else {
+        #get the bottom (left end) of the stack:
+        $CG_USER_VARS{$topvarname} = shift @stack;
+#printf STDERR "shifted: top='%s' stack=(%s)\n", $CG_USER_VARS{$topvarname}, join(',', @stack);
+    }
+
+    #if stack has more elements, then save it:
+    if ($#stack >= 0) {
+        $CG_USER_VARS{$stackvarname} = join($;, @stack);
+    } else {
+        #otherwise, set it to empty string <=> empty stack:
+        $CG_USER_VARS{$stackvarname} = "";
+    }
+
+    return 1;
+}
+
+sub pragma_spec
+#returns true if we have an %pragma spec, which looks like this:
+#    %pragma var value
+#<var> must be a legitimate perl variable.
+{
+    my ($line, $linecnt, $infile) = @_;
+    return 0 unless ($line =~ /^\s*%pragma/);
+
+    my $token = '%pragma';
+
+    $line =~ s/^\s*$token\s*//;
+    #trim trailing spaces too:
+    $line =~ s/\s*$//;
+
+    return 1 if ($line eq "");
+
+    my ($lhs, $rhs) = split(/\s+/, $line);
+    if ( !defined($PRAGMAS{$lhs}) ) {
+        printf STDERR "%s: WARNING: %%pragma '%s' unrecognized in file %s line %d.  Valid pragma names are: (%s)\n",
+             $p, $lhs, $infile, $linecnt, join(", ", sort keys %PRAGMAS) unless ($QUIET);
+        return 1;  #recognized and processed a %pragma
+    }
+
+    #these pragmas require no value:
+    if ($lhs eq 'reset_stack_delimiter') {
+        $CG_USER_VARS{'CG_STACK_DELIMITER'} = $; ;
+        return 1;  #recognized and processed a %pragma
+    }
+
+    my $pragma_var = "pragma_" . $lhs;    #this is the variable we set internally.
+
+    if ( !defined($rhs) ) {
+        printf STDERR "%s: WARNING: %%pragma '%s': no value specified, file %s, line %d. Statement ignored.\n",
+             $p, $lhs, $infile, $linecnt unless ($QUIET);
+        return 1;  #recognized and processed a %pragma
+    }
+
+    printf STDERR "%s:  %%pragma:  line='%s' lhs='%s' rhs='%s'\n", $p, $line, $lhs, $rhs if ($DDEBUG);
+
+    ########
+    #process the pragma.  pragma_require is a special case:
+    ########
+    if ( $pragma_var eq "pragma_require" ) {
+        #this routine will read in the perl file specified by the user:
+        &pragma_require($rhs, $linecnt, $infile);
+        return 1;  #recognized and processed a %pragma
+    }
+
+    my $cmd = sprintf("package %s; \$%s = \"%s\";", __PACKAGE__, $pragma_var, $rhs);
+    my $result = eval($cmd);
+    printf STDERR "%s:  %%pragma:  cmd='%s' result='%s'\n", $p, $cmd, $result if ($DDEBUG);
+
+    #DUE TO a bug in some versions of perl, here we reference each pragma var to force
+    #perl to update the  value. RT 6/15/06
+    if (0) {
+        $pragma_preserve_multiline_lnewline = $pragma_preserve_multiline_lnewline;
+        $pragma_copy = $pragma_copy;
+    }
+
+    #set verbosity based on pragma values
+    my $err = 1;
+    if ($pragma_var eq "pragma_debug") {
+        $DEBUG   = $pragma_debug,   $err=0 if ($pragma_debug =~ /0|1/);
+    } elsif ($pragma_var eq "pragma_ddebug") {
+        $DDEBUG  = $pragma_ddebug,  $err=0 if ($pragma_ddebug =~ /0|1/);
+    } elsif ($pragma_var eq "pragma_quiet") {
+        $QUIET   = $pragma_quiet,   $err=0 if ($pragma_quiet =~ /0|1/);
+    } elsif ($pragma_var eq "pragma_verbose") {
+        $VERBOSE = $pragma_verbose, $err=0 if ($pragma_verbose =~ /0|1/);
+    } else {
+        #not a simple option pragma:
+        $err = 0;
+    }
+
+    if ($err) {
+        printf STDERR "%s: WARNING: %%pragma '%s': value '%s' must be in: {0,1}, file %s, line %d.\n",
+            $p, $lhs, $rhs, $infile, $linecnt unless ($QUIET);
+    }
+    
+    return 1;
+}
+
+sub pragma_require
+#this routine will read in the perl file specified by the user:
+#returns 0 if processed successfully.
+{
+    my ($perlfn, $linecnt, $infile) = @_;
+
+    #does $the file exist in our template path?
+    my ($intemplate) = &find_template($perlfn);
+    if (! -r $intemplate) {
+        printf STDERR "%s: ERROR: %%pragma require: file %s, line %d: can't find file '%s' in template path: %s\n",
+            $p, $infile, $linecnt, $intemplate, $! unless ($QUIET);
+        printf STDERR "\tCG_TEMPLATE_PATH='%s'\n", $CG_USER_VARS{'CG_TEMPLATE_PATH'};
+
+        ++ $GLOBAL_ERROR_COUNT;
+        $CG_USER_VARS{'CG_EXIT_STATUS'} = 1;
+        return 1;    #ERRORS
+    }
+
+    #if so, require it.
+    my $result = eval "require \"$intemplate\"";
+
+    #if errors, then what?
+    if ($@) {
+        printf STDERR "%s: ERROR: %%pragma require: file %s, line %d: require of file '%s' FAILED: %s\n",
+            $p, $infile, $linecnt, $intemplate, $@ unless ($QUIET);
+
+        ++ $GLOBAL_ERROR_COUNT;
+        $CG_USER_VARS{'CG_EXIT_STATUS'} = 1;
+        return 1;    #ERRORS
+    } elsif (!defined($result)) {
+        #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
+        printf STDERR "%s: ERROR: %%pragma require: file %s, line %d: require of file '%s' FAILED: %s\n",
+            $p, $infile, $linecnt, $intemplate, "ERROR in eval" unless ($QUIET);
+
+        ++ $GLOBAL_ERROR_COUNT;
+        $CG_USER_VARS{'CG_EXIT_STATUS'} = 1;
+        return 1;    #ERRORS
+    }
+
+    return 0;    #SUCCESS
+}
+
+sub evalmacro_spec
+#returns true if we have an %evalmacro spec
+#if output var is prefixed by '>>', then we append the variable.
+{
+    my ($line, $linecnt) = @_;
+    return 0 unless ($line =~ /^\s*%evalmacro/);
+
+    my $token = '%evalmacro';
+
+    $line =~ s/^\s*$token\s*//;
+    #trim trailing spaces too:
+    $line =~ s/\s*$//;
+
+    my $is_append = 0;
+
+    if ($line =~ /^>>\s*/) {
+        $is_append = 1;
+        $line =~ s/^>>\s*//;
+    }
+
+    my ($output_var, $macro_var_ref_in)  = split(/\s+/, $line, 2);
+
+    #expand varible refs in statement:
+    $output_var = &expand_macros($output_var);
+    my $macro_var_ref = &expand_macros($macro_var_ref_in);
+
+    if (!defined($CG_USER_VARS{$macro_var_ref})) {
+        printf STDERR "%s[%s]: ERROR: line %d: variable '%s' is undefined.\n",
+            $p, $token, $linecnt, $macro_var_ref_in unless($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;   #return true because we parsed a evalmacro_spec
+    }
+
+    my $macro_var = $CG_USER_VARS{$macro_var_ref};
+
+#printf STDERR "evalmacro_spec: output_var='%s' macro_var='%s'\n", $output_var, $macro_var;
+
+    #get a tempfile name:
+    my $tmpfile = sprintf("_cg_evalmacroA.%d", $$);
+    my $tmpfile_fullpath = &get_cg_tmpfile_name($tmpfile);
+    unlink $tmpfile_fullpath;
+
+    #write the macro into tmp file:
+    if (!&os::write_str2file(\$macro_var, $tmpfile_fullpath, 0) == 0) {
+        printf STDERR "%s[%s]: ERROR: line %d: FAILED to write macro to file '%s': %s\n",
+            $p, $token, $linecnt, $tmpfile_fullpath, $! unless($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;   #return true because we parsed a evalmacro_spec
+    }
+
+    my $tmpfileB = sprintf("_cg_evalmacroB.%d", $$);
+    my $tmpfileB_fullpath = &get_cg_tmpfile_name($tmpfileB);
+    unlink $tmpfileB_fullpath;
+
+    #generate a file spec to eval into a second tmp file:
+    my $filespecline = sprintf("%s\t/%s", $tmpfile_fullpath, $tmpfileB);
+
+#printf STDERR "evalmacro_spec: filespecline='%s'\n", $filespecline;
+
+    my $save_quiet = $QUIET;
+    $QUIET = 1;
+    if (!&filespec($filespecline, $linecnt, $CG_USER_VARS{'CG_TMPDIR'})) {
+        printf STDERR "%s[%s]: ERROR: line %d: FAILED to execute filespec '%s'\n",
+            $p, $token, $linecnt, $filespecline unless($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        $QUIET = $save_quiet;
+        unlink $tmpfile_fullpath, $tmpfileB_fullpath;
+        return 1;   #return true because we parsed a evalmacro_spec
+    }
+    $QUIET = $save_quiet;
+
+#printf STDERR "evalmacro_spec: ATTEMPTING to read result\n";
+
+    #read the output file into the output_var:
+    my $tmp = "";
+    if (&os::read_file2str(\$tmp, $tmpfileB_fullpath, 0) == 0) {
+        if ($is_append && defined($CG_USER_VARS{$output_var})) {
+            $CG_USER_VARS{$output_var} .= $tmp;
+        } else {
+            $CG_USER_VARS{$output_var} = $tmp;
+        }
+    } else {
+        printf STDERR "%s[%s]: ERROR: line %d: FAILED to read file '%s': %s\n",
+            $p, $token, $linecnt, $tmpfile_fullpath, $! unless($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+    }
+
+    #delete the tmp files:
+    unlink $tmpfile_fullpath, $tmpfileB_fullpath;
+    return 1;
+}
+
+sub evaltemplate_spec
+#returns true if we have an %evaltemplate spec
+{
+    my ($line, $linecnt) = @_;
+    return 0 unless ($line =~ /^\s*%evaltemplate/);
+
+    $line =~ s/^\s*%evaltemplate\s*//;
+    #trim trailing spaces too:
+    $line =~ s/\s*$//;
+
+    my $is_append = 0;
+
+    if ($line =~ /^>>\s*/) {
+        $is_append = 1;
+        $line =~ s/^>>\s*//;
+    }
+
+    my ($output_var, $template_fn)  = split(/\s+/, $line, 2);
+
+    #expand varible refs in statement:
+    $output_var = &expand_macros($output_var);
+    #NOTE:  $template_fn is expanded by filespec.
+
+    #get a tempfile name:
+    my $tmpfile = sprintf("_codegen.evaltemplate.%d", $$);
+    my $tmpfile_fullpath = &get_cg_tmpfile_name($tmpfile);
+    unlink $tmpfile_fullpath;    #this filename is not unique, make sure it is gone.
+
+    my $filespecline = sprintf("%s\t/%s", $template_fn, $tmpfile);
+#printf "evaltemplate_spec: output_var='%s' template_fn='%s' filespecline='%s'\n", $output_var, $template_fn, $filespecline;
+    my $save_quiet = $QUIET;
+    $QUIET = 1;
+    if (!&filespec($filespecline, $linecnt, $CG_USER_VARS{'CG_TMPDIR'})) {
+        printf STDERR "%s/evaltemplate_spec: line %d: FAILED to execute filespec '%s'\n", $p, $linecnt, $filespecline;
+        ++ $GLOBAL_ERROR_COUNT;
+        $QUIET = $save_quiet;
+        return 1;   #return true because we parsed a evaltemplate_spec
+    }
+    $QUIET = $save_quiet;
+
+    #read the output file into the output_var:
+    my $tmp = "";
+    if (&os::read_file2str(\$tmp, $tmpfile_fullpath, 0) == 0) {
+        if ($is_append && defined($CG_USER_VARS{$output_var})) {
+            $CG_USER_VARS{$output_var} .= $tmp;
+        } else {
+            $CG_USER_VARS{$output_var} = $tmp;
+        }
+    } else {
+        printf STDERR "%s/evaltemplate_spec: FAILED to read file '%s'\n", $p, $tmpfile_fullpath;
+        ++ $GLOBAL_ERROR_COUNT;
+    }
+
+    #delete the tmp file:
+    unlink $tmpfile_fullpath;
+#printf "evaltemplate_spec: output_var='%s' template_fn='%s'\n", $output_var, $template_fn;
+    return 1;
+}
+
+sub readtemplate_spec
+#returns true if we have an %readtemplate spec
+{
+    my ($line, $linecnt) = @_;
+    return 0 unless ($line =~ /^\s*%readtemplate\s+/);
+
+    $line =~ s/^\s*%readtemplate\s+//;
+    #trim trailing spaces too:
+    $line =~ s/\s*$//;
+
+    my ($output_var, $template_fn)  = split(/\s+/, $line, 2);
+
+    #expand varible refs in statement:
+    $output_var = &expand_macros($output_var);
+    $template_fn = &expand_macros($template_fn);
+    $template_fn = &expand_include_fn($template_fn);
+
+#printf "readtemplate_spec: output_var='%s' template_fn='%s'\n", $output_var, $template_fn;
+
+    #read the template file into the output_var:
+    my $ovref = \$CG_USER_VARS{$output_var};
+    $$ovref = "";
+    if (&os::read_file2str($ovref, $template_fn, 0) != 0) {
+        $$ovref = "";
+        printf STDERR "%s/readtemplate_spec: FAILED to read file '%s'\n", $p, $template_fn;
+        ++ $GLOBAL_ERROR_COUNT;
+    }
+
+    return 1;
+}
+
+sub includespec
+#returns true if we have an include spec.
+#process include.  (this is a recursive call)
+{
+    my ($line, $linecnt) = @_;
+    return 0 unless ($line =~ /^\s*%include\s+/);
+
+    #we have an include - get the file name:
+    my $includefn = $line;
+
+    $includefn =~ s/^\s*%include\s+//;
+    #trim trailing spaces too:
+    $includefn =~ s/\s*$//;
+
+    #expand include file name to full path with variable substitution:
+    $includefn = &expand_include_fn($includefn);
+
+    printf STDERR "%s: Including definition file '%s'\n", $p, $includefn if ($VERBOSE);
+
+    ++$GLOBAL_ERROR_COUNT unless (&interpret($includefn) == 0);
+
+    return 1;   #we found and processed an include, even if there were errors...
+}
+
+sub interpretspec
+#create an include file from a variable and include it.
+#returns true if we have an %interpret <varname> spec
+{
+    my ($line, $linecnt) = @_;
+    return 0 unless ($line =~ /^\s*%call/ || $line =~ /^\s*%interpret/);
+
+    my $token = '%interpret';
+    $token = '%call' if ($line =~ /^\s*%call/);
+
+    $line =~ s/^\s*$token\s+//;
+    #trim trailing spaces too:
+    $line =~ s/\s*$//;
+
+    my ($input_var)  = $line;
+
+    #expand varible refs in statement:
+    my $input_var_ref = &expand_macros($input_var);
+
+    printf "%s: input_var='%s' input_var_ref='%s'\n", $token, $input_var, $input_var_ref if ($DEBUG);
+
+    #ensure that our variable reference is defined.
+    if (!defined($CG_USER_VARS{$input_var_ref})) {
+        printf STDERR "%s[%s]: variable '%s'->'%s' is undefined.\n", $p, $token, $input_var, $input_var_ref;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;   #return true because we parsed a evalmacro_spec
+    }
+
+    #write contents of our <input_var> into a tmp file:
+    my $input_var_contents = $CG_USER_VARS{$input_var_ref};
+    my $tmpfile_fullpath = &write_string_to_cg_tmp_file($input_var_contents);
+    if ($tmpfile_fullpath eq "NULL") {
+        printf STDERR "%s[%s]: ERROR: line %d: cannot create temp file.\n",
+            $p, $token, $linecnt unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;   #return true because we parsed a evalmacro_spec
+    }
+
+    ##########
+    #interpret contents of variable as if it were an %include:
+    ##########
+    ++$GLOBAL_ERROR_COUNT unless (&interpret($tmpfile_fullpath) == 0);
+
+    #delete the tmp file:
+    unlink $tmpfile_fullpath;
+
+    return 1;
+}
+
+sub expand_include_fn
+#search CG_TEMPLATE_PATH for an include file
+#return the full path of the file if found, otherwise, return input.
+{
+    my ($includefn) = @_;
+
+    #expand definitions in include file name:
+    my $tmpfn = &expand_macros($includefn);
+
+    if ($tmpfn eq "") {
+        printf STDERR "%s[expand_include_fn]: WARNING: %%include '%s' expands to empty filename.\n", $p, $includefn;
+        return $includefn;
+    }
+
+    #if include file is not an absolute path...
+    if ($tmpfn !~ /^\//) {
+        #then make it relative to the template root:
+        $tmpfn = &find_template($tmpfn);
+    }
+
+    return $tmpfn;
+}
+
+sub shellspec
+#returns true if we have an call to the shell
+{
+    my ($line, $linecnt) = @_;
+    return 0 unless ($line =~ /^\s*%shell\s+/);
+
+    #we have an shell command - get the command string:
+    my $cmd = $line;
+
+    $cmd =~ s/^\s*%shell\s+//;
+
+    #expand definitions in command string:
+    $cmd = &expand_macros($cmd);
+
+    $cmd = sprintf("sh -c '%s'", $cmd);
+
+    printf STDERR "%s: processing shell command '%s'\n", $p, $cmd if ($VERBOSE);
+
+    $CG_USER_VARS{'CG_SHELL_STATUS'} = 254;    #unless shell sets status, we assume bad
+    system($cmd);
+    $CG_USER_VARS{'CG_SHELL_STATUS'} = $?;
+
+    return 1;   #we found and processed a shell command, even if there were errors...
+}
+
+sub echospec
+#returns true if we have an %echo (alias %print) command
+{
+    my ($line, $linecnt) = @_;
+    my ($token) = "";
+
+    $token = $1 if ($line =~ /^\s*(%e?echo)\s*/ || $line =~ /^\s*(%printe?)\s*/);
+    return if ($token eq "");
+
+    my ($use_stderr) = ($token eq "%eecho" || $token eq "%eprint") ? 1 : 0;
+
+    #we have an echo command - delete the command:
+    $line =~ s/^\s*$token\s*//;
+
+    #do we have a -n?
+    my $nonewline = ($line =~ /^-n\s+/) ? 1 : 0;
+    $line =~ s/^-n\s+// if ($nonewline);
+
+    my $echotext = $line;
+
+    printf STDERR "\nechospec: token='%s' use_stderr=%d echotext='%s'\n",
+        $token, $use_stderr, $echotext if ($DEBUG);
+
+    #expand definitions in text:
+    $echotext = &expand_macros($echotext) if ($echotext ne "");
+
+    if ($use_stderr) {
+        print STDERR sprintf "%s%s", $echotext, $nonewline ? "" : "\n";
+    } else {
+        print sprintf "%s%s", $echotext, $nonewline ? "" : "\n";
+    }
+
+    return 1;   #we found and processed a echo command
+}
+
+sub voidspec
+#returns true if we have an %void command
+{
+    my ($line, $linecnt) = @_;
+    return 0 unless ($line =~ /^\s*%void\s+/);
+
+    #we have an void command - get the command string:
+    my $cmd = $line;
+
+    $cmd =~ s/^\s*%void\s+//;
+
+    #expand definitions in command string:
+    $cmd = &expand_macros($cmd);
+
+    printf STDERR "%s: processing void command '%s'\n", $p, $cmd if ($VERBOSE);
+
+    return 1;   #we found and processed a void command, even if there were errors...
+}
+
+sub returncommand
+#returns true if we have an %return or %exit command
+#NOTE:  use %halt to exit to shell
+{
+    my ($line, $linecnt) = @_;
+    return 0 unless ($line =~ /^\s*%(exit|return)\s*$/ || $line =~ /^\s*%(exit|return)\s+/);
+
+    #we have an exit command - get the command string:
+    my $exitmessage = $line;
+
+    $exitmessage =~ s/^\s*%(exit|return)\s*//;
+
+    #can have exit message:
+    if ($exitmessage ne "") {
+        #expand definitions in text:
+        $exitmessage = &expand_macros($exitmessage);
+
+        print "$exitmessage\n" if ($exitmessage ne "");
+    }
+
+    return 1;   #we found and processed a exit command
+}
+
+sub haltcommand
+#returns true if we have an %halt or %abort command
+#this command will exit to shell.  if status is provided,
+#exit with status, otherwise, exit with zero status.
+{
+    my ($line, $linecnt) = @_;
+    return 0 unless ($line =~ /^\s*%(halt|abort)\s*$/ || $line =~ /^\s*%(halt|abort)\s+/);
+
+    #we have an exit command - get the command string:
+    my $exitstatus = $line;
+
+    $exitstatus =~ s/^\s*%(halt|abort)\s*//;
+
+    #can have exit message:
+    if ($exitstatus ne "") {
+        #expand definitions in text:
+        $exitstatus = &expand_macros($exitstatus);
+
+        #set error if exit status does not expand to a number:
+        $exitstatus = 1 unless (&is_integer($exitstatus));
+        $CG_USER_VARS{'CG_EXIT_STATUS'} = $exitstatus;
+    }
+
+    return 1;   #we found and processed a halt command
+}
+
+sub comment
+#true if comment or blank line
+#comment lines can start with #, {, or }.
+#curly braces are useful for navigating large codegen files.
+{
+    my ($line) = @_;
+    return ($line =~ /^\s*[#{}]/);
+}
+
+sub filespec
+#true if line contains a filespec, which is of the form:
+#  template  [>>]full_class_name
+#the full_class_name is just a java class name or a file path.
+#if prefixed or delimited by '.', we assume a java class and generate a file with a .java suffix.
+#otherwise, if prefixed or delimited by '/' then user must supply suffix if desired
+#if prefixed by '>>', then we append to the file, otherwise we create new.
+{
+    my ($line, $linecnt, $cgroot) = @_;
+
+    #kill leading white-space:
+    $line =~ s/^\s+//;
+
+    #split into two fields:
+    my (@tmp) = split(/\s+/, $line, 2);
+
+    return 0 if ($#tmp != 1);
+
+    #otherwise, proceed...
+    my ($template, $filespec) = @tmp;
+    my $is_append = 0;
+
+#printf STDERR "BEFORE append check template='%s' filespec='%s' is_append=%d\n", $template, $filespec, $is_append;
+
+    if ($filespec =~ /\s*>>\s*/) {
+        $is_append = 1;
+        $filespec =~ s/\s*>>//;
+    }
+
+    #eliminate leading, trailing spaces from file name, but allow internal whitespace:
+    $filespec =~ s/^\s+//;
+    $filespec =~ s/\s+$//;
+
+#printf STDERR "AFTER append check template='%s' filespec='%s' is_append=%d\n", $template, $filespec, $is_append;
+
+    #create the following class variables:
+    #  (dirname, filename, fullclassname, relativeclassname, fullpackagename, relativepackagename)
+    #create the following template variables:
+    #  templatefilename
+
+    %CLASS_VARS = (); 
+    $CLASS_VAR_REF = \%CLASS_VARS;  #this ref is used by lookup routine
+
+    $filespec = &expand_macros($filespec);
+    $template = &expand_macros($template);
+    &gen_classvars(\%CLASS_VARS, $filespec);
+
+    #expand template var AFTER we create the class vars from the filespec:
+    $template = &expand_macros($template);
+
+    $CLASS_VARS{'CG_TEMPLATE'} = $template;
+
+    &dumphash(\%CLASS_VARS, "CLASS_VARS") if ($DEBUG);
+
+    #make sure that CG_ROOT is defined unless it was passed as parameter:
+    if (!defined($cgroot)) {
+        #default is to generate to CG_ROOT
+        if (!&create_cg_root()) {
+            printf STDERR "%s[filespec]: ERROR: line %d: cannot create CG_ROOT, '%s'\n",
+                $p, $linecnt, $CG_USER_VARS{'CG_ROOT'}  unless ($QUIET);
+            ++ $GLOBAL_ERROR_COUNT;
+            #we processed an undef statement, even if there were errors::
+            return 1;
+        }
+
+        #set it after call to create_cg_root, as this could init it:
+        $cgroot = $CG_USER_VARS{'CG_ROOT'};
+    }
+
+    #now create the sourcefile from the template:
+    &gen_sourcefile(\%CLASS_VARS, $line, $linecnt, $is_append, $cgroot);
+
+    return 1;
+}
+
+sub gen_classvars
+#INPUT:   a file/class specification, starting at the codegen root.
+#         example:  com.sun.jbi.admin.packaging.unzip
+#OUTPUT:  add vars to <cvar_ref> hash, indexed by the following keys:
+#  (DIRNAME, FILENAME, REL_PKGNAME, FULL_PKGNAME, CLASSNAME, FULL_CLASSNAME)
+{
+    my ($cvar_ref, $filespec) = @_;
+    my (%out) = (); #cvar_ref is value-result parameter
+
+    printf STDERR "genclassvars:  filespec='%s'\n", $filespec if ($DEBUG);
+
+    my ($isjava) = ($filespec =~ /\./ && $filespec !~ /\//);
+    my (@parts);
+
+    if ($isjava) {
+        @parts = split(/[\.]+/, $filespec);
+    } else {
+        @parts = split(/[\/]+/, $filespec);
+    }
+
+    #FILENAME
+    my ($filename) = $parts[$#parts];
+    #add .java to filename if we are doing java:
+    $filename = "$filename.java" if ($isjava);
+
+    #DIRNAME
+    my ($dirname) = join('/', @parts[0..$#parts-1]);
+
+    #FULL_PKGNAME
+    my ($fullpkg) = join('.', @parts[0..$#parts-1]);
+
+    #PKGNAME
+    my ($pkgname) = join('.', $parts[$#parts-1]);
+
+    #CLASSNAME
+    my ($classname) = $parts[$#parts];
+    #eliminate suffix in classname if present:
+    $classname =~ s/\.[a-zA-Z0-9_]*$//;
+
+    #####
+    #save results in caller's hash:
+    #####
+    ${$cvar_ref}{'CG_DIRNAME'}        = $dirname;
+    ${$cvar_ref}{'CG_FILENAME'}       = $filename;
+
+    ${$cvar_ref}{'CG_PKGNAME'}    = $pkgname;
+    ${$cvar_ref}{'CG_FULL_PKGNAME'}   = $fullpkg;
+
+    ${$cvar_ref}{'CG_CLASSNAME'}  = $classname;
+    ${$cvar_ref}{'CG_FULL_CLASSNAME'} = "$fullpkg.$classname";
+
+    return 0;       #0 => no errors
+}
+
+sub undefspec
+#true if we see an %undef
+#this eliminates a variable from our table.
+{
+    my ($line, $linecnt) = @_;
+    my $token = '%undef';
+    return 0 unless ($line =~ /^\s*$token\s+/);
+
+    #we have an undef - get the variable name:
+    my $varname_in = $line;
+
+    $varname_in =~ s/^\s*$token\s+//;
+
+    #if variable name is missing ...
+    if (!defined($varname_in)) {
+        printf STDERR "%s: ERROR: line %d: %s missing variable name\n", $p, $linecnt, $token;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #if variable is a variable reference (e.g., $fooptr), then test valueof:
+    my $varname = $varname_in;
+    $varname = &expand_macros($varname_in) if ($varname_in =~ /\$/);
+
+    if ($varname ne $varname_in && $varname =~ /\$/) {
+        printf STDERR "%s: WARNING: line %d: variable reference '%s' in %s statement is INVALID - ignored.\n",
+            $p, $linecnt, $varname_in, $token unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        #we processed an undef statement, even if there were errors::
+        return 1;
+    }
+
+    #finally, treat spec as a match expression, and delete all vars
+    #that match:
+    my $match_cnt = 0;
+    my @matchvars = ();
+    foreach my $kk (keys %CG_USER_VARS) {
+        if ($kk =~ /^${varname}$/) {
+            push @matchvars, $kk;
+            delete $CG_USER_VARS{$kk};
+            ++$match_cnt;
+        }
+    }
+
+    printf STDERR "%s: INFO:  line %d: undefined %d variables: (%s)\n",
+        $token, $LINE_CNT, $match_cnt, join(', ', @matchvars) if ($VERBOSE);
+
+    return 1;   #we found and processed an undef, even if there were errors...
+}
+
+sub exportspec
+#true if we see an %export or %unexport
+#this will export or unexport a variable from the env.
+{
+    my ($line, $linecnt) = @_;
+    return 0 unless ($line =~ /^\s*%(export|unexport)\s+/);
+
+    my ($isexport) = ($line =~ /^\s*%export\s+/) ? 1 : 0;
+    my ($token) = ($isexport) ? "%export" : "%unexport";
+
+    $line =~ s/^\s*$token\s*//;
+    #trim trailing spaces too:
+    $line =~ s/\s*$//;
+
+    #we have an export/unexport - get the variable name:
+    my $varname_in = $line;
+
+    #if variable name is missing ...
+    if (!defined($varname_in)) {
+        printf STDERR "%s: ERROR: line %d: %s missing variable name\n", $p, $linecnt, $token;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #if variable is a variable reference (e.g., $fooptr), then test valueof:
+    my $varname = $varname_in;
+    $varname = &expand_macros($varname_in) if ($varname_in =~ /\$/);
+
+    if ($varname ne $varname_in && $varname =~ /\$/) {
+        printf STDERR "%s: WARNING: line %d: variable reference '%s' in %s statement is INVALID - ignored.\n",
+            $p, $linecnt, $varname_in, $token unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        #we processed an export/unexport statement, even if there were errors::
+        return 1;
+    }
+
+    #finally, export or unexport the variable to the ENV hash:
+    if ($isexport) {
+        $ENV{$varname} = $CG_USER_VARS{$varname};
+    } else {
+        delete $ENV{$varname};
+    }
+
+    printf STDERR "%s: INFO:  line %d: %sed %s='%s'\n",
+        $p, $LINE_CNT, $token, $varname, $CG_USER_VARS{$varname} if ($VERBOSE);
+
+    return 1;   #we found and processed an export/unexport, even if there were errors...
+}
+
+sub ifdefspec
+#true if we see an %ifdef or %ifndef.
+#sets _do_eval to 1 if we are to evaluate modified _line
+#example:  %ifdef CG_ROOT CGROOT_BASE = $CG_ROOT
+#example:  %ifdef FOOVAR %echo FOOVAR is '$FOOVAR'
+{
+    my ($_line, $linecnt, $_doeval) = @_;
+    my ($line) = ${$_line};
+
+    #RESULT:
+    ${$_doeval} = 0;
+
+    return 0 unless ($line =~ /^\s*%ifn?def\s+/);
+
+    my ($isifdef) = ($line =~ /^\s*%ifdef\s+/) ? 1 : 0;
+    my ($token) = ($isifdef) ? "%ifdef" : "%ifndef";
+
+    #scan past %ifdef:
+    $line =~ s/^\s*%ifn?def\s+//;
+
+    #get variable token
+    my ($varname_in,$def_expr) = split(/\s+/, $line, 2);
+    printf STDERR "%s: varname_in=%s def_expr=%s\n", $token, $varname_in, $def_expr if ($DEBUG);
+
+    #if variable name is missing ...
+    if (!defined($varname_in)) {
+        printf STDERR "%s: ERROR: line %d: %s missing variable name\n",$p,$linecnt,$token;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #if DEFINITION expression missing ...
+    if (!defined($def_expr)) {
+        printf STDERR "%s: ERROR: line %d: %s missing statement clause\n",$p,$linecnt,$token unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #if variable is a variable reference (e.g., $fooptr), then test valueof:
+    my $varname = $varname_in;
+    $varname = &expand_macros($varname_in) if ($varname_in =~ /\$/);
+
+    if ($varname ne $varname_in && $varname =~ /\$/) {
+        printf STDERR "%s: WARNING: line %d: variable reference '%s' in %s expression is INVALID - ignored.\n",
+            $p, $linecnt, $varname_in, $token unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        #we processed an ifn?def statement, even if there were errors::
+        return 1;
+    }
+
+    my $vardefined  = &var_defined($varname);
+    my $doeval = ( ($vardefined && $isifdef) || (!$vardefined && !$isifdef) );
+
+    printf STDERR "%s: vardefined=%d doeval=%d\n", $token, $vardefined, $doeval if ($DEBUG);
+
+    return 1 unless ($doeval);     #we are done with this line.
+
+    #otherwise, re-interpret the remainder of the line:
+    ${$_line} = $def_expr;
+    ${$_doeval} = 1;
+
+    return 1;
+}
+
+sub ifspec
+#true if we see an %if or %ifnot.
+#sets _do_eval to 1 if we are to evaluate modified _line
+#i.e., if string or variable evaluates to non-zero or non-empty, it is true
+{
+    my ($_line, $linecnt, $_doeval) = @_;
+    my ($line) = ${$_line};
+
+    #RESULT:
+    ${$_doeval} = 0;
+
+    return 0 unless ($line =~ /^\s*%(if|ifnot)\s+/);
+
+    my ($isifexpr) = ($line =~ /^\s*%if\s+/) ? 1 : 0;
+    my ($token) = ($isifexpr) ? "%if" : "%ifnot";
+
+    #scan past %if or %ifnot:
+    if ($isifexpr) {
+        $line =~ s/^\s*%if\s+//;
+    } else {
+        $line =~ s/^\s*%ifnot\s+//;
+    }
+
+    #get variable token
+    my ($varexpr,$if_clause) = split(/\s+/, $line, 2);
+    printf STDERR "%s: varexpr=%s if_clause=%s\n", $token, $varexpr, $if_clause if ($DEBUG);
+
+    #if variable name is missing ...
+    if (!defined($varexpr)) {
+        printf STDERR "%s: ERROR: line %d: %s missing variable expression\n",$p,$linecnt,$token;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #if statement clause missing ...
+    if (!defined($if_clause)) {
+        printf STDERR "%s: ERROR: line %d: %s missing statement clause\n",$p,$linecnt,$token unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    my $varvalue = &expand_macros($varexpr);
+
+    my $doeval = ( ($isifexpr && &istrueExpr($varvalue)) || (!$isifexpr && !&istrueExpr($varvalue)) );
+
+    printf STDERR "%s: varvalue=%d doeval=%d\n", $token, $varvalue, $doeval if ($DEBUG);
+
+    return 1 unless ($doeval);     #we are done with this line.
+
+    #otherwise, re-interpret the remainder of the line:
+    ${$_line} = $if_clause;
+    ${$_doeval} = 1;
+
+    return 1;
+}
+
+sub whiledefspec
+#true if we see an %whiledef statement.
+#example:  %whiledef FOOVAR %UNDEF FOOVAR
+{
+    my ($line, $linecnt) = @_;
+
+    return 0 unless ($line =~ /^\s*%whiledef\s+/);
+
+    my ($token) = "%whiledef" ;
+
+    #scan past %ifdef:
+    $line =~ s/^\s*%whiledef\s+//;
+
+    #get variable token
+    my ($varname_in,$theStatement) = split(/\s+/, $line, 2);
+    printf STDERR "%s: varname_in=%s theStatement=%s\n", $token, $varname_in, $theStatement if ($DEBUG);
+
+    #if variable name is missing ...
+    if (!defined($varname_in)) {
+        printf STDERR "%s: ERROR: line %d: %s missing variable name\n",$p,$linecnt,$token;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #if DEFINITION expression missing ...
+    if (!defined($theStatement)) {
+        printf STDERR "%s: ERROR: line %d: %s missing statement clause\n",$p,$linecnt,$token unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #if variable is a variable reference (e.g., $fooptr), then test valueof:
+    my $varname = $varname_in;
+    $varname = &expand_macros($varname_in) if ($varname_in =~ /\$/);
+
+    if ($varname ne $varname_in && $varname =~ /\$/) {
+        printf STDERR "%s: WARNING: line %d: variable reference '%s' in %s expression is INVALID - ignored.\n",
+            $p, $linecnt, $varname_in, $token unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        #we processed an %whiledef statement, even if there were errors::
+        return 1;
+    }
+
+    #nothing to do if variable is undefined:
+    return 1 unless (&var_defined($varname));
+
+    #otherwise, write command to file and process the file until condition satisfied:
+    my $tmpfile_fullpath = &write_string_to_cg_tmp_file($theStatement);
+    if ($tmpfile_fullpath eq "NULL") {
+        printf STDERR "%s[%s]: ERROR: line %d: cannot create temp file.\n",
+            $p, $token, $linecnt unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        #we processed an %whiledef statement, even if there were errors::
+        return 1;
+    }
+
+    my $cnt = 0;
+    while (&var_defined($varname)) {
+        ++$cnt;
+        if (&interpret($tmpfile_fullpath) != 0) {
+            printf STDERR "%s[%s]: ERROR: line %d: fail to interpret %s clause on %dth count.\n",
+                $p, $token, $linecnt, $token, $cnt unless ($QUIET);
+            ++ $GLOBAL_ERROR_COUNT;
+            last;
+        }
+        $varname = &expand_macros($varname_in) if ($varname_in =~ /\$/);
+    }
+
+    unlink $tmpfile_fullpath;
+
+    #we processed an %whiledef statement, even if there were errors::
+    return 1;
+}
+
+sub whilespec
+#true if we see an %while statement
+#sets _do_eval to 1 if we are to evaluate modified _line
+#i.e., if string or variable evaluates to "true, TRUE, 1", then interpret remainder.
+#OTHERWISE, interpret as false.  By definition, any "non-true" expression is false.
+{
+    my ($line, $linecnt) = @_;
+
+    return 0 unless ($line =~ /^\s*%while\s+/);
+
+    my ($token) = "%while";
+
+    $line =~ s/^\s*%while\s+//;
+
+    #get variable token
+    my ($varexpr, $theStatement) = split(/\s+/, $line, 2);
+    printf STDERR "%s: varexpr=%s theStatement=%s\n", $token, $varexpr, $theStatement if ($DEBUG);
+
+    #if variable name is missing ...
+    if (!defined($varexpr)) {
+        printf STDERR "%s: ERROR: line %d: %s missing variable expression\n",$p,$linecnt,$token;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #if statement clause missing ...
+    if (!defined($theStatement)) {
+        printf STDERR "%s: ERROR: line %d: %s missing statement clause\n",$p,$linecnt,$token unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    my $varvalue = &expand_macros($varexpr);
+    printf STDERR "%s: varvalue=%d\n", $token, $varvalue if ($DEBUG);
+
+    #nothing to do if expression is false:
+    return 1 unless (&istrueExpr($varvalue));
+
+    #otherwise, write command to file and process the file until condition satisfied:
+    my $tmpfile_fullpath = &write_string_to_cg_tmp_file($theStatement);
+    if ($tmpfile_fullpath eq "NULL") {
+        printf STDERR "%s[%s]: ERROR: line %d: cannot create temp file.\n",
+            $p, $token, $linecnt unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        #we processed an %while statement, even if there were errors::
+        return 1;
+    }
+
+    my $cnt = 0;
+    while (&istrueExpr($varvalue)) {
+        ++$cnt;
+        if (&interpret($tmpfile_fullpath) != 0) {
+            printf STDERR "%s[%s]: ERROR: line %d: fail to interpret %s clause on %dth count.\n",
+                $p, $token, $linecnt, $token, $cnt unless ($QUIET);
+            ++ $GLOBAL_ERROR_COUNT;
+            last;
+        }
+        $varvalue = &expand_macros($varexpr);
+    }
+
+    unlink $tmpfile_fullpath;
+
+    #we processed an %while statement, even if there were errors::
+    return 1;
+}
+
+sub foreachspec
+#true if we see an %foreach statement:
+#  %foreach iterator_var range_var statement
+#evaluate a statement with a range of values.
+#Range variables can be a pointer to the variable
+#name to use to provide the range.  The iterator
+#variable is expected to be a simple variable name.
+#
+#added 6/24/06 - range variable can now be a pattern,
+#enclosed in "/<pattern/".
+{
+    my ($line, $linecnt) = @_;
+
+    return 0 unless ($line =~ /^\s*%foreach\s+/);
+
+    my ($token) = "%foreach" ;
+
+    #scan past %ifdef:
+    $line =~ s/^\s*%foreach\s+//;
+
+    #get variable token
+    my ($itrname_in, $rgname_in, $theStatement) = split(/\s+/, $line, 3);
+    printf STDERR "%s: itrname_in=%s rgname_in=%s theStatement=%s\n", $token, $itrname_in, $rgname_in, $theStatement if ($DEBUG);
+
+    #if variable name is missing ...
+    if (!defined($itrname_in)) {
+        printf STDERR "%s: ERROR: line %d: %s missing iterator variable name\n",$p,$linecnt,$token;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #if variable name is missing ...
+    if (!defined($rgname_in)) {
+        printf STDERR "%s: ERROR: line %d: %s missing range variable name\n",$p,$linecnt,$token;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #if statement missing ...
+    if (!defined($theStatement)) {
+        printf STDERR "%s: ERROR: line %d: %s missing statement clause\n",$p,$linecnt,$token unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #if iterator variable is a variable reference (e.g., $fooptr), then test valueof:
+    my $itrname = $itrname_in;
+
+    if ($itrname =~ /\$/) {
+        printf STDERR "%s: WARNING: line %d: iterator variable '%s' is not a simple variable name - %s ignored.\n",
+            $p, $linecnt, $itrname, $token unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        #we processed an %foreach statement, even if there were errors::
+        return 1;
+    }
+
+    #if range variable is a variable reference (e.g., $fooptr), then test valueof:
+    my $rgname = $rgname_in;
+    $rgname = &expand_macros($rgname_in) if ($rgname_in =~ /\$/);
+
+    #if we couldn't expand the variable expression...
+    if ($rgname ne $rgname_in && $rgname =~ /\$/) {
+        printf STDERR "%s: WARNING: line %d: iterator variable reference '%s' in %s expression is INVALID - ignored.\n",
+            $p, $linecnt, $rgname_in, $token unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        #we processed an %foreach statement, even if there were errors::
+        return 1;
+    }
+
+    #nothing to do if range variable is undefined:
+    if (!&var_defined($rgname)) {
+        printf STDERR "%s: WARNING: line %d: range variable reference undefined: ('%s'->'%s') - %s ignored.\n",
+            $p, $linecnt, $rgname_in, $rgname, $token unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        #we processed an %foreach statement, even if there were errors::
+        return 1;
+    }
+
+    #get the value of the range variable:
+    my $rgvalue = &lookup_def($rgname);
+
+    #if range value is a pattern...
+    if ($rgvalue =~ /^\// && $rgvalue =~ /\/$/) {
+        $GLOBAL_ERROR_COUNT
+            += &exec_pattern_foreach($line, $linecnt, $token, $theStatement, $itrname, $rgname, $rgvalue);
+    } else {
+        $GLOBAL_ERROR_COUNT
+            += &exec_numeric_foreach($line, $linecnt, $token, $theStatement, $itrname, $rgname, $rgvalue);
+    }
+
+    #we processed an %foreach statement, even if there were errors::
+    return 1;
+}
+
+sub exec_pattern_foreach
+#execute the /pattern/ form of %foreach.
+#returns number of errors encountered.
+{
+    my ($line, $linecnt, $token, $theStatement, $itrname, $rgname, $vpattern) = @_;
+    my $errcnt = 0;
+
+    #eliminate / chars at beginning and end of pattern (pattern has already been checked):
+    $vpattern = $1 if ( $vpattern =~ /^\/(.*)\/$/ );
+
+    #generate list of  all vars matching pattern:
+    my @matchvars = grep(/$vpattern/, sort keys %CG_USER_VARS);
+
+    printf STDERR "%s %s %s->'%s': matchvars=(%s)\n", $token, $itrname, $rgname, $vpattern, join(",", @matchvars)
+        if ($DEBUG);
+
+    #return if no variables match:
+    return $errcnt if ($#matchvars < 0);
+
+    #otherwise, write command to file and process the file while iterator is in range:
+    my $tmpfile_fullpath = &write_string_to_cg_tmp_file($theStatement);
+    if ($tmpfile_fullpath eq "NULL") {
+        printf STDERR "%s[%s]: ERROR: line %d: cannot create temp file.\n",
+            $p, $token, $linecnt unless ($QUIET);
+
+        return ++$errcnt;
+    }
+
+    #foreach value in range...
+    my $ii;
+    foreach $ii (@matchvars) {
+        #set iterator variable to current value in range:
+        $CG_USER_VARS{$itrname} = $ii;
+        if (&interpret($tmpfile_fullpath) != 0) {
+            printf STDERR "%s[%s]: ERROR: line %d: fail to interpret %s clause '%s' for value '%s' in /%s/.\n",
+                $p, $token, $linecnt, $token, $theStatement, $ii, $vpattern unless ($QUIET);
+
+            ++$errcnt;
+            last;
+        }
+    }
+
+    unlink $tmpfile_fullpath;
+
+    return $errcnt;    #return 0 if no errors.
+}
+
+sub exec_numeric_foreach
+#returns number of errors encountered.
+{
+    my ($line, $linecnt, $token, $theStatement, $itrname, $rgname, $rgvalue) = @_;
+    my $errcnt = 0;
+
+    my $rglb = &rangelb_op($rgvalue);
+    my $rgub = &rangeub_op($rgvalue);
+    if (!&is_integer($rglb) || !&is_integer($rglb)) {
+        printf STDERR "%s: WARNING: line %d: range variable '%s'->'%s' contains non-integer value - %s ignored.\n",
+            $p, $linecnt, $rgname, $rgvalue, $token unless ($QUIET);
+
+        return ++$errcnt;
+    }
+
+    if ($DDEBUG) {
+        printf STDERR "%s: itrname=%s rgname=%s var_defined(%s)=%d rgvalue='%s' rglb=%s rgub=%s\n",
+            $token, $itrname, $rgname, $rgname, &var_defined($rgname), $rgvalue, $rglb, $rgub;
+    }
+
+    #otherwise, write command to file and process the file while iterator is in range:
+    my $tmpfile_fullpath = &write_string_to_cg_tmp_file($theStatement);
+    if ($tmpfile_fullpath eq "NULL") {
+        printf STDERR "%s[%s]: ERROR: line %d: cannot create temp file.\n",
+            $p, $token, $linecnt unless ($QUIET);
+
+        return ++$errcnt;
+    }
+
+    #set padding to zero-fill if either var is zero-filled:
+    my $padfmt = "%d";
+    if ($rglb =~ /^0/ || $rgub =~ /^0/) {
+        my $padlen = length("$rgub");
+        $padlen = length("$rglb") if (length("$rglb") > $padlen);  #set pad length;
+        $padfmt = "%0" . $padlen . "d";    #e.g., %02d
+    }
+
+    #foreach value in range...
+    my $ii;
+    for ($ii=0+$rglb; $ii<=$rgub; $ii++) {
+        #set iterator variable to current value in range:
+        $CG_USER_VARS{$itrname} = sprintf($padfmt, $ii);
+        if (&interpret($tmpfile_fullpath) != 0) {
+            printf STDERR "%s[%s]: ERROR: line %d: fail to interpret %s clause for value %d in {%s}.\n",
+                $p, $token, $linecnt, $token, $ii, $rgvalue unless ($QUIET);
+
+            ++$errcnt;
+            last;
+        }
+    }
+
+    unlink $tmpfile_fullpath;
+
+    return $errcnt;    #return 0 if no errors.
+}
+
+sub istrueExpr
+#return true if arg is one of:  {true, TRUE, 1}
+{
+    my ($boolstr) = @_;
+
+    return 0 if ($boolstr eq "" || $boolstr eq "0");
+    return 0 if ($boolstr =~ /^\s*[-+]?\s*\d+\s*$/ && $boolstr == 0);
+
+    return 1;
+}
+
+sub definition
+#true if we see a definition.  add definition to global hash.
+{
+    my ($line, $linecnt, $_lhs, $_rhs, $_is_multiline, $_eoi_tok, $_raw_assign) = @_;
+
+    #set results:
+    ${$_lhs} = "";
+    ${$_rhs} = "";
+    ${$_is_multiline} = 0;
+    ${$_eoi_tok} = $; ;    #almost guaranteed to never match any input
+    ${$_raw_assign} = ($line =~ /:=/) ? 1 : 0;
+    my ($is_raw) = ${$_raw_assign};
+
+    #do we have a definition expression?
+    return 0 if ($line !~  /:?=/);
+
+    my ($lhs,$rhs) = split(/\s*:?=\s*/, $line, 2);
+    $lhs =~ s/^\s+//; #trim the lhs of the variable name
+
+    #check for here-now token:
+    my (@tmp, $xx);
+    if ($rhs =~ /<</) {
+        #save eoi_tok, set is_multiline, etc:
+        ${$_is_multiline} = 1;
+        ${$_lhs} = $lhs;
+
+        @tmp = split('<<', $rhs);
+        if ($#tmp >= 0) {
+            $xx = $tmp[$#tmp];
+            $xx =~ s/\s//g;    #remove any white-space in eoi-tok
+            ${$_eoi_tok} = $xx;
+        } else {
+            printf STDERR "%s: ERROR: run-away here-now string starting on line %d!\n", $p, $linecnt;
+            ++ $GLOBAL_ERROR_COUNT;
+        }
+
+        #we always return true, which will eat up the remaining input if no eoi_tok:
+        return 1;
+    }
+
+    return &add_definition($lhs, $rhs, $linecnt, $is_raw);
+}
+
+sub add_definition
+#add a definition to the global hash.
+#return true (1) if okay.
+{
+    my ($lhs_in, $rhs, $linecnt, $israw) = @_;
+
+    #if lhs_in is a variable reference (e.g., $fooptr), then assign to valueof:
+    my $lhs = $lhs_in;
+    $lhs = &expand_macros($lhs_in) if ($lhs_in =~ /\$/);
+
+    if ($lhs ne $lhs_in && $lhs =~ /\$/) {
+        printf STDERR "%s: WARNING: line %d: variable reference '%s' on left-hand side of assignment is INVALID - ignored.\n",
+            $p, $linecnt, $lhs_in unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        #we processed a definition statement, even if there were errors::
+        return 1;
+    }
+
+    printf STDERR "add_definition: lhs_in='%s' lhs='%s' rhs='%s' israw='%d'\n", $lhs_in, $lhs, $rhs, $israw if ($DEBUG);
+
+    #if := assignment...
+    if ($israw) {
+        $CG_USER_VARS{$lhs} = $rhs;
+        return 1;
+    }
+
+    my @spfexpr = &strtospf($rhs);
+
+    if ($lhs eq 'CG_TEMPLATES') {
+        printf STDERR "%s: WARNING: line %d: use of CG_TEMPLATES deprecated, resetting CG_TEMPLATE_PATH instead.\n", $p, $linecnt unless ($QUIET);
+        $lhs = 'CG_TEMPLATE_PATH';
+    }
+
+    $CG_USER_VARS{$lhs} = &eval_spf_expr(@spfexpr);
+    return 1;
+}
+
+sub get_user_vars
+#return the list of defined user variable names
+{
+    return (sort keys %CG_USER_VARS);
+}
+
+sub expand_macros
+# INPUT:  string with variable references
+# OUTPUT:  string with substitued variable values
+{
+    my ($str) = (@_);
+
+    my @spfexpr = &strtospf($str);
+
+    return &eval_spf_expr(@spfexpr);
+}
+
+sub eval_spf_expr
+#INPUT:  sprintf list:  (fmt, var*)
+#OUTPUT:  string containing sprintf(fmt, lookup(var)*)
+{
+    my ($fmt, @varlist) = @_;
+    my $evalstr = "";
+    my @ops = ();
+
+    printf STDERR "eval_spf_expr:  input=(%s)\n", join(',', $fmt, @varlist) if ($DEBUG);
+
+    if ($#varlist < 0) {
+        $evalstr = sprintf($fmt);
+    } else {
+        #otherwise, look up variable defs:
+        my $ii;
+        for ($ii=0; $ii<=$#varlist; $ii++) {
+            my $varname = $varlist[$ii];
+            @ops = ();
+
+            if ($varname =~ /:/) {
+                @ops = split(':', $varname);
+                $varname = shift @ops;
+            }
+
+            my $varvalue = &lookup_def($varname);   #get value of var
+            if ($#ops >= 0) {
+                #apply operations to the variable, in order listed:
+                my $op;
+                for (@ops) {
+                    $op = $_;
+                    $varvalue = &eval_postfix_op($op, $varvalue, $varname, $LINE_CNT);
+                    #if we had an undef op, skip the rest:
+                    last if ($op eq "undef");
+                }
+            }
+            $varlist[$ii] = $varvalue;
+        }
+        $evalstr = sprintf($fmt, @varlist);
+    }
+
+    printf STDERR "eval_spf_expr:  output='%s'\n", $evalstr if ($DEBUG);
+
+    return $evalstr;
+}
+
+sub lookup_def
+#INPUT:   variable name
+#output:  variable value or the string "${varname:undef}" (if undefined)
+#IMPORTANT:  this routine defines the precedence of variable names:
+#  1. local file specification line ($CG_CLASSNAME, $CG_PACKAGE_NAME, etc)
+#  2. variables defined in the specification file
+#  3. environment variables, if allowed
+#WARNING:  if you change this routine, you may also need to change var_defined()
+#WARNING:  if you change this routine, you may also need to change undef_op()
+{
+    my ($varname) = @_;
+    my $varvalue = "NULL";
+
+    if ( defined($CLASS_VAR_REF) && defined(${$CLASS_VAR_REF}{$varname}) ) {
+        $varvalue = ${$CLASS_VAR_REF}{$varname};
+    } elsif (defined($CG_USER_VARS{$varname})) {
+        $varvalue = $CG_USER_VARS{$varname};
+    } elsif ($ENV_VARS_OKAY && defined($ENV{$varname})) {
+        $varvalue = $ENV{$varname};
+    } else {
+        $varvalue = sprintf('${%s:undef}', $varname);
+    }
+
+    printf STDERR "lookup_def:  in='%s' out='%s'\n", $varname, $varvalue if ($DEBUG);
+
+    return $varvalue;
+}
+
+sub find_template
+#INPUT:   template filename, relative to a template root in CG_TEMPLATE_PATH
+#OUTPUT:  full path name of template or input is unmodified.
+{
+    my ($template) = @_;
+    my ($result) = $template;
+
+    #get current template path:
+    my (@templatepath) = split(';', $CG_USER_VARS{'CG_TEMPLATE_PATH'});
+
+    my $tdir;
+    foreach $tdir (@templatepath) {
+        my $tmpfn = &path::mkpathname($tdir, $template);
+        if (-r $tmpfn) {
+            $result = $tmpfn ;
+            last;
+        }
+    }
+
+    printf STDERR "find_template: input='%s' output='%s'\n", $template, $result if ($DEBUG);
+
+    return $result;
+}
+
+sub gen_sourcefile
+#INPUT:   CLASS_VARS hash, which contains spec for generating a source file
+#OUTPUT:  a file generated from input template in output location.
+#RETURNS:  zero if no errors, otherwise error count.
+{
+    my ($cvar_ref, $line, $linecnt, $is_append, $cgroot) = @_;
+
+    #get local vars for codegen:
+    my ($dirname) = ${$cvar_ref}{'CG_DIRNAME'};
+    my ($filename) = ${$cvar_ref}{'CG_FILENAME'};
+    my ($template) = ${$cvar_ref}{'CG_TEMPLATE'};
+
+    #exit early if we can't read in the template:
+    my ($intemplate) = &find_template($template);
+    if (! -r $intemplate) {
+        printf STDERR "%s [gen_sourcefile]: ERROR line %d: can't open template file, '%s' (%s)\n", $p, $linecnt, $template, $!;
+        printf STDERR "\tCG_TEMPLATE_PATH='%s'\n", $CG_USER_VARS{'CG_TEMPLATE_PATH'};
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #install output dir:
+    my ($outdir) = &path::mkpathname($cgroot, $dirname);
+
+#printf STDERR "gen_sourcefile: mkpathname('%s','%s')='%s'\n", $cgroot, $dirname, &path::mkpathname($cgroot, $dirname);
+
+    &os::createdir($outdir, 0775) if (! -d $outdir);
+    if (!-d $outdir) {
+        printf STDERR "%s [gen_sourcefile] line %d: can't create output dir, '%s' (%s)\n", $p, $linecnt, $outdir, $!;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    my ($outfile) = &path::mkpathname($outdir, $filename);
+    my ($original_outfile) = "NULL";
+    my ($original_crc) = 0;
+
+#printf STDERR "gen_sourcefile: outfile='%s'is_append=%d\n", $outfile, $is_append;
+
+    #if output file already exists, then only re-write if $FORCE_GEN or $UPDATE and different...
+    if (-f $outfile && -r $outfile) {
+        if ($is_append) {
+            #TODO:  keep track of open appends, and only close and generate in final form
+            #when codegen script ends, or when we see a "close-file" file spec.
+            ;
+        } elsif ($FORCE_GEN) {
+            if (&os::rmFile($outfile) != 0) {
+                printf STDERR "%s: ERROR: overwriting output file '%s' (%s)\n", $p, $outfile, $!;
+                ++ $GLOBAL_ERROR_COUNT;
+                return 1;
+            }
+        } elsif ($UPDATE) {
+            #get the crc of the old file, and write to a different file
+            $original_outfile = $outfile;
+            $original_crc =  &pcrc::CalculateFileCRC($original_outfile);
+
+            #create a temporary file in the same dir and write to that:
+            $outfile =  &path::mkpathname($outdir, sprintf("%d_%s", $$, $filename));
+        } else {
+            printf STDERR "%s: INFO: not overwriting output file '%s'\n", $p, $outfile if ($VERBOSE);
+            return 0;
+        }
+    } elsif (-e $outfile ) {
+        #file exists but is either not a plain file, or we cannot read it
+        printf STDERR "%s [gen_sourcefile]: ERROR: cannot read file '%s': check type & permissions.\n", $p, $outfile, $!;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    if ($is_append) {
+#printf STDERR "gen_sourcefile: OPENING FOR APPEND\n";
+        if (!open(OUTFILE, ">>$outfile")) {
+            printf STDERR "%s [gen_sourcefile]: ERROR: cannot open output file '%s' for append (%s).\n", $p, $outfile, $!;
+            ++ $GLOBAL_ERROR_COUNT;
+            return 1;
+        }
+    } elsif (!open(OUTFILE, ">$outfile")) {
+        printf STDERR "%s [gen_sourcefile]: ERROR: cannot open output file '%s' for writing (%s).\n", $p, $outfile, $!;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #we are ready to expand the template into the ouput file:
+
+    my ($errcnt) = &expand_template(\*OUTFILE, $intemplate);
+    close OUTFILE;
+
+    #if we are appending...
+    if ($is_append) {
+        #normally we suppress append messages, since we are usually generating to temp files:
+        printf STDERR "%s ->> %s\n", $template, $outfile if ($VERBOSE);
+        $errcnt += &setmode($outfile);
+    } elsif ($UPDATE && $original_outfile ne "NULL") {
+        #if we are updating an existing file ...
+        #get the crc of the new file:
+        my ($new_crc) =  &pcrc::CalculateFileCRC($outfile);
+
+        #if files are the same...
+        if ($original_crc == $new_crc) {
+            #...then just remove the temp file:
+            if (&os::rmFile($outfile) != 0) {
+                printf STDERR "%s [gen_sourcefile]: ERROR: cannot remove temp file '%s' (%s)\n", $p, $outfile, $!;
+                ++$errcnt;
+            } 
+            printf STDERR "%s -> %s -> update -> dest same as source.\n", $template, $original_outfile if ($VERBOSE);
+        } else {
+            #move the temp file to the original:
+            if (&os::rename($outfile, $original_outfile) != 0) {
+                printf STDERR "%s [gen_sourcefile]: ERROR: cannot replace '%s' with temp file '%s' (%s)\n", $p, $original_outfile, $outfile, $!;
+                ++$errcnt;
+            } else {
+                printf STDERR "%s -> %s\n", $template, $original_outfile unless ($QUIET);
+                $errcnt += &setmode($original_outfile);
+            }
+        }
+    } else {
+        printf STDERR "%s -> %s\n", $template, $outfile unless ($QUIET);
+        $errcnt += &setmode($outfile);
+    }
+
+    ++ $GLOBAL_ERROR_COUNT if ($errcnt > 0);
+    return $errcnt;
+}
+
+sub setmode
+#set the mode on <fn>.
+#return 0 if successful, o'wise display error and return 1;
+{
+    my ($fn) = @_;
+    my $mode = oct($CG_USER_VARS{'CG_MODE'});
+
+    return 0 if (chmod($mode, $fn) == 1);  #success
+
+    #otherwise, failed:
+    printf STDERR "%s [setmode]: ERROR: cannot set mode of '%s' to '0%o' (%s).\n", $p, $fn, $mode, $!;
+    ++ $GLOBAL_ERROR_COUNT;
+
+    return 1;
+}
+
+sub expand_template
+#INPUT:  template file, name of output file.  can be called recursively
+#OUTPUT: expanded template written to <outfile>
+#RETURNS:  zero on success, or non-zero if errors
+{
+    my ($outfile_ref, $template) = @_;
+    my ($fhidx) = &get_avaliable_filehandle("expand_template");
+
+    if ($fhidx < 0) {
+        printf STDERR "%s [expand_template]: ERROR: out of file descriptors for nested templates (max is %d).\n", $p, $LAST_TEMPLATE_FD_KEY+1;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    my ($tplfd_ref) = $TEMPLATE_FD_REFS[$fhidx];
+    if (!open($tplfd_ref, $template)) {
+        printf STDERR "%s [expand_template]: ERROR: cannot open template file '%s' (%s)\n", $p, $template, $!;
+        ++ $GLOBAL_ERROR_COUNT;
+        &free_filehandle($fhidx, "expand_template");   #free our allocated filehandle
+        return 1;
+    }
+
+    #are we using codegen to copy binary files?
+    if ( $pragma_copy || !(-T $template) ) {
+        #we are writing a binary file:
+        binmode $tplfd_ref;
+        binmode $outfile_ref;
+
+        my $buf = "";
+        my $BUFSIZE = 1024*8;
+        while (read($tplfd_ref, $buf, $BUFSIZE)) {
+            print $outfile_ref $buf;
+            if ($! != 0) {
+                #IMPORTANT!! must check for write errors!!
+                printf STDERR "%s [expand_template]: ERROR during binary copy of '%s' (%s)\n", $p, $template, $!;
+                ++ $GLOBAL_ERROR_COUNT;
+                last;
+            }
+        }
+    } else {
+        #we have a text file - copy and do macro substitutions:
+        my $tpline  = "";
+        while ($tpline = <$tplfd_ref>) {
+            chomp $tpline;
+
+            #expand the template macro.  This macro will print to the outfile:
+            &expand_template_macro($outfile_ref, $tpline);
+        }
+    }
+
+    close $tplfd_ref;
+    &free_filehandle($fhidx, "expand_template");   #free filehandle
+
+    return 0;
+}
+
+sub expand_template_macro
+#INPUT:    a line from template
+#OUTPUT:   prints results to supplied filehandle.
+#RETURNS:  0 if success, otherwise error count
+{
+    my ($outfile_ref, $tpline) = @_;
+
+    #eliminate comments:
+    #TODO:  template comments need to be bracketed by {=%# a comment=} or something.
+    #return 0 if (&comment($tpline));
+
+    #this is an optimization - avoid macro processing if no macros:
+    if ($tpline !~ /{=.*=}/) {
+        print $outfile_ref "$tpline\n";
+        return 0;
+    }
+
+    #if the input line *only* contains a macro def, then save this info
+    #so later we will not output an empty line if the macro expands to empty string.
+    my $line_is_macro_only = ($tpline =~ /^{=.*=}$/)? 1 : 0;
+    if ($line_is_macro_only) {
+        my @tmp = split('{=', $tpline);  #}
+        $line_is_macro_only = ($#tmp == 1);  #make sure we only have one macro.
+    }
+
+    my @spfexpr = &tpl_strtospf($tpline);
+
+    return &eval_template_expr($outfile_ref, \@spfexpr, $line_is_macro_only);
+}
+
+sub eval_template_expr
+#INPUT:    sprintf list:  (fmt, template_macro*)
+#OUTPUT:   string containing sprintf(fmt, exec(template_macro)*)
+#RETURNS:  0 if success, otherwise error count
+{
+    my ($outfile_ref, $mlist_ref, $line_is_macro_only) = @_;
+    my ($errcnt) = 0;
+    my (@macrolist) = @{$mlist_ref};
+    my ($fmt) = shift @macrolist;
+
+    printf STDERR "eval_template_expr:  fmt='%s' macrolist=(%s)\n", $fmt, join(',', @macrolist) if ($DEBUG);
+
+    #if no macros...
+    if ($#macrolist < 0) {
+        print $outfile_ref sprintf($fmt) . "\n";
+        return 0;
+    }
+
+    #use strlist to control the output.  We must have one macro after each
+    #strlist element, e.g. str0, macro0, str1, macro1, etc.
+
+    my (@strlist) = split('%s', $fmt, -1);  #WARNING:  we want null fields (why -1).!
+        #TODO:  this is bad - need to use a delimiter that we cannot see in
+        #the input.  e.g., what if we add a %sprintf macro?
+
+    my ($ii, $macro);
+    for ($ii=0; $ii <= $#strlist; ++$ii) {
+
+        printf STDERR "eval_template_expr LOOP:  strlist[%d]='%s'\n", $ii, $strlist[$ii] if ($DEBUG);
+
+        print $outfile_ref $strlist[$ii];
+        next if ($ii == $#strlist);     #no macro for last element
+
+        printf STDERR "eval_template_expr LOOP:  macrolist[%d]='%s'\n", $ii, $macrolist[$ii] if ($DEBUG);
+        $macro = $macrolist[$ii];
+
+        #back-tick expression is syntactic sugar for %exec:
+        if ($macro =~ /^`/) {
+            $macro =~ s/`(.*)`/%exec $1/;
+        }
+        
+        if ($macro =~ /^%/) {
+            $errcnt += &exec_macro($outfile_ref, $macro);   #member with results of execution
+        } elsif ($macro =~ /\$/) {
+            #we have a variable expression:
+            my @spfexpr = &strtospf($macro);
+            print $outfile_ref &eval_spf_expr(@spfexpr);
+            #TODO:  check for errors
+        } elsif ($macro =~ /^[a-zA-Z_0-9]+$/) {
+            #we have a simple variable - look it up and return it:
+            print $outfile_ref &lookup_def($macro);   #replace var with its value
+            #TODO:  check for errors
+        } else {
+            #we don't know what we have, so just rewrap it in macro brackets:
+            print $outfile_ref "{=" . $macro . "=}";
+            ++$errcnt;
+        }
+    }
+
+    #this macro lists represents a single template input line, so output a newline,
+    #unless the macro is alone on the line:
+    printf STDERR "eval_template_expr:  final newline? line_is_macro_only=%d\n", $line_is_macro_only if ($DEBUG);
+    print $outfile_ref "\n" unless ($line_is_macro_only);
+
+    return $errcnt;
+}
+
+sub exec_macro
+#INPUT:  a "%<token> args.." macro expression
+#OUTPUT:  (string) the output from the macro subroutine.
+#EXAMPLE:  %include $somevar/somefile.txt
+#ERRORS:  generate re-bracket'ed macro string if we detect.
+#RETURNS:  0 if okay, otherwise error count.
+{
+    my ($outfile_ref, $macro) = @_;
+
+    printf STDERR "exec_macro: macro='%s'\n", $macro if ($DEBUG);
+
+    return $macro if ($macro !~ /^%/);
+
+    my ($macro_name, $macro_args) = split(/\s+/, $macro, 2);
+    $macro_name =~ s/^%//;
+
+    #look up the macro name in our table of function refereces:
+    my ($macro_ref) = $MACRO_FUNCTIONS{$macro_name};
+
+    if (!defined($macro_ref)) {
+        printf STDERR "%s [exec_macro]: sorry, macro '%s' has not been implemented\n", $p, $macro_name;
+        print $outfile_ref sprintf("{=%s=}", $macro);
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    return( &{$macro_ref}($outfile_ref, $macro_args) );
+}
+
+sub tpl_strtospf
+#this routine is exactly the same as strtospf, except that it
+#extracts template operators, which are enclosed in '{=', '=}' pairs.
+#example:
+#    INPUT:  "astring{=FOOVAR=}; {=%include ${CG_CLASSNAME}_imports.jtpl=}"
+#    OUTPUT:  ("astring%s; %s", 'FOOVAR', '%include ${CG_CLASSNAME}_imports.jtpl')
+{
+    my ($str) = @_;
+    my (@spf) = ();
+    my ($matchpat) = $; . '([^' . $; . ']*)' . $; ;
+
+    #return early if nothing to process:
+    if ($str !~ /{=.*=}/) {
+        push @spf, $str;
+        return(@spf) 
+    }
+
+    #otherwise, create the format string and varible list.
+
+    #first, replace {= and =} with $; (standard non-printing perl list separator):
+    $str =~ s/{=/$;/g;
+    $str =~ s/=}/$;/g;
+
+    #replace the contents between $; and $; with %s:
+    my $fmt = $str;
+    $fmt =~ s/$matchpat/\%s/g;
+    push @spf, $fmt;
+
+    #next, get the var list using the match operator, which
+    #returns a list of matched expressions:
+    push @spf, ($str =~ m/$matchpat/g);
+
+    printf STDERR "tpl_strtospf:  fmt='%s', full spf=(%s)\n", $fmt, join(',', @spf) if ($DEBUG);
+
+    return(@spf);
+}
+
+sub strtospf
+#this routine returns a list which can be evaluated and then passed to sprintf.
+#the list is of the form:  (format_specifier identifier* )
+#example:
+#    INPUT:  "astring$avar.${bvar}blah$another"
+#    OUTPUT:  ("astring%s.%sblah%s", 'avar', 'bvar', 'another')
+#If the list returned only has one item then we didn't find any variable references.
+{
+    my ($str) = @_;
+    my (@spf) = ();
+
+    #first, preserve % in input:
+    $str =~ s/%/%%/g;
+
+    #return early if nothing to process:
+    if ($str !~ /\$/) {
+        push @spf, $str;
+        return(@spf) 
+    }
+
+    #otherwise, create the format string and varible list:
+
+    #first, replace $var and ${var} refs with '%s':
+    my $fmt = $str;
+    $fmt =~ s/\${?[a-zA-Z_][:a-zA-Z_0-9]*}?/\%s/g;
+    push @spf, $fmt;
+
+    #next, get the var list using the match operator, which
+    #returns a list of matched expressions:
+    #Q:  is there a way to avoid generating match elements with nested ()'s?
+    #    if so, we can make this match more precise.  RT 9/27/04
+    my @args = ($str =~ /\${?([a-zA-Z_][:a-zA-Z_0-9]*)}?/g);
+    push @spf, @args;
+
+    printf STDERR "strtospf:  fmt='%s', args=(%s)\n", $fmt, join('|', @args) if ($DEBUG);
+
+    return(@spf);
+}
+
+################################# MACRO FUNCTIONS ################################
+
+sub cg_include
+#this is the include-file processing macro.
+#note that the include file can also contain macros,
+#so this call may cause a recursive loop.
+#returns 0 if okay, otherwise error count.
+{
+    my($outfile_ref, $includefn) = @_;
+
+    printf STDERR "%s [cg_include]: includefn=%s\n", $p, $includefn if ($DEBUG);
+
+    #expand include file name to full path with variable substitution:
+    $includefn = &expand_include_fn($includefn);
+
+    printf STDERR "including %s\n", $includefn if ($VERBOSE);
+    return &expand_template($outfile_ref, $includefn);
+}
+
+sub cg_perl
+#this is the %perl macro.
+#Evaluate the enclosed perl expression.
+#return 0 if okay, otherwise error count.
+{
+    my($outfile_ref, $ptxt) = @_;
+    my($result, $theOutput);
+    my($errcnt) = 0;
+
+    printf STDERR "%s[cg_perl]: ptxt=%s\n", $p, $ptxt if ($DEBUG);
+
+    $result = eval $ptxt;
+    if ($@ ne "") {
+        chomp $@;
+        $theOutput = "{=%perl $ptxt -> ERROR: '$@'=}";
+        ++$errcnt;
+    } elsif (!defined($result)) {
+        #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
+        $theOutput = "{=%perl $ptxt -> (undef)=}";
+        ++$errcnt;
+    } else {
+        $theOutput = $result;
+    }
+
+    printf STDERR "%s[cg_perl]: ptxt='%s' -> '%s'\n", $p, $ptxt, $result if ($DEBUG);
+
+    print $outfile_ref $theOutput unless ($theOutput eq "");
+    ++ $GLOBAL_ERROR_COUNT if ($errcnt > 0);
+    return $errcnt;
+}
+
+sub cg_gen_imports
+#this generates a java import statements from the list provided
+#Example:  {=%gen_imports a,b,c=} =>
+#               import a;
+#               import b;
+#               import c;
+#the import list can also be a variable expression
+#empty elements (,,) generate newlines.
+#returns 0 if okay, otherwise error count.
+{
+    my($outfile_ref, $importlist) = @_;
+
+    printf STDERR "%s[cg_gen_imports]: importlist=%s\n", $p, $importlist if ($DEBUG);
+
+    #expand macros in arg:
+    $importlist = &expand_macros($importlist);
+
+#printf STDERR "%s[cg_gen_imports]: importlist=%s\n", $p, $importlist;
+
+    #eliminate trailing whitespace (already did leading whitespace):
+    $importlist =~ s/\s+$//;
+    #okay if list is empty:
+    return 0 if ($importlist eq "");
+
+    my (@ilist) = split(/\s*,\s*/, $importlist);
+
+#printf STDERR "%s[cg_gen_imports]: ilist=(%s)\n", $p, join(',', @ilist);
+
+    #eliminate duplicate imports:
+    my (%mark, @nlist);
+    for (@ilist) {
+        chomp;
+        if (/^$/ || /^[^a-zA-z]/) {
+            #always push blank lines or non-identifier lines (i.e., comments):
+            push(@nlist, $_);
+        } else {
+            push(@nlist, $_) unless ($mark{$_});
+            $mark{$_}++;
+        }
+    }
+#printf STDERR "%s[cg_gen_imports]: nlist=(%s)\n", $p, join(',', @nlist);
+
+    for (@nlist) {
+        #output whitespace lines or non-import token lines:
+        if (/^$/ || /^[^a-zA-z]/ ) {
+            print $outfile_ref "$_\n";
+        } else {
+            print $outfile_ref sprintf("import %s;\n", $_);
+        }
+    }
+
+    print $outfile_ref "\n" unless $#nlist < 0;
+    return 0;
+}
+
+sub cg_gen_javadoc
+#this generates a javadoc comment from the string provided
+#Example:  {=%gen_javadoc This is some javadoc for fooclass\n and here is some more=} =>
+#               /**
+#                * This is some javadoc for fooclass
+#                * and here is some more.
+#                */
+#the import list can also be a variable expression
+#returns 0 if okay, otherwise error count.
+{
+    my($outfile_ref, $doctxt) = @_;
+
+    printf STDERR "%s[cg_gen_javadoc]: doctxt=%s\n", $p, $doctxt if ($DEBUG);
+
+    #expand macros in arg:
+    $doctxt = &expand_macros($doctxt);
+
+    #eliminate trailing whitespace (already did leading whitespace):
+    $doctxt =~ s/\s+$//;
+    #okay no javadoc
+    return 0 if ($doctxt eq "");
+
+    #do special char expansion, so far only tab chars:
+    $doctxt =~ s/\\t/\t/g;
+
+    #this should not be necessary, but some perls have trouble splitting on the literal '\n'
+    $doctxt =~ s/\\n/\n/g;
+
+    my (@doclist) = split("\n", $doctxt);
+    printf STDERR "%s[cg_gen_javadoc]: doclist=(%s)\n", $p, join('|', @doclist) if ($DEBUG);
+
+    print $outfile_ref "/**\n";
+
+    my $line;
+    foreach $line (@doclist) {
+        #only add space after * if line is not empty:
+        printf $outfile_ref " *%s\n", ($line ne ""? " $line" : "");
+    }
+
+    print $outfile_ref " */\n";
+
+    return 0;
+}
+
+sub cg_echo
+#this expands its arguments and outputs the result
+#
+#Example:  {=%echo somestuff='$somestuff'=}
+#
+#returns 0 if okay, otherwise error count.
+{
+    my($outfile_ref, $echotxt) = @_;
+
+    printf STDERR "%s[cg_echo]: echotxt=%s\n", $p, $echotxt if ($DEBUG);
+
+    #expand macros in arg:
+    $echotxt = &expand_macros($echotxt);
+
+    return 0 if ($echotxt eq "");
+
+    print $outfile_ref $echotxt;
+    return 0;
+}
+
+##################################### UTILITY ####################################
+
+sub get_avaliable_filehandle
+#return the index of an available file-handle
+#return -1 if we are out of descriptors
+{
+    my($caller) = @_;
+    my ($ii, $kk) = (0,0);
+
+    for ($ii = 0; $ii <= $LAST_TEMPLATE_FD_KEY; $ii++) {
+        $kk = ($ii + $TEMPLATE_FD_KEY) % ($LAST_TEMPLATE_FD_KEY+1);
+        if ($TEMPLATE_FD_INUSE[$kk] == 0) {
+            $TEMPLATE_FD_INUSE[$kk] = 1;
+            $TEMPLATE_FD_KEY = $kk;   #where we start next time
+            printf STDERR "ALLOCATE file handle #%d nfree=%d/%d caller=%s\n",
+                $kk, &free_filehandle_count(), $LAST_TEMPLATE_FD_KEY+1,
+                defined($caller)? $caller: "???"
+                if ($DEBUG_FD);
+            return $kk;
+        }
+    }
+
+    printf STDERR "ALLOCATE FD FAILED nfree=%d/%d TEMPLATE_FD_KEY=%d LAST_TEMPLATE_FD_KEY=%d ii=%d kk=%d caller=%s\n",
+        &free_filehandle_count(), $LAST_TEMPLATE_FD_KEY+1,
+        $TEMPLATE_FD_KEY, $LAST_TEMPLATE_FD_KEY, $ii, $kk,
+        defined($caller)? $caller: "???"
+        if ($DEBUG_FD);
+
+    $TEMPLATE_FD_KEY = 0;   #maybe someone will return one later.
+    return -1;
+}
+
+sub free_filehandle
+#mark a filehandle as being free
+{
+    my($fhidx, $caller) = @_;
+    if ($fhidx >= 0 && $fhidx <= $LAST_TEMPLATE_FD_KEY) {
+        $TEMPLATE_FD_INUSE[$fhidx] = 0;
+        printf STDERR "    FREE file handle #%d nfree=%d/%d caller=%s\n",
+            $fhidx, &free_filehandle_count(), $LAST_TEMPLATE_FD_KEY+1,
+            defined($caller)? $caller: "???"
+            if ($DEBUG_FD);
+    } else {
+        printf STDERR "%s[free_filehandle]: ERROR: bad filehandle index, %d\n", $p, $fhidx;
+        ++ $GLOBAL_ERROR_COUNT;
+    }
+}
+
+sub free_filehandle_count
+#return the number of free file handles currently available
+{
+    my $cnt = 0;
+    for (@TEMPLATE_FD_INUSE) {
+        ++$cnt if ($_ == 0);
+    }
+
+    my $nused = ($LAST_TEMPLATE_FD_KEY+1) - $cnt;
+    $TEMPLATE_FD_MAX_USED = $nused if ($nused > $TEMPLATE_FD_MAX_USED);
+    return $cnt;
+}
+
+################################ USAGE SUBROUTINES ###############################
+
+sub usage
+{
+    my($status) = @_;
+
+    print STDERR <<"!";
+Usage:  $p [options] [${p}_program]
+
+Synopsis:
+  Generate a hierarchy of files as described in <${p}_program>.
+  If this file is not supplied, then read the program from stdin.
+
+Options:
+  -help   display this usage message and exit.
+  -v      verbose output
+  -V, -version
+          display the interpreter version information.
+  -x      strip off text before #!/bin/... line
+  -S      look for ${p}_program in \$PATH.
+  -debug  show debug output
+  -ddebug show more debug output
+  -e      allow environment variable references in <${p}_program>
+          file and in any template files referenced in same.
+  -f      force regeneration of output files (default is to not overwrite).
+  -u      regenerate output files if different.  Implies -f for those files.
+  -cgroot output_dir
+          write all output files relative to <output_dir>.  Sets value of
+          builtin variable \$CG_ROOT, and overrides environment setting if -e.
+  -templates template_path
+          search for template files in <template_path>, which is a semi-colon
+          list of directories. Sets \$CG_TEMPLATE_PATH.  Note: \$CG_TEMPLATE_PATH
+          is inherited from environment if defined regardless of -e setting.
+  -Dvar[=value]
+          define <var>, and optionally initialize it to <value>.
+  -T <tmpdir>
+          create all $p temporary files in <tmpdir>.
+
+
+$p grammar:
+  The $p grammar has three types of entries:
+    1. definitions of the form:  var = value
+    2. file specifications of the form:
+            template [>>] pathname
+       If <pathname> contains or is prefixed by '.', we assume
+       that <pathname> is a java class name, and we will
+       append a ".java" to the filename automatically.
+       If <pathname> contains or is prefixed by '/', we assume a
+       non-java output file.  You can use "/foo.out" to force the non-java
+       convention in the case where files are being generated to ".".
+    3. comments or blank lines - comment lines start with '#', '{', or '}'.
+       Curly brace comments are useful delimiting sections in large codegen files.
+    4. $p \% statements, for example:
+        %include filename
+
+  NOTE:  each ${p} program is interpreted, so the last value defined for
+         a variable is used for subsequent expansions.  This means that
+         you must define variables before referencing them.
+
+Template files:
+  Template files are text files that can include macros of the form:
+
+  {=IDENTIFIER=}
+     where IDENTIFIER is of the form:  [A-Za-z_]([A-Za-z_0-9])*
+     Example:  {=user_name=}, where \$user_name is defined.
+
+  {=VAR_EXPRESSION=}
+     where VAR_EXPRESSION is a string containing one or more variable references.
+
+     Example:
+
+     import {=\$MY_BASE_CLASS.\$A_PACKAGE.\$SOMECLASS=};
+     public interface {=CG_CLASSNAME=} {
+         String dosomething () throws {=\$EXCEPTION1, \$EXCEPTION2=};
+     }
+
+     Note that {=a_var=}, {=\$a_var=}, and {=\${a_var}=} are equivalent.
+
+  {=%include fn=}
+     Include the file <fn>.  Includes can be nested.  <fn> can contain variables.
+     All includes are processed relative to directories listed in \$CG_TEMPLATE_PATH,
+     unless an absolute path name is specified.
+
+     Example:  {=%include standard/copyright.txt=}
+
+  {=%perl perl_expression...=}
+     Evaluate a perl expression, and output the result string.  The expression
+     must be a valid perl expression, and can use the $p built-in variables or
+     any variables defined in the $p input script. Perl statements are
+     separated with semi-colons.  The final semi-colon is optional.
+
+     Example:  {=%perl \@list = (1,2,3); sprintf "(%s)\\n", join(',', \@list);=}
+     Result:   1,2,3
+
+     NOTE:  Every perl expression returns a result as a string.  For example,
+            "\$a = 3;" will return the string "3" and output it to the generated file.
+            If you do not want this, then use "\$a = 3;""" - i.e., modify the
+            expression to return an empty string.
+
+     NOTE:  Creating new perl variables can modify the operation of the $p
+            program itself.  In order to avoid this, use a unique package
+            name for all of your variables.  For example, use "\$cg::a = 3"
+            instead of "\$a = 3".  This will create the variable \$a
+            in the package "cg", which is not used by $p.
+
+Built-in variables:
+
+  \$CG_ROOT  The root of the output directory.  all files are generated relative
+            to \$CG_ROOT.  Can also be supplied via -cgroot option.  Default is
+            the current working directory.
+  \$CG_TEMPLATE_PATH
+            Semi-colon separated list of directories where we look for template files.
+            Can also be supplied via -templates option.  This variable is always
+            inherited from the environment, regardless of -e setting.
+  \$CG_TMPDIR
+            Write all temporary files to the directory.  Can also be supplied via -T option.
+            Default is the current working directory.  This variable is always
+            inherited from the environment, regardless of -e setting.
+  \$CG_ARGV         
+            a $p stack holding the arguments to the script.
+  \$CG_MODE         
+            the mode in octal that $p will set generated output files to.
+  \$CG_SHELL_STATUS
+            status of the last \%shell statement executed.
+  \$CG_EXIT_STATUS
+            user-settable variable to set the shell exit status of the input script.
+  \$CG_INFILE         
+            the name of the current input file.
+  \$CG_LINE_NUMBER         
+            the line number of the current statement, relative to the current CG_INFILE
+  \$CG_NEWLINE_BEFORE_CLASS_BRACE         
+            set to 1 if you like to see a newline before the opening class brace.
+  \$CG_STACK_DELIMITER         
+            For %push, %upush, split on this value to add list of stack elements.
+            Default is \$; (perl delimiter). Example:  if delimiter is '.', then
+            %push foostack a.b.c  will push three elements (a,b,c) on to \$foostack.
+
+Variables that modify postfix operations:
+  \$CG_INDENT_STRING         
+            the indent string, used by :indent<n> post-op for each level.
+  \$CG_SHELL_COMMAND_ARGS         
+            arguments to pass to an external command processor for postfix variable
+            operators.  (e.g., CG_SHELL_COMMAND_ARGS = -n; \$FOO=\${FOO:sort})
+  \$CG_MATCH_SPEC         
+            the match pattern to apply for :m (or :match) operator.
+  \$CG_SUBSTITUTE_SPEC         
+            the substitute pattern to apply for :s (or :substitute) operator.
+  \$CG_COMPARE_SPEC         
+            the compare spec for :eq, :ne, :gt, :lt, :ge, :le  operators.
+
+Pragmas modifiy the behavior of the interpreter as follows:
+    \%pragma preserve_multiline_lnewline 1
+            preserve the first newline in a here-now document (normally trimmed).
+    \%pragma copy 1
+            do not expand templates when generating documents.
+    \%pragma require perl_file
+            read a <perl_file> into the current context.
+    \%pragma debug 1
+            set -debug option.
+    \%pragma ddebug 1
+            set -ddebug option.
+    \%pragma quiet 1
+            set -q(uiet) option.
+    \%pragma verbose 1
+            set -v(erbose) option.
+
+Class variables:
+  Class variables are available during the processing of a file-spec line.
+  For example, assume that your filespec is:
+
+    mytemplate.jtpl  com.acme.roles.baker.BreadMaker
+
+  Then the following variables are available during file generation:
+
+    CG_TEMPLATE        the name of the template file (mytemplate.jtpl).
+    CG_DIRNAME         the name of the output dir (com/acme/roles/baker).
+    CG_FILENAME        the name of the output file (BreadMaker.java).
+    CG_CLASSNAME       the name of the current class (BreadMaker).
+    CG_FULL_CLASSNAME  the full class name (com.acme.roles.baker.BreadMaker).
+    CG_PKGNAME         the relative package name (baker).
+    CG_FULL_PKGNAME    the full package name (com.acme.roles.baker).
+
+  Note that the file specification is parsed before the template name,
+  so you can include the above variables in a template spec.  Example:
+
+    \$CG_PKGNAME/mytemplate.jtpl  com.acme.roles.baker.BreadMaker
+
+  Note further that the class variables are available until the
+  next file-spec line:
+    basic/aclass.jtpl  com.acme.roles.baker.BreadMaker
+    BAKER_CLASS = \$CG_CLASSNAME
+        [sets \$BAKER_CLASS to "BreadMaker"]
+
+Examples:
+  $p -v -cgroot ./output -templates ./templates myjavatree.txt
+!
+    return($status);
+}
+
+sub parse_args
+#proccess command-line aguments
+{
+    local(*ARGV, *ENV) = @_;
+    my ($flag, $arg);
+
+    #eat up flag args:
+    while ($#ARGV+1 > 0 && $ARGV[0] =~ /^-/) {
+        $flag = shift(@ARGV);
+
+        if ($flag eq '-') {
+            $INPUT_FILE = "<STDIN>";
+        } elsif ($flag =~ '^-h') {
+            $HELPFLAG = 1;
+            return(&usage(0));
+        } elsif ($flag =~ '^-x') {
+            #-x:   strip off text before #!/bin/... line
+            $STRIPTOSHARPBANG = 1;
+        } elsif ($flag =~ '^-S') {
+            #-S:   look for programfile using PATH environment variable
+            $LOOKINPATH = 1;
+        } elsif ($flag =~ '^-vers' || $flag =~ '^-V') {
+            $HELPFLAG = 1;
+            return(&version(0));
+        } elsif ($flag =~ '^-v') {
+            $VERBOSE = 1;
+        } elsif ($flag =~ '^-q') {
+            $QUIET = 1;    #turns off WARNINGS as well
+            $VERBOSE = 0;
+        } elsif ($flag =~ '^-dd') {
+            $DDEBUG = 1;
+        } elsif ($flag =~ '^-debugfd') {
+            $DEBUG_FD = 1;
+        } elsif ($flag =~ '^-d') {
+            $DEBUG = 1;
+        } elsif ($flag =~ '^-D') {
+            #expect a definition of the form:  -Dvar[=value]
+            my $var = "";
+            my $val = "";
+            $var = $1 if ( $flag =~ /^-D([^=]+)/ );
+            $val = $1 if ( $flag =~ /^-D[^=]+=(.*)$/ );
+            if ($var ne "") {
+                #add definition:
+                $CG_USER_VARS{$var} = $val;
+            } else {
+                printf STDERR "%s:  -D should be of the form: '-Dvar[=value]'\n", $p;
+                return 1;
+            }
+        } elsif ($flag =~ '^-e') {
+            $ENV_VARS_OKAY = 1;
+        } elsif ($flag =~ '^-f') {
+            $FORCE_GEN = 1;
+        } elsif ($flag =~ '^-u') {
+            $UPDATE = 1;
+        } elsif ($flag eq "-T") {
+            if ($#ARGV+1 > 0 && $ARGV[0] !~ /^-/) {
+                $CG_TMPDIR = shift(@ARGV);
+            } else {
+                printf STDERR "%s:  -T requires a directory name\n", $p;
+                return 1;
+            }
+        } elsif ($flag =~ '^-cgroot') {
+            if ($#ARGV+1 > 0 && $ARGV[0] !~ /^-/) {
+                $CG_ROOT = shift(@ARGV);
+            } else {
+                printf STDERR "%s:  -cgroot requires a directory name\n", $p;
+                return 1;
+            }
+        } elsif ($flag =~ '^-templates') {
+            if ($#ARGV+1 > 0 && $ARGV[0] !~ /^-/) {
+                $CG_TEMPLATE_PATH = shift(@ARGV);
+            } else {
+                printf STDERR "%s:  -templates requires a directory name\n", $p;
+                return 1;
+            }
+        } else {
+            return(&usage(1));
+        }
+    }
+
+    #eliminate empty args (this happens on some platforms):
+    @ARGV = grep(!/^$/, @ARGV);
+
+    #if input file is not yet set...
+    if ($INPUT_FILE eq "") {
+        if ($#ARGV < 0) {
+            $INPUT_FILE = "<STDIN>";
+        } else {
+            $INPUT_FILE = shift(@ARGV);
+        }
+    }
+
+    if (!$UPDATE && !$QUIET) {
+        printf STDERR "%s:  WARNING: -u not specified - existing files will not be updated\n", $p;
+    }
+
+    #NOTE:  remaining arguments are arguments to codegen script.
+    #the codegen arguments are initialized in init_spec_vars().
+
+    return(0);
+}
+
+sub findInputFileInPath
+#look for the file name in path, and return the full path name if found.
+#otherwise, return the original name.
+{
+    my ($infile) = @_;
+    printf STDERR "findInputFileInPath: infile='%s'\n", $infile if ($DEBUG);;
+    return $infile if ($infile eq '<STDIN>');
+
+    #look for the obvious first:
+    return $infile if (-r $infile);
+
+    #otherwise, look in $PATH:
+    my $outfn =  &path::which($infile);
+    printf STDERR "findInputFileInPath: which(%s)='%s'\n", $infile, &path::which($infile) if ($DEBUG);
+    return ($outfn ne "" ? $outfn : $infile);
+}
+
+sub version
+{
+    my($status) = @_;
+    print STDERR <<"!";
+$p: Version $VERSION, $VERSION_DATE.
+!
+    return($status);
+}
+
+sub dumphash
+{
+    my ($ref, $name) = @_;
+
+    my ($kk, $vv);
+    print STDERR "\n========== $name\n";
+    foreach $kk (sort keys %{$ref}) {
+        printf STDERR "%s{'%s'}\t='%s'\n", $name, $kk, ${$ref}{$kk};
+    }
+    print STDERR "========== $name\n";
+}
+
+sub init
+#copies of global vars from main package:
+{
+    $p = $'p;       #$main'p is the program name set by the skeleton
+
+    #collect some env vars:
+    $LOGNAME = "";
+    $LOGNAME = $ENV{'LOGNAME'} if (defined($ENV{'LOGNAME'}));
+}
+
+sub init_spec_vars
+#initialize "special" built-in variables.
+{
+    #save arguments passed in to codegen script:
+    if ($#ARGV >= 0) {
+        #create a stack variable:
+        $CG_USER_VARS{'CG_ARGV'} = join($;, @ARGV);
+    }
+
+    if ($CG_ROOT eq "NULL") {
+        if ($ENV_VARS_OKAY && defined($ENV{'CG_ROOT'})) {
+            $CG_ROOT = $ENV{'CG_ROOT'};
+            printf STDERR "%s: INFO: inherited CG_ROOT='%s' from environment.\n", $p, $CG_ROOT if ($VERBOSE);
+        }
+    }
+
+    #####
+    #NOTE - we always inherit CG_TMPDIR and CG_TEMPLATE_PATH from the env.
+    #       you can still override them on the command line or in the codegen source file:
+    #####
+
+    if ($CG_TMPDIR eq "NULL") {
+        if (defined($ENV{'CG_TMPDIR'})) {
+            $CG_TMPDIR = $ENV{'CG_TMPDIR'};
+            printf STDERR "%s: INFO: inherited CG_TMPDIR='%s' from environment.\n", $p, $CG_TMPDIR if ($VERBOSE);
+        }
+        #note we avoid setting until used.
+    }
+
+    if ($CG_TEMPLATE_PATH eq "NULL") {
+        if (defined($ENV{'CG_TEMPLATE_PATH'})) {
+            $CG_TEMPLATE_PATH = $ENV{'CG_TEMPLATE_PATH'};
+            printf STDERR "%s: INFO: inherited CG_TEMPLATE_PATH='%s' from environment.\n", $p, $CG_TEMPLATE_PATH if ($VERBOSE);
+        } else {
+            $CG_TEMPLATE_PATH = '.';   #use default value
+        }
+    }
+
+    #we keep this as a string, but make sure you convert it to decimal using oct() before using:
+    $CG_USER_VARS{'CG_MODE'} = "0664";
+
+    $CG_USER_VARS{'CG_ROOT'} = $CG_ROOT;
+    $CG_USER_VARS{'CG_TMPDIR'} = $CG_TMPDIR;
+    $CG_USER_VARS{'CG_TEMPLATE_PATH'} = $CG_TEMPLATE_PATH;
+    $CG_USER_VARS{'CG_NEWLINE_BEFORE_CLASS_BRACE'} = $CG_NEWLINE_BEFORE_CLASS_BRACE;
+    $CG_USER_VARS{'CG_INDENT_STRING'} = $CG_INDENT_STRING;
+    $CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'} = undef;
+    $CG_USER_VARS{'CG_SHELL_STATUS'} = undef;
+    $CG_USER_VARS{'CG_EXIT_STATUS'} = undef;
+    $CG_USER_VARS{'CG_LINE_NUMBER'} = 0;
+    $CG_USER_VARS{'CG_STACK_DELIMITER'} = $; ;
+    $LINE_CNT_REF = \$CG_USER_VARS{'CG_LINE_NUMBER'};
+}
+
+sub get_stack_delimiter
+#escape meta-characters for stack delimiters so we can use them as split pattern.
+{
+    my $d = $CG_USER_VARS{'CG_STACK_DELIMITER'};
+    return "\\$1" if ($d =~ /(^[\|\$\^\&\-\*\@\?\'\"\.\+\(\)\[\}\{\}\\]$)/);
+    return $d;
+}
+
+sub create_cg_root
+#create the current CG_ROOT dir if it doesn't yet exist
+#return false if unable to create
+{
+    my $cg_root = $CG_USER_VARS{'CG_ROOT'};
+    if ($cg_root eq "NULL") {
+        #default it to cwd:
+        $CG_USER_VARS{'CG_ROOT'} = $DOT;
+        printf STDERR "%s: WARNING: CG_ROOT is UNDEFINED, setting to '%s'\n",
+            $p, $CG_USER_VARS{'CG_ROOT'} unless ($QUIET);
+        return 1;
+    }
+
+    &os::createdir($cg_root, 0775) unless (-d $cg_root);
+    if (!-d $cg_root) {
+        return 0;
+    }
+
+    return 1;    #true if dir is there or we created.
+}
+
+sub create_cg_tmpdir
+#create the current CG_TMPDIR directory if it doesn't yet exist
+#return false if unable to create
+{
+    my $cg_tmpdir = $CG_USER_VARS{'CG_TMPDIR'};
+    if ($cg_tmpdir eq "NULL") {
+        #if there is already a dir named "./tmp", then use it.
+        #this prevents problems if we run in /:
+        if (-d &path::mkpathname($DOT, "tmp")) {
+            $CG_USER_VARS{'CG_TMPDIR'} = &path::mkpathname($DOT, "tmp");
+        } else {
+            $CG_USER_VARS{'CG_TMPDIR'} = $DOT;
+        }
+        printf STDERR "%s: WARNING: CG_TMPDIR is UNDEFINED, setting to '%s'\n",
+            $p, $CG_USER_VARS{'CG_TMPDIR'} if ($VERBOSE);
+        return 1;
+    }
+
+    #heuristic to avoid writing in / - if "$cg_tmpdir/tmp" exists, then use it:
+
+    &os::createdir($cg_tmpdir, 0775) unless (-d $cg_tmpdir);
+    if (!-d $cg_tmpdir) {
+        return 0;
+    }
+
+    return 1;    #true if dir is there or we created.
+}
+
+sub get_cg_tmpfile_name
+#return the next available codegen temp-file name.
+#
+#INPUT:  (optional) the leaf filename to use in generating the fullpath of the temp file name
+#OUTPUT: the fullpath of the temp file name
+#
+#WARNING:  paths that start with "//" mean "network drive" to cygwin, so
+#          use &path::mkpathname() to create pathnames.
+{
+    my ($tmpfile) = @_;
+
+    #if caller doesn't supply filename, then generate next available name:
+    $tmpfile = sprintf("_codegen.tmpfile.%d.%d", $$, $CG_TMPFILE_CNT++) unless (defined($tmpfile));
+
+    if (!&create_cg_tmpdir()) {
+        printf STDERR "%s[get_cg_tmpfile_name]: ERROR: line %d: cannot create CG_TMPDIR '%s': %s\n",
+            $p, $LINE_CNT, $CG_USER_VARS{'CG_TMPDIR'}, $!;
+        return "NULL";   #FAILED
+    }
+
+    #now it is safe to use CG_TMPDIR:
+    my $cg_tmpdir = $CG_USER_VARS{'CG_TMPDIR'};
+
+    my $tmpfile_fullpath = &path::mkpathname($cg_tmpdir, $tmpfile);
+
+    printf STDERR "get_cg_tmpfile_name: cg_tmpdir='%s' (-d '\$cg_tmpdir/tmp')=%d tmpfile'%s' tmpfile_fullpath='%s'\n",
+        $cg_tmpdir, (-d &path::mkpathname($cg_tmpdir, "tmp")), $tmpfile, $tmpfile_fullpath if ($DEBUG);
+
+    return $tmpfile_fullpath;
+}
+
+sub write_string_to_cg_tmp_file
+#create a CG tmp file, and write a string to it.
+#return the name of the file, or "NULL" if failed to create file
+#NOTE:  caller must remove tmp file.
+#NOTE:  caller must decide to increment global error count
+{
+    my ($theStr) = @_;
+
+    #get a tempfile name:
+    my $tmpfile_fullpath = &get_cg_tmpfile_name();
+
+    #write the string into tmp file:
+    if (!&os::write_str2file(\$theStr, $tmpfile_fullpath, 0) == 0) {
+        printf STDERR "%s[write_string_to_cg_tmp_file]: ERROR: line %d: write FAILED\n",
+            $p, $LINE_CNT, $tmpfile_fullpath;
+        return "NULL";   #FAILED
+    }
+
+    return $tmpfile_fullpath;
+}
+
+sub cleanup
+{
+}
+
+sub eval_postfix_op
+#implement postfix operations for variables
+#returns input string with operation applied.
+{
+    my ($op, $var, $varname, $linecnt) = @_;
+
+    my $fname = sprintf("%s_op", $op);
+    my $fref = \&{$fname};
+
+    #printf STDERR "eval_postfix_op:  op='%s' varname='%s' var='%s' fname='%s'\n", $op, $varname, $var, $fname if ($DEBUG);
+#printf STDERR "eval_postfix_op:  op='%s' varname='%s' var='%s' fname='%s'\n", $op, $varname, $var, $fname;
+
+    if ( defined(&{$fref}) ) {
+        $var = &{$fref}($var, $varname, $linecnt);
+        printf STDERR "eval_postfix_op:  AFTER var='%s'\n", $var if ($DEBUG);
+#printf STDERR "eval_postfix_op:  AFTER var='%s'\n", $var;
+        return $var;
+    }
+
+    #otherwise, we have an arithmetic op, or external command.
+
+    if ($op =~ /^indent(\d*)$/) {
+        #add n indent levels, as defined by CG_INDENT_STRING
+        if (defined($1) and $1 ne "") {
+            $var = &increase_indent($var, $1) unless ($var eq "");
+        } else {
+            #no indent level supplied - assume 1:
+            $var = &increase_indent($var, 1) unless ($var eq "");
+        }
+    } elsif ($op =~ /^_([^\s]*)$/) {
+        #this is the xml/html wrapper op.  $foo:_p => <p>$foo</p>
+        if (defined($1) and $1 ne "") {
+            my $ee = $1;  #save element name
+
+            #if we have CG_ATTRIBUTE_$ee defined ...
+            if (&var_defined("CG_ATTRIBUTE_$ee")) {
+                $var = sprintf "<%s %s>%s</%s>", $ee, &lookup_def("CG_ATTRIBUTE_$ee"), $var, $ee;
+            } else {
+                $var = sprintf "<%s>%s</%s>", $ee, $var, $ee;
+            }
+        }
+    } elsif ($op =~ /^plus(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var + $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^minus(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var - $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^times(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var * $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^div(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var / $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^rem(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var % $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^\s*$/) {
+        #silently ignore empty operators
+    } else {
+        #assume that operator is a valid shell command:
+        printf STDERR "%s [eval_postfix_op]: assuming '%s' is an external command\n", $p, $op if ($VERBOSE);
+        $var = &exec_shell_op($op, $var);
+    }
+
+    printf STDERR "eval_postfix_op:  AFTER var='%s'\n", $var if ($DEBUG);
+    return $var;
+}
+
+sub increase_indent
+#increase the indent level of each line in input 
+{
+    my ($var, $indent_level) = @_;
+    my $leadin = &lookup_def("CG_INDENT_STRING") x $indent_level;
+
+    my $eolpat = "\n";
+    if ($var =~ /\r/) {
+        #set to use dos line endings:
+        $eolpat = "\r\n";
+    }
+    my @tmp = split($eolpat, $var, -1);
+        #-1 => include trailing null fields, i.e., empty lines in this case
+
+#printf STDERR "increase_indent: leadin='%s' tmp=(%s)\n", $leadin, join(',', @tmp);
+
+    #this is much faster than a for loop:
+    grep ((!/^\s*$/) && ($_ = "$leadin$_"), @tmp);
+
+    return join("\n", @tmp);
+}
+
+sub exec_shell_op
+#open a command processor as a pipe, and feed <var> as stdin.
+#returns <var> unmodified if there is an error creating the pipe,
+#otherwise, the output from the command.
+{
+    my ($cmd, $var) = @_;
+
+    #write $var to a tmp file:
+    my $tmpfile = &os'TempFile;
+    if (!open(TMPFILE, ">$tmpfile")) {
+        printf STDERR "%s [exec_shell_op]: ERROR: cannot open '%s' for write: %s\n", $p, $tmpfile, $!;
+        ++ $GLOBAL_ERROR_COUNT;
+        # var is unmodified
+    } else {
+        #make sure that input to pipe has at least one EOL.
+        #otherwise, mks won't read the pipe.
+        chomp $var;
+        printf TMPFILE "%s\n", $var;
+        close TMPFILE;
+
+        #check for command line arguments:
+        my $args = "";
+        $args = $CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'} if ( defined($CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'}) );
+        $cmd = "$cmd $args" if ($args ne "");
+
+        #now open pipe to command:
+        $CG_USER_VARS{'CG_SHELL_STATUS'} = 255;    #unless shell sets status, we assume bad
+        if (!open(CMDPIPE, "sh -c '$cmd' <$tmpfile|")) {
+            printf STDERR "%s [exec_shell_op]: ERROR: cannot open pipe to command '%s': %s\n", $p, $cmd, $!;
+            ++ $GLOBAL_ERROR_COUNT;
+        } else {
+            #read stdout of pipe back into var:
+            my @var = <CMDPIPE>;
+            close CMDPIPE;
+            $CG_USER_VARS{'CG_SHELL_STATUS'} = $?;
+            #sh adds an extra newline, trim it:
+            $var = join("",@var);
+            chomp $var;
+        }
+    }
+
+    return $var;
+}
+
+sub var_defined
+#return 1 if a codegen variable is defined
+#uses same algorithm as lookup_def, but is non-destructive
+{
+    my ($varname) = @_;
+
+    if ($DEBUG) {
+        printf STDERR "var_defined(%s) e1=%d e2=%d e3=%d\n", $varname,
+            ( defined($CLASS_VAR_REF) && defined(${$CLASS_VAR_REF}{$varname}) ),
+            (defined($CG_USER_VARS{$varname}) && $CG_USER_VARS{$varname} ne "NULL"),
+            ($ENV_VARS_OKAY && defined($ENV{$varname}))
+            ;
+    }
+
+    return (
+        ( defined($CLASS_VAR_REF) && defined(${$CLASS_VAR_REF}{$varname}) ) ||
+        (defined($CG_USER_VARS{$varname}) && $CG_USER_VARS{$varname} ne "NULL") ||
+        ($ENV_VARS_OKAY && defined($ENV{$varname}))
+    );
+}
+
+sub is_number
+#true if <var> is a number (integer or decimal).
+{
+    my ($var) = @_;
+    my $result = ( ($var =~ /^\s*[-+]?\s*\d+(\.\d+)?\s*$/) ? 1 : 0 );
+
+#printf STDERR "is_number: var='%s' result=%d\n", $var, $result;
+
+    return $result;
+}
+
+sub is_integer
+#true if <var> is an integer
+{
+    my ($var) = @_;
+    return ($var =~ /^\s*[-+]?\s*\d+\s*$/);
+}
+
+sub is_java_comment
+{
+    my ($lref) = @_;
+    my (@lines) = @{$lref};
+    my ($ans) = 0;
+
+    while ($#lines >= 0) {
+        if (&is_java_line_comment($lines[0])) {
+            $ans = 1;
+            shift @lines;
+        } elsif (&is_java_block_comment_start($lines[0])) {
+            #loop until we find the end:
+            shift @lines;
+            while ($#lines >= 0 && !($ans = &is_java_block_comment_end($lines[0]))) {
+                shift @lines;
+            }
+            shift @lines if ($ans);
+        } else {
+            last;
+        }
+    }
+
+    #replace original only if we modified it:
+    @{$lref} = @lines if ($ans);
+
+    return $ans;
+}
+
+sub is_java_block_comment_start
+{
+    my ($txt) = @_;
+
+    #look for /*, but not /** ..
+    return 1 if ($txt =~ /^\s*\/\*/ && $txt !~ /^\s*\/\*\*/);
+    return 0;
+}
+
+sub is_java_block_comment_end
+{
+    my ($txt) = @_;
+    return ($txt =~ /\*\//) ? 1 : 0;
+}
+
+sub is_java_line_comment
+{
+    my ($txt) = @_;
+
+    #look for // ...
+    return 1 if ($txt =~ /^\s*\/\//);
+
+    #look for /* ... */, but not /** .. */
+    if ($txt =~ /^\s*\/\*/ && $txt =~ /\*\//) {
+        #we don't count javadoc as part of the header:
+        return 1 unless $txt =~ /^\s*\/\*\*/;
+    }
+
+    return 0;
+}
+
+sub is_wsp
+{
+    my ($lref) = @_;
+    my (@lines) = @{$lref};
+    my ($ans) = 0;
+
+    while ($#lines >= 0 && $lines[0] =~ /^\s*$/) {
+        shift @lines;
+        $ans = 1;
+    }
+
+    #replace original only if we modified it:
+    @{$lref} = @lines if ($ans);
+
+    return $ans;
+}
+
+sub rtrim_op
+#process :rtrim postfix op
+{
+    my ($var) = @_;
+    $var =~ s/\s+$//;
+    return $var;
+}
+
+sub trim_op
+#process :trim postfix op
+{
+    my ($var) = @_;
+    $var =~ s/^\s+//;
+    $var =~ s/\s+$//;
+    return $var;
+}
+
+sub undef_op
+#process :undef postfix op
+{
+    my ($var, $varname) = @_;
+    #undefine $varname
+    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    $var = sprintf('${%s:undef}', $varname);   #same as lookup_def returns.
+    return $var;
+}
+
+sub m_op
+#alias for :match
+{
+    return &match_op(@_);
+}
+
+sub match_op
+#process :match postfix op
+#:match or :m - will match against CG_MATCH_SPEC
+#return 1 if match, else 0.
+{
+    my ($var) = @_;
+    my $spec = $CG_USER_VARS{'CG_MATCH_SPEC'};
+
+    return 0 unless (defined($spec));
+
+#printf "expr_match: var='%s' spec='%s'\n", $var, $spec;
+
+    my $ans = eval "\$var =~ $spec";
+
+    if ($@) {
+        printf STDERR "%s[match]: ERROR: line %d: evaluation of CG_MATCH_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, $@;
+        return 0;
+    } elsif (!defined($ans)) {
+        #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
+        printf STDERR "%s[match]: ERROR: line %d: evaluation of CG_MATCH_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, "ERROR in eval" ;
+        return 0;
+    }
+
+    return ($ans eq ""? 0 : 1);
+}
+
+sub pad_op
+#process :pad postfix op
+#pad a number or string as specified by CG_PAD_SPEC
+#Default is to zero-pad integers to width 2.
+#CG_PAD_SPEC is take as an sprintf format spec.
+{
+    my ($var) = @_;
+    my $spec = $CG_USER_VARS{'CG_PAD_SPEC'};
+
+    if (!defined($spec)) {
+        if (&is_integer($var)) {
+            $spec = "%02d";
+        } else {
+            $spec = "%2s";
+        }
+    }
+
+    printf "pad_op: var='%s' spec='%s'\n", $var, $spec if ($DEBUG);
+
+    return sprintf($spec, $var);
+}
+
+sub s_op
+#alias for :substitute
+{
+    return &substitute_op(@_);
+}
+
+sub substitute_op
+#process :substitute postfix op
+#:substitute or :s - will match against CG_SUBSTITUTE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_SUBSTITUTE_SPEC'};
+    return $var unless (defined($spec));
+
+    my $savevar = $var;
+    my $result = eval "\$var =~ $spec";
+
+    if ($@) {
+        printf STDERR "%s[substitute]: ERROR: line %d: evaluation of CG_SUBSTITUTE_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, $@;
+        return $savevar;
+    } elsif (!defined($result)) {
+        #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
+        printf STDERR "%s[substitute]: ERROR: line %d: evaluation of CG_SUBSTITUTE_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, "ERROR in eval" ;
+        return $savevar;
+    }
+
+    return $var;
+}
+
+sub tounix_op
+#convert a string to unix text
+{
+    my ($var) = @_;
+
+    $var =~ s/\r\n/\n/gm;
+    return $var;
+}
+
+sub todos_op
+#convert a string to dos text
+{
+    my ($var) = @_;
+
+    #make sure it is in unix format:
+    $var =~ &tounix_op($var);
+
+    $var =~ s/\n/\r\n/gm;
+    return $var;
+}
+
+sub eq_op
+#process :eq postfix op
+#:eq - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var == $spec) if (&is_number($var) && &is_number($spec));
+    return ($var eq $spec);
+}
+
+sub ne_op
+#process :ne postfix op
+#:ne - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var != $spec) if (&is_number($var) && &is_number($spec));
+    return ($var ne $spec);
+}
+
+sub gt_op
+#process :gt postfix op
+#:gt - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var > $spec) if (&is_number($var) && &is_number($spec));
+    return ($var gt $spec);
+}
+
+sub ge_op
+#process :ge postfix op
+#:ge - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var >= $spec) if (&is_number($var) && &is_number($spec));
+    return ($var ge $spec);
+}
+
+sub lt_op
+#process :lt postfix op
+#:lt - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var < $spec) if (&is_number($var) && &is_number($spec));
+    return ($var lt $spec);
+}
+
+sub le_op
+#process :le postfix op
+#:le - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var <= $spec) if (&is_number($var) && &is_number($spec));
+    return ($var le $spec);
+}
+
+sub basename_op
+#process :basename postfix op
+#return basename of input var
+{
+    my ($var) = @_;
+
+    return $1 if ( $var =~ /[\/\\]([^\/\\]*)$/ );
+    return "";
+}
+
+sub dirname_op
+#process :dirname postfix op
+#return dirname of input var
+{
+    my ($var) = @_;
+    $var =~ s/[\/\\][^\/\\]*$//;
+    return $var;
+}
+
+sub suffix_op
+#process :suffix postfix op
+#return suffix of input var
+{
+    my ($var) = @_;
+
+    return $1 if ( $var =~ /\.([^\.\\\/]*)$/ );
+    return "";
+}
+
+sub stacksize_op
+#process :stacksize postfix op
+#:stacksize - return the stacksize of a scalar.
+#only variables created by %push will have a stacksize > 1
+#empty string returns a stacksize of 0.
+{
+    my ($var) = @_;
+
+    return 0 if ($var eq "");
+
+    my @tmp = split($;, $var);
+
+    return $#tmp +1;
+}
+
+sub stackminus_op
+#process :stackminus postfix op
+#:stackminus - subtract the members of CG_STACK_SPEC from current stack.
+{
+    my ($var) = @_;
+
+    return $var if ($var eq "");
+
+    my @thisStack = split($;, $var);
+#printf STDERR "thisStack=(%s)\n", join(",", @thisStack);
+    my $specStack = $CG_USER_VARS{'CG_STACK_SPEC'};
+    return $var unless (defined($specStack));
+
+    my @specStack = split($;, $specStack);
+#printf STDERR "specStack=(%s)\n", join(",", @specStack);
+
+    my @new = &MINUS(\@thisStack, \@specStack);
+#printf STDERR "new=(%s)\n", join(",", @new);
+
+    return join($;, @new);
+}
+
+sub openfile_op
+#process :openfile postfix op
+#open a file if it is open. return error string or empty if no error.
+{
+    my ($fn, $varname) = @_;
+
+    my $fhref = $CG_OPEN_FILE_DESCRIPTORS{$fn};
+    my $fhidx = -1;
+
+    if (defined($fhref)) {
+        #then close before re-open:
+        close $fhref;
+        $fhidx = $CG_OPEN_FILE_FD_INDEXES{$fn};
+    } else {
+        #get the next file reference:
+        $fhidx = &get_avaliable_filehandle("open_fileop");
+
+        if ($fhidx < 0) {
+            return sprintf("%s: ERROR: out of file descriptors (max is %d).", $p, $LAST_TEMPLATE_FD_KEY+1);
+        }
+
+        $fhref = $TEMPLATE_FD_REFS[$fhidx];
+    }
+
+
+    if (!open($fhref, $fn)) {
+        &free_filehandle($fhidx, "open_fileop") if ($fhidx >= 0);   #free if we allocated filehandle
+        my $errtxt = sprintf("%s", $!);
+        return $errtxt unless ($errtxt eq "");
+        return "UNKNOWN ERROR";
+    }
+
+
+    #init line contents, count for newly opened file:
+    $CG_OFD_CURRENTLINE{$fn} = "";
+    $CG_OFD_CURRENTLINECOUNT{$fn} = 0;
+
+    #save file-handle:
+    $CG_OPEN_FILE_DESCRIPTORS{$fn} = $fhref;
+    $CG_OPEN_FILE_FD_INDEXES{$fn} = $fhidx;
+
+    return "";
+}
+
+sub getnextline_op
+#process :getnextline postfix op
+#get the next line of a file if it is open.
+#return varname if line is defined, otherwise, return "".
+#undefine varname if file is not open or we have read past the end.
+{
+    my ($fn, $varname) = @_;
+
+    if ($fn eq "-" || $fn =~ /stdin/i) {
+        my $line = <>;
+        if (!defined($line)) {
+            delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+            return "";
+        }
+        chomp $line;
+        $CG_OPEN_FILE_DESCRIPTORS{'<STDIN>'} = '<STDIN>';
+        $CG_OFD_CURRENTLINE{'<STDIN>'} = $line;
+        ++$CG_OFD_CURRENTLINECOUNT{'<STDIN>'};    #this keeps a tally of how many lines read from stdin
+
+        #we read a line from stdin.
+        $CG_USER_VARS{$varname} = '<STDIN>';  #normalize name of stdin
+        return $varname;
+    }
+
+    my $fhref = $CG_OPEN_FILE_DESCRIPTORS{$fn};
+    my $line = <$fhref> if (defined($fhref));
+
+    if (!defined($fhref) || !defined($line)) {
+        delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+        return "";
+    }
+
+    #otherwise, make a copy of current line, and increment line count:
+    if (defined($line)) {
+        chomp $line;
+        $CG_OFD_CURRENTLINE{$fn} = $line;
+        ++$CG_OFD_CURRENTLINECOUNT{$fn};
+    }
+
+    printf "getnextline_fileop: varname=%s fn=%s line='%s'\n", $varname, $fn, $line if ($DEBUG);
+
+    #return the name of the input variable, for use in %whiledef loops:
+    return $varname;
+}
+
+sub currentline_op
+#process :currentline postfix op
+#return the current input line of a file, or undef varname if file is closed
+{
+    my ($fn, $varname) = @_;
+
+    return $CG_OFD_CURRENTLINE{$fn} if (defined($CG_OFD_CURRENTLINE{$fn}));
+
+    #otherwise, undefine the caller's variable:
+    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    #otherwise, undefine the caller's variable:
+    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    return sprintf('${%s}', $varname);   #same as lookup_def returns.
+}
+
+sub currentlinenumber_op
+#process :currentlinenumber postfix op
+#(1..nlines), 0 => file closed
+{
+    my ($fn, $varname) = @_;
+
+    return $CG_OFD_CURRENTLINECOUNT{$fn} if (defined($CG_OFD_CURRENTLINECOUNT{$fn}));
+
+    return 0;    #allows %ifnot to detect that file is not open
+}
+
+sub closefile_op
+#process :closefile postfix op
+#close a file if it is open. set $var to error or empty if no error.
+{
+    my ($fn, $varname) = @_;
+    my $fhref = $CG_OPEN_FILE_DESCRIPTORS{$fn};
+
+    if (defined($fhref)) {
+        #then close:
+        close $fhref;
+
+        #clear variables related to this file:
+        delete $CG_OPEN_FILE_DESCRIPTORS{$fn} if (defined($CG_OPEN_FILE_DESCRIPTORS{$fn}));
+        delete $CG_OFD_CURRENTLINE{$fn} if (defined($CG_OFD_CURRENTLINE{$fn}));
+        delete $CG_OFD_CURRENTLINECOUNT{$fn} if (defined($CG_OFD_CURRENTLINECOUNT{$fn}));
+
+        if (defined($CG_OPEN_FILE_FD_INDEXES{$fn})) {
+            &free_filehandle($CG_OPEN_FILE_FD_INDEXES{$fn}, "close_fileop");
+            delete $CG_OPEN_FILE_FD_INDEXES{$fn};
+        }
+    }
+
+    #we don't return any errors for now...
+
+    return "";
+}
+
+sub eoltrim_op
+#process :eoltrim postfix op
+{
+    my ($var) = @_;
+    $var =~ s/\s+\n/\n/g;
+    return $var;
+}
+
+sub lspace_op
+#process :lspace postfix op
+#add one space to beginning of string iff it is a non-empty string:
+{
+    my ($var) = @_;
+    $var = " $var" unless ($var eq "");
+    return $var;
+}
+
+sub rspace_op
+#process :rspace postfix op
+{
+    my ($var) = @_;
+    #add one space to end of string iff it is a non-empty string:
+    $var = "$var " unless ($var eq "");
+    return $var;
+}
+
+sub space_op
+#process :space postfix op
+#use this to add spaces to empty string.
+{
+    my ($var) = @_;
+    return $var = $var . " ";
+}
+
+sub rnewline_op
+#process :rnewline postfix op
+{
+    my ($var) = @_;
+    #add one newline to end of string iff it is a non-empty string:
+    $var = "$var\n" unless ($var eq "");
+    return $var;
+}
+
+sub lnewline_op
+#process :lnewline postfix op
+{
+    my ($var) = @_;
+    $var = "\n$var" unless ($var eq "");
+    return $var;
+}
+
+sub newline_op
+#process :newline postfix op
+{
+    my ($var) = @_;
+    $var = "$var\n";
+    return $var;
+}
+
+sub fixeol_op
+#force at most one newline at the end of the string
+{
+    my ($var) = @_;
+
+    #ignore empty strings or strings that already have a newline:
+    return $var if ($var eq "" || $var =~ /\n$/);
+
+    $var = "$var\n";
+    return $var;
+}
+
+sub oneline_op
+#process :oneline postfix op
+#replace \s*EOL\s* sequences with a single space, and trim result:
+{
+    my ($var) = @_;
+
+    $var =~ s/\s*(\r\n)+\s*/ /g;
+    $var =~ s/\s*(\n\r)+\s*/ /g;
+    $var =~ s/\s*\n+\s*/ /g;
+    $var =~ s/\s*\r+\s*/ /g;
+
+    #trim:
+    $var =~ s/^\s+//;
+    $var =~ s/\s+$//;
+
+    return $var;
+}
+
+sub rangelb_op
+#process :rangelb postfix op
+#Interpret m..n as a range value.
+#    :rangelb => m..n => m
+#    :rangeub => m..n => n
+#    common behavior
+#        strings are trimmed
+#        if missing range operator "..", then reflect original value
+#        "" => 0
+#        m => m
+{
+    my ($var) = @_;
+
+    #trim leading/trailing whitespace:
+    $var = $1 if ($var =~ /^\s*([^\s]+)\s*$/);
+
+    return 0 if ($var eq "");
+
+    my @lbub  = split(/\.\./, $var, 2);
+
+    return $lbub[0] if ($#lbub >= 0);
+
+    return $var;
+}
+
+sub rangeub_op
+#process :rangeub postfix op
+#Interpret m..n as a range value.
+#    :rangelb => m..n => m
+#    :rangeub => m..n => n
+#    common behavior
+#        strings are trimmed
+#        if missing range operator "..", then reflect original value
+#        "" => 0
+#        m => m
+{
+    my ($var) = @_;
+
+    #trim leading/trailing whitespace:
+    $var = $1 if ($var =~ /^\s*([^\s]+)\s*$/);
+
+    return 0 if ($var eq "");
+
+    my @lbub  = split(/\.\./, $var, 2);
+
+    return $lbub[0] if ($#lbub == 0);
+    return $lbub[1] if ($#lbub == 1);
+
+    return $var;
+}
+
+sub isint_op
+#process :isint postfix op
+#returns 1 if <val> is a positive integer, else zero.
+{
+    my ($var) = @_;
+
+    return 1 if ( $var =~ /^\s*\d+\s*$/ );
+    return 0;
+}
+
+sub split_op
+#process :split postfix op
+#splits variable into a push/pop reference
+#default split set is [_,]
+{
+    my ($var) = @_;
+
+    printf STDERR "%s: ERROR: split is not implemented\n", $p;
+    return $var
+}
+
+
+sub onecol_op
+#process :onecol postfix op
+{
+    my ($var) = @_;
+
+    #trim, then replace \s+ sequences with newlines:
+    $var =~ s/^\s+//;
+    $var =~ s/\s+$//;
+    #Q: should I use \r\n on DOS?
+    $var =~ s/\s+/\n/g;
+
+    return $var;
+}
+
+sub method2rec_op
+#process :method2rec postfix op
+#convert a java method signature to a tab separated record:
+#parse a line containing a java method signature declaration, and output
+#a tab-separated record containing:
+#    (method attributes, return type, name(parmeters), exceptions thrown) 
+{
+    my ($var) = @_;
+
+    #make input easier to parse:
+    $var = &oneline_op($var);
+
+    #get rid of any tabs:
+    $var =~ s/\t//g;
+
+    #get rid of any terminating semi-colons:
+    $var =~ s/\s*;.*$//;
+
+    #get rid of any open-brace expressions:
+    $var =~ s/\s*{.*$//; #}
+
+    #pull out throws clause:
+    my $throws = "";
+    #WARNING: we localize the scope of $1 from the match, as perl leaves the
+    #most recent match defined until it is overriden, which means defined($1) is always
+    #true after the first match.  not what we want...
+    {
+        $var =~ s/\s+throws\s+(.*)//;
+        $throws = $1 if (defined($1));
+    }
+
+#printf STDERR "method2rec: var='%s' throws='%s'\n", $var, $throws;
+
+    #pull out methodname(args...):
+    my $name = "";
+    {
+        #get formal parameters:
+        $var =~ s/\s*(\(.*)$//;
+        $name = $1 if (defined($1));
+        #get method name:
+        $var =~ s/\s+(\S+)$//;
+        $name = "$1$name" if (defined($1));
+    }
+
+#printf STDERR "method2rec: var='%s' name='%s'\n", $var, $name;
+
+    #pull out return type:
+    my $returns = "";
+    #get array brackets if present:
+    {
+        $var =~ s/\s*(\[.*)$//;
+        $returns = $1 if (defined($1));
+        #get return type name
+        #note that pattern can start at beginning of line if interface
+        #with no attributes, because access attribute (public,private...)  is optional:
+        $var =~ s/\s*(\S+)$//;
+        $returns = "$1$returns" if (defined($1));
+    }
+
+#printf STDERR "method2rec: var='%s' returns='%s'\n", $var, $returns;
+
+    #whatever is left are the method attributes:
+    my $attributes = $var;
+
+#printf STDERR "method2rec: var='%s' attributes='%s'\n", $var, $attributes;
+
+    #return tab-separated record:
+    return join("\t", $attributes, $returns, $name, $throws);
+}
+
+sub ltrim_op
+#process :ltrim postfix op
+{
+    my ($var, $varname, $linecnt) = @_;
+    $var =~ s/^\s+//;
+    return $var;
+}
+
+sub antvar_op
+#process :antvar postfix op
+#convert to an ant variable reference:
+{
+    my ($var) = @_;
+    return '$' . "{$var}";
+}
+
+sub xmlcommentblock_op
+#process :xmlcommentblock postfix op
+#wrap $var in multi-line xml comment:
+#wrap the input string in an xml comment
+{
+    my ($var) = @_;
+
+    my $eolpat = "\n";
+    if ($var =~ /\r/) {
+        #set to use dos line endings:
+        $eolpat = "\r\n";
+    }
+
+    my @tmp = split($eolpat, $var);
+
+    $var = sprintf("<!--\n # %s\n-->", join("\n # ", @tmp));
+
+#    <!--
+#     # this
+#     # is a comment
+#    -->
+
+    return $var;
+}
+
+sub xmlcomment_op
+#process :xmlcomment postfix op
+#wrap $var in xml comment:
+{
+    my ($var) = @_;
+    return sprintf("<!-- %s -->", $var);
+}
+
+sub tab_op
+#process :tab postfix op
+#use this to add tabs to empty string.
+{
+    my ($var) = @_;
+    return $var . "\t";
+}
+
+sub tolower_op
+#process :tolower postfix op
+{
+    my ($var) = @_;
+    $var =~ tr/[A-Z]/[a-z]/;
+    return $var;
+}
+
+sub toupper_op
+#process :toupper postfix op
+{
+    my ($var) = @_;
+    $var =~ tr/[a-z]/[A-Z]/;
+    return $var;
+}
+
+sub cap_op
+#process :cap postfix op
+#this op capitalizes the first letter of a string.
+{
+    my ($var) = @_;
+    #ignore leading spaces:
+    $var =~ s/^(\s*)([a-z])(.*)$/$1\u$2$3/;
+    return $var;
+}
+
+sub uncap_op
+#process :uncap postfix op
+#this op uncapitalizes the first letter of a string.
+{
+    my ($var) = @_;
+    #ignore leading spaces:
+    $var =~ s/^(\s*)([A-Z])(.*)$/$1\l$2$3/;
+    return $var;
+}
+
+sub incr_op
+#process :incr postfix op
+{
+    my ($var) = @_;
+
+    #we do fixed-width increment, e.g., 001, 002, ... 999
+    my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+    $var = sprintf "%.*d", length($tmp), $var+1;
+
+    return $var;
+}
+
+sub decr_op
+#process :decr postfix op
+{
+    my ($var) = @_;
+
+    #we do fixed-width decrement, e.g., 999, 998, ... 000;
+    my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+    $var = sprintf "%.*d", length($tmp), $var-1;
+
+    return $var;
+}
+
+sub env_op
+#process :env postfix op
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    if (defined($ENV{$var})) {
+        $var = $ENV{$var};
+    } else {
+        printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $var, "env" unless ($QUIET);
+        $var = "";
+    }
+
+    return $var;
+}
+
+sub freq_op
+#process :freq postfix op
+#get the frequency of each line, and ouput in the form:
+#  <cnt><tab><unique_lines>
+#where <unique_lines> is the original data with leading/trailing whitespace trimmed
+{
+    my ($var) = @_;
+    my $eolpat = "\n";
+    if ($var =~ /\r/) {
+        #set to use dos line endings:
+        $eolpat = "\r\n";
+    }
+    my @tmp = split($eolpat, $var);
+
+#printf STDERR "freq: tmp=(%s)\n", join(',', @tmp);
+
+    #this is much faster than a for loop:
+    @tmp = grep (s/^\s*//, @tmp);
+    @tmp = grep (s/\s*$//, @tmp);
+
+    #now count unique occurances:
+    my %FREQ = ();
+    grep (++$FREQ{$_}, @tmp);
+
+#printf "keys FREQ=(%s)\n", join(",", sort keys %FREQ);
+#printf "values FREQ=(%s)\n", join(",", sort values %FREQ);
+
+    @tmp = grep($_ = "$FREQ{$_}\t$_", sort keys %FREQ);
+
+    return join("\n", @tmp);
+}
+
+sub nameof_op
+#process :nameof postfix op
+{
+    my ($var, $varname) = @_;
+    return $varname;
+}
+
+sub valueof_op
+#process :valueof postfix op
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    #show the value of the variable named by $var:
+    if (&var_defined($var)) {
+        $var = $CG_USER_VARS{$var};
+    } else {
+        printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $var, "valueof" unless ($QUIET);
+        $var = sprintf("\${%s:undef}", $varname);;
+    }
+
+    return $var;
+}
+
+sub a_op
+#alias for :assign
+{
+    return &assign_op(@_);
+}
+
+sub assign_op
+#process :assign postfix op
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    #update the value of $var:
+    $CG_USER_VARS{$varname} = $var;
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+
+    return $var;
+}
+
+sub clr_op
+#set a variable to empty string.
+{
+    my ($var, $varname, $linecnt) = @_;
+    return &assign_op("", $varname, $linecnt);
+}
+
+sub zero_op
+#set a variable to zero.
+{
+    my ($var, $varname, $linecnt) = @_;
+    return &assign_op(0, $varname, $linecnt);
+}
+
+my @RCS_KEYWORDS = (
+        "Author",
+        "Date",
+        "Header",
+        "Id",
+        "Locker",
+        "Log",
+        "Name",
+        "RCSfile",
+        "Revision",
+        "Source",
+        "State",
+    );
+
+sub stripRcsKeywords_op
+#strip all RCS keywords from the string
+{
+    my ($var) = @_;
+
+    #optimization - don't look at strings unless there is at
+    #least one possible rcs keyword sequence:
+    return $var unless ($var =~ /\$[A-Z][a-z]/ );
+
+    for my $kw (@RCS_KEYWORDS) {
+        #this will only strip keywords that are properly terminated.
+        #for example, $Id .. <EOL>  will not be touched,
+        #but $Id ... $ will be deleted.
+        $var =~ s/\$$kw[^\$\n]*\$//g
+    }
+
+    return $var;
+}
+
+sub crcfile_op
+#return the crc of the file named by the string.
+#open the file directly, and if that fails, look in CG_ROOT.
+#return zero if file is not readable, otherwise,
+#hex number representing the crc.
+{
+    my ($fn) = @_;
+    my $crc = "0";
+
+    #if we can read file directly...
+    if ( -r $fn ) {
+        $crc =  sprintf("%x", &pcrc::CalculateFileCRC($fn));
+        return "$crc";
+    } else {
+        #otherwise, look in CG_ROOT:
+        my ($cgfn) = &path::mkpathname($CG_USER_VARS{'CG_ROOT'}, $fn);
+
+        if ( -r $cgfn ) {
+            $crc =  sprintf("%x", &pcrc::CalculateFileCRC($cgfn));
+            return "$crc";
+        }
+    }
+
+    return "0";    #return zero if we cannot open file
+}
+
+sub crcstr_op
+#return the crc of the contents of a string
+{
+    my ($var) = @_;
+
+    my $tmpfile_fullpath = &write_string_to_cg_tmp_file($var);
+    if ($tmpfile_fullpath eq "NULL") {
+        #we treat this as an internal error (as opposed to a user error):
+        printf STDERR "%s[%s]: ERROR: line %d: cannot create temp file.\n",
+            $p, "crcstr_op", $LINE_CNT unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return "0";    #return zero if we cannot open file
+    }
+
+    #return crc of temp file containing string:
+    my $crc = &crcfile_op($tmpfile_fullpath);
+    unlink $tmpfile_fullpath;
+    return $crc;
+}
+
+sub crc_op
+#return crcfile, and if that fails, crcstr.
+#use explicit ops if you want to force it one way or the other.
+{
+    my ($var) = @_;
+    my $crc = 0;
+
+    $crc =  &crcfile_op($var);
+    return $crc if ( $crc ne "0" );
+
+    #otherwise, return crc of string:
+    return &crcstr_op($var);
+}
+
+sub r_op
+#return non-zero if file is readable.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-r $fn)? 1 : 0;
+}
+
+sub w_op
+#return non-zero if file is writable.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-w $fn)? 1 : 0;
+}
+
+sub x_op
+#return non-zero if file is executable.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-x $fn)? 1 : 0;
+}
+
+sub e_op
+#return non-zero if file is exists.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-e $fn)? 1 : 0;
+}
+
+sub z_op
+#return non-zero if file is zero length.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-z $fn)? 1 : 0;
+}
+
+sub sz_op
+#return non-zero if file is non-zero size (returns size).
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-s $fn)? 1 : 0;
+}
+
+sub f_op
+#return non-zero if file is plain file.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-f $fn)? 1 : 0;
+}
+
+sub d_op
+#return non-zero if file is directory.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-d $fn)? 1 : 0;
+}
+
+sub l_op
+#return non-zero if file is symlink.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-l $fn)? 1 : 0;
+}
+
+sub T_op
+#return non-zero if file is Text file.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-T $fn)? 1 : 0;
+}
+
+sub B_op
+#return non-zero if file is Binary file.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-B $fn)? 1 : 0;
+}
+
+1;

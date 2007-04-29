@@ -1,0 +1,48 @@
+######
+#setup
+######
+PWD=
+PWD=$PWD:pwd
+
+#if CG_ROOT is not defined ...
+%ifndef CG_ROOT %echo WARNING: defaulting CG_ROOT to $PWD/bld
+%ifndef CG_ROOT CG_ROOT = $PWD/bld
+###### end setup
+
+%include maven/maven_lib.cg
+
+#generate documentation for elements the first time they are seen:
+INCLUDE_XML_ELEMENT_DOC =		 true
+%undef INCLUDE_XML_ELEMENT_DOC
+
+#set this to 0 if you don't want empty elements
+#MAVEN_LIB_GENERATE_EMPTY_ELEMENTS = 0
+MAVEN_LIB_GENERATE_EMPTY_ELEMENTS = 1
+
+MACRO_OUTPUT_ACCUMULATOR =		PROJECT_SHELL
+#create/clean accumulator:
+$MACRO_OUTPUT_ACCUMULATOR =
+
+#these settings can be used to turn on debugging in the xml templates:
+#MACRO_DEBUG = true
+#MACRO_DDEBUG = true
+
+#generate a project.xml:
+%call xml_header
+%call maven_project
+
+#generate the fully documented project.xml:
+ECHO_TXT = $PROJECT_SHELL
+echo /project.xml
+
+#show the codegen documentation for generating project.xml files:
+%call show_maven_user_vars
+
+ECHO_TXT = $maven_user_vars
+echo /maven_token.defs
+
+#show diffs between generated and original doc:
+%echo -----------------------------------------------
+%echo diff $CG_ROOT/project.xml maven/element_ref.txt
+%shell diff $CG_ROOT/project.xml maven/element_ref.txt
+

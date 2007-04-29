@@ -1,0 +1,37 @@
+TESTNAME is codegen00002
+raw assign test 1 rawvar='${somevar}$somevar'
+
+raw assign test 2 rawvar='$JAVDOC_TEXT
+$somevar
+$rawvar
+'
+
+test readtemplate 1:  echo_macro='{=%echo $ECHO_TXT=}
+'
+
+test readtemplate 2:  echo_macro='{=%echo $ECHO_TXT=}
+'
+
+evalmacro_test1='evalmacro test 1'
+
+evalmacro_test2='evalmacro test 2'
+
+test evalmacro 3a: evalmacro_test3='.evalmacro test 3a (init)'
+test evalmacro 3b: evalmacro_test3='.evalmacro test 3a (init).evalmacro test 3b (append)'
+test evalmacro 3c: evalmacro_test3='.evalmacro test 3a (init).evalmacro test 3b (append).evalmacro test 3c (no white-space for >>)'
+
+test evalmacro 3d: evalmacro_test3d='evalmacro test 3d multiline line 01
+evalmacro test 3d multiline line 02
+evalmacro test 3d multiline line 03
+'
+
+test evaltemplate 1: echo_out='evaltemplate test 1'
+
+test evaltemplate 2: echo_out2='evaltemplate test 2'
+
+test evaltemplate 3a: echo_out3='.evaltemplate test 3a (init)'
+test evaltemplate 3b: echo_out3='.evaltemplate test 3a (init).evaltemplate test 3b (append)'
+test evaltemplate 3c: echo_out3='.evaltemplate test 3a (init).evaltemplate test 3b (append).evaltemplate test 3c (no white-space for >>)'
+
+output='%a %b %c'
+somevarwithpercents test PASSED

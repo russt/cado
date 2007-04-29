@@ -1,0 +1,15 @@
+sub get{=PL_ATTRIBUTE_NAME=}
+#return value of @{=PL_ATTRIBUTE_NAME=}
+{
+    my ($self) = @_;
+    return @{$self->{'m{=PL_ATTRIBUTE_NAME=}'}};
+}
+
+sub set{=PL_ATTRIBUTE_NAME=}
+#set value of {=PL_ATTRIBUTE_NAME=} and return value.
+{
+    my ($self, @value) = @_;
+    $self->{'m{=PL_ATTRIBUTE_NAME=}'} = \@value;
+    return @{$self->{'m{=PL_ATTRIBUTE_NAME=}'}};
+}
+

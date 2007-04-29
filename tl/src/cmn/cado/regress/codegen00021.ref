@@ -1,0 +1,42 @@
+TESTNAME is codegen00021
+
+TEST preserve_multiline_lnewline pragma
+pragma ON  FOO='
+line1
+line2
+'
+pragma OFF FOO='line1
+line2
+'
+
+TEST copy pragma
+----- ../bld/cgtstroot/codegen00021.dir/codegen00021.cg.out:
+{=%echo $ECHO_TXT=}
+-----
+----- ../bld/cgtstroot/codegen00021.dir/codegen00021.cg.out:
+Hello World
+-----
+
+TEST %pragma_require
+
+%pragma require foo_op.pl
+
+%pragma_require TEST #1 PASSED
+%pragma_require TEST #2 PASSED
+%pragma_require TEST #2:  myvar01=
+%pragma_require TEST #3 PASSED
+%pragma require badA_op.pl
+%pragma_require TEST #4 PASSED
+%pragma require bad_syntax.pl
+%pragma_require TEST #5 PASSED
+%pragma_require TEST #6 PASSED
+
+OPTION pragma tests
+%pragma debug TEST #1 debug ON
+%pragma debug TEST #2 debug OFF
+%pragma ddebug TEST #3 ddebug ON
+%pragma ddebug TEST #4 ddebug OFF
+%pragma quiet TEST #5 quiet ON
+%pragma quiet TEST #6 quiet OFF
+%pragma verbose TEST #7 verbose ON
+%pragma verbose TEST #8 verbose OFF

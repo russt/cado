@@ -1,0 +1,179 @@
+#
+#this file defines the structure of a maven project.xml file.
+#it is the input for ../genmavenlib.cg - which generates maven_lib.cg.
+#lines starting with ',' are non-terminals.
+#
+#order is important - you must generate an element before you can include
+#it in another element.
+#
+
+      mailingList_name
+      mailingList_subscribe
+      mailingList_unsubscribe
+      mailingList_post
+      mailingList_archive
+      mailingList_otherArchives
+,    mailingList
+
+     mailingList
+,  project_mailingLists
+
+      developer_id
+      developer_name
+      developer_email
+      developer_url
+      developer_organization
+      developer_organizationUrl
+      developer_roles
+      developer_timezone
+      developer_properties
+,   developer
+
+    developer
+,  project_developers
+
+      contributor_name
+      contributor_email
+      contributor_url
+      contributor_organization
+      contributor_organizationUrl
+      contributor_roles
+      contributor_timezone
+      contributor_properties
+,   contributor
+
+    contributor
+,  project_contributors
+
+      license_name
+      license_url
+      license_distribution
+      license_comments
+,    license
+
+     license
+,  project_licenses
+
+      version_name
+      version_tag
+      version_id
+,    version
+
+     version
+,  project_versions
+
+      branch_tag
+,    branch
+
+     branch
+,  project_branches
+
+      packageGroup_title
+      packageGroup_packages
+,    packageGroup
+
+     packageGroup
+,  project_packageGroups
+
+    repository_connection
+    repository_developerConnection
+    repository_url
+,  project_repository
+
+    organization_name
+    organization_url
+    organization_logo
+,  project_organization
+
+        sourceModification_className
+        sourceModification_property
+        sourceModification_directory
+        sourceModification_includes
+        sourceModification_excludes
+,      sourceModification
+
+       sourceModification
+,    build_sourceModifications
+
+          unitTest_resource_targetPath
+          unitTest_resource_filtering
+          unitTest_resource_directory
+          unitTest_resource_includes
+          unitTest_resource_excludes
+,        unitTest_resource
+
+         unitTest_resource
+,      unitTest_resources
+
+       unitTest_resources
+       unitTest_includes
+       unitTest_excludes
+,    build_unitTest
+
+        build_resource_targetPath
+        build_resource_filtering
+        build_resource_directory
+        build_resource_includes
+        build_resource_excludes
+,      build_resource
+
+       build_resource
+,    build_resources
+
+     build_nagEmailAddress
+     build_sourceDirectory
+     build_unitTestSourceDirectory
+     build_aspectSourceDirectory
+     build_integrationUnitTestSourceDirectory
+     build_sourceModifications
+     build_unitTest
+     build_defaultGoal
+     build_resources
+,  project_build
+
+      dependency_id
+      dependency_groupId
+      dependency_artifactId
+      dependency_version
+      dependency_url
+      dependency_jar
+      dependency_type
+      dependency_properties
+,   dependency
+
+    dependency
+,  project_dependencies
+
+   project_extend
+   project_pomVersion
+   project_id
+   project_groupId
+   project_artifactId
+   project_name
+   project_currentVersion
+   project_shortDescription
+   project_description
+   project_url
+   project_logo
+   project_issueTrackingUrl
+   project_inceptionYear
+   project_gumpRepositoryId
+   project_siteAddress
+   project_siteDirectory
+   project_distributionSite
+   project_distributionDirectory
+   project_mailingLists
+   project_developers
+   project_contributors
+   project_licenses
+   project_versions
+   project_branches
+   project_packageGroups
+   project_reports
+   project_repository
+   project_organization
+   project_properties
+   project_package
+   project_build
+   project_dependencies
+,project

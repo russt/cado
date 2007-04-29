@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<top>
+    <a>
+        <b>
+            <c>value_01_01</c>
+            <c>value_01_02</c>
+        </b>
+        <b>
+            <c>value_02_03</c>
+            <c>value_02_04</c>
+        </b>
+        <b>
+            <c>value_03_05</c>
+            <c>value_03_06</c>
+        </b>
+    </a>
+    <a>
+        <b>
+            <c>value_04_07</c>
+            <c>value_04_08</c>
+        </b>
+        <b>
+            <c>value_05_09</c>
+            <c>value_05_10</c>
+        </b>
+        <b>
+            <c>value_06_11</c>
+            <c>value_06_12</c>
+        </b>
+    </a>
+</top>

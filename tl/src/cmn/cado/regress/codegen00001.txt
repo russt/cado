@@ -1,0 +1,12 @@
+#astring{=FOOVAR=}; {=%include ${CG_CLASSNAME}_imports.jtpl=}
+
+{=%perl @cg::list = (1,2,3);''=}
+{=%perl sprintf "(%s)", join(',', @cg::list)=}
+
+{=%perl badvar =;=}
+{=%perl $badvar = 'blah'=}
+{=%perl $cg::badvar = 'blah'=}
+
+{=%perl $cg::badvar = $ENV{'FOOVAR'};=}
+{=%perl $cg::badvar = $ENV{'FOOVAR'}; defined($cg::badvar) ? $cg::badvar : "NULL"=}
+

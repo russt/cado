@@ -1,0 +1,19 @@
+#this script generates maven 1.1.x and maven 2.0.x libraries, runs tests, etc.
+#WARNING:  no script to do end-to-end gen for maven 1.x yet.  RT 6/13/06
+#
+
+######
+#setup
+######
+PWD=
+PWD=$PWD:pwd
+
+#if CG_ROOT is not defined ...
+%ifndef CG_ROOT %echo WARNING: defaulting CG_ROOT to $PWD/bld
+%ifndef CG_ROOT CG_ROOT = $PWD/bld
+
+CG_ROOT_BASE = $CG_ROOT
+###### end setup
+
+%include settings.cg
+%include maven2.cg

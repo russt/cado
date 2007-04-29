@@ -1,0 +1,15 @@
+TESTNAME is codegen00003
+FOOVAR=aclass
+/*
+ * aclass.java - Copyright notice.
+ */
+
+package com.foo;
+
+/** A <CODE>aclass</CODE> object provides ... TBD
+  *
+  * @version     0.0
+  * @author      Mr. Programmer
+  */
+public class aclass {
+}
