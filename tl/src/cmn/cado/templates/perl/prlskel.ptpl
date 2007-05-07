@@ -64,16 +64,16 @@ sub parse_args
     while ($#ARGV+1 > 0 && $ARGV[0] =~ /^-/) {
         $flag = shift(@ARGV);
 
-        if ($flag =~ '^-v') {
-            $VERBOSE = 1;
+        if ($flag =~ '^-debug') {
+            $DEBUGFLAG = 1;
+{=$PL_PARSE_ARGS_LOOP:indent2=}
         } elsif ($flag =~ '^-dd') {
             $DDEBUGFLAG = 1;
-        } elsif ($flag =~ '^-d') {
-            $DEBUGFLAG = 1;
+        } elsif ($flag =~ '^-v') {
+            $VERBOSE = 1;
         } elsif ($flag =~ '^-h') {
             $HELPFLAG = 1;
             return &usage(0);
-{=$PL_PARSE_ARGS_LOOP:indent2=}
         } else {
             printf STDERR "%s:  unrecognized option, '%s'\n", $p, $flag;
             return &usage(1);
