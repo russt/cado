@@ -169,6 +169,8 @@
 #       Fix bug in :indent op - was using stale value for CG_INDENT_STRING.
 #  14-Apr-2007 (russt) [Version 1.64]
 #       add -T <tmpdir> option.
+#  15-May-2007 (russt) [Version 1.65]
+#       was not halting if %halt was in included file
 #
 
 use strict;
@@ -218,8 +220,8 @@ my (
     $LOOKINPATH,
 ) = (
     $main::p,       #program name inherited from prlskel caller.
-    "1.64",         #VERSION - the program version number.
-    "14-Apr-2007",  #VERSION_DATE - date this version was released.
+    "1.65",         #VERSION - the program version number.
+    "15-May-2007",  #VERSION_DATE - date this version was released.
     0,              #VERBOSE
     0,              #QUIET
     0,              #DEBUG
@@ -508,7 +510,9 @@ sub interpret
     $CG_USER_VARS{'CG_INFILE'} = $save_infile if ($save_infile ne "");
 
     #if we are called from %foreach, etc, ignore global errors.
-    return $errcnt unless ($return_global_status);
+    if (!$halt_program && !$return_global_status) {
+        return $errcnt 
+    }
 
     #if user has set exit status, use it:
     my $status = 0;
@@ -519,7 +523,11 @@ sub interpret
         $status =  $errcnt + $GLOBAL_ERROR_COUNT;
     }
 
+    #####
+    #exit immediately if we found a %halt or %abort:
+    #####
     exit $status if ($halt_program);
+
     return $status;
 }
 
