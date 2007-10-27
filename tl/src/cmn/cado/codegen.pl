@@ -171,12 +171,26 @@
 #       add -T <tmpdir> option.
 #  15-May-2007 (russt) [Version 1.65]
 #       was not halting if %halt was in included file
+#  26-Oct-2007 (russt) [Version 1.66]
+#       Add .=, .:= append assignment operators.
+#       Add -=, +=, *=, /=, **=, %=, |=, &=, ^=, and x= assignment operators.
+#       Implement :split, :top, :bottom, :car, :cdr.
+#       Add alias :i for :incr.
+#       Add %pushv statement, to create a stack of varibles names matching a pattern.
+#       Interpret ${varname:undef} as undefined value for $varname.
+#       Add versioned cgdoc.txt to distribution.
 #
 
 use strict;
-
 package codegen;
 
+my (
+    $VERSION,
+    $VERSION_DATE,
+) = (
+    "1.66",         #VERSION - the program version number.
+    "26-Oct-2007",  #VERSION_DATE - date this version was released.
+);
 require "path.pl";
 require "os.pl";
 require "pcrc.pl";
@@ -184,8 +198,6 @@ require "pcrc.pl";
 # declare global variables, SCALARS only in this section:
 my (
     $p,
-    $VERSION,
-    $VERSION_DATE,
     $VERBOSE,
     $QUIET,
     $DEBUG,
@@ -195,7 +207,6 @@ my (
     $ENV_VARS_OKAY,
     $FORCE_GEN,
     $UPDATE,
-    $CG_TEMPLATES,
     $CG_TEMPLATE_PATH,
     $CG_ROOT,
     $CG_TMPDIR,
@@ -220,8 +231,6 @@ my (
     $LOOKINPATH,
 ) = (
     $main::p,       #program name inherited from prlskel caller.
-    "1.65",         #VERSION - the program version number.
-    "15-May-2007",  #VERSION_DATE - date this version was released.
     0,              #VERBOSE
     0,              #QUIET
     0,              #DEBUG
@@ -231,7 +240,6 @@ my (
     0,              #ENV_VARS_OKAY - true if we allow environment vars in templates and spec
     0,              #FORCE_GEN - overwrite all output files, even if they already exist
     0,              #UPDATE - update generated files only if different
-    "NULL",         #CG_TEMPLATES - where to find code generation template files (DEPRECATED)
     "NULL",         #CG_TEMPLATE_PATH - semicolon separated search path for template files.
     "NULL",         #CG_ROOT - output code generation root.
     "NULL",         #CG_TMPDIR - directory for temporary files.
@@ -372,7 +380,9 @@ sub interpret
     my ($fhidx) = -1;
     my ($exit_early) = 0;
     my ($halt_program) = 0;
-    my ($is_raw) = 0;
+    my ($is_raw) = 0;     #for := assignment operator
+    my ($is_append) = 0;  #for .= assignment operator
+    my ($numop) = 0;   #for +=, -=, /=, *= ...
 
     #initialize line counts:
     $LINE_CNT = $$LINE_CNT_REF = $linecnt;
@@ -470,7 +480,7 @@ sub interpret
                 #exit to shell:
                 $exit_early = 1;
                 $halt_program = 1;
-            } elsif (&definition($line, $linecnt, \$lhs, \$rhs, \$is_multiline, \$eoi_tok, \$is_raw)) {
+            } elsif (&definition($line, $linecnt, \$lhs, \$rhs, \$is_multiline, \$eoi_tok, \$is_raw, \$is_append, \$numop)) {
                 #if we have a here-now doc...
                 if ($is_multiline) {
                     $line = $use_stdin? <STDIN> : <$fhref>;   #get next line
@@ -481,7 +491,7 @@ sub interpret
 
                         if ($line eq $eoi_tok) {
                             #then close up this definition:
-                            &add_definition($lhs, $rhs, $linecnt, $is_raw);  #this does variable expansion
+                            &add_definition($lhs, $rhs, $linecnt, $is_raw, $is_append, $numop);  #this does variable expansion
                             last;   #DONE
                         } else {
                             $rhs .= "$line\n";    #put the newline back
@@ -536,14 +546,15 @@ sub pushspec
 {
     my ($line, $linecnt) = @_;
 
-    return 0 unless ($line =~ /^\s*(%u?push)\s+/);
+    return 0 unless ($line =~ /^\s*(%upush|%push|%pushv)\s+/);
     my $token = $1;
     $line =~ s/^\s*$token\s*//;
 
     #true if we have $upush statement:
     my ($push_unique) = ($token eq "%upush") ? 1 : 0;
+    my ($push_vars) = ($token eq "%pushv") ? 1 : 0;
 
-#printf STDERR "pushspec T2 token='%s' line='%s' push_unique=%d\n", $token, $line, $push_unique;
+#printf STDERR "pushspec T2 token='%s' line='%s' push_vars=%d push_unique=%d\n", $token, $line, $push_vars, $push_unique;
 
     #note:  we do not trim trailing white-space, remainder of line is
     #       treated in the same way as the rhs of an assignment.
@@ -554,22 +565,38 @@ sub pushspec
         return 1;
     }
 
-    #if no value, then we're done:
-    return 1 unless (defined($rhs));
-
-    #expand varible refs in statement:
+    #expand lhs varible refs:
     $lhs = &expand_macros($lhs);
     my $lhs_contents = $CG_USER_VARS{$lhs};
-    my $rhs_contents = &expand_macros($rhs);
 
-    #split rhs using CG_STACK_DELIMITER (defauts to $;):
-    my @rhs_contents = split(&get_stack_delimiter(), $rhs_contents);
+    my @rhs_contents = ();
+
+    #NOTE: if we are processing a %pushv spec, then missing rhs => *all* variables.
+    if ($push_vars) {
+        if (!defined($rhs)) {
+            @rhs_contents = &get_user_vars();
+        } else {
+            #we expect rhs to be a perl RE.  find variable names matching pattern:
+            my $pat = $rhs;
+            $pat =~ s/^\///;    #strip leading slashes
+            $pat =~ s/\/$//;    #strip trailing slashes
+            @rhs_contents = grep($_ =~ /$pat/, &get_user_vars());
+#printf STDERR "pushv pat='%s' \@rhs_contents=(%s)\n", $pat, join(',', @rhs_contents) ;
+        }
+    } else {
+        #if no value, then we're done:
+        return 1 unless (defined($rhs));
+
+        my $rhs_contents = &expand_macros($rhs);
+        #split rhs using CG_STACK_DELIMITER (defauts to "\t"):
+        @rhs_contents = split(&get_stack_delimiter(), $rhs_contents, -1);
 
 #printf STDERR "pushspec T8 delimiter='%s' rhs_contents='%s' \@rhs_contents=(%s)\n", &get_stack_delimiter(), $rhs_contents, join(',', @rhs_contents) ;
+    }
 
     if (defined($lhs_contents)) {
         if ($lhs_contents ne "" && $push_unique == 1) {
-            my @lhs_contents = split($;, $lhs_contents);
+            my @lhs_contents = split($;, $lhs_contents, -1);
 
             #if we are maintaining a unique stack, do not add unless new:
             my @new = &MINUS(\@rhs_contents, \@lhs_contents);
@@ -617,23 +644,29 @@ sub popspec
     $stackvarname = &expand_macros($stackvarname);
     $topvarname = &expand_macros($topvarname);
 
-    #stack var must be defined:
+    #undef lhs if the stack is undefined:
     if (!defined($CG_USER_VARS{$stackvarname})) {
-        printf STDERR "%s[%s]: ERROR: line %d: variable '%s' is undefined.\n",
-            $p, $token, $linecnt, $stackvarname unless($QUIET);
-        ++ $GLOBAL_ERROR_COUNT;
+        printf STDERR "%s[%s]: WARNING: line %d: stack variable '%s' is undefined.\n",
+            $p, $token, $linecnt, $stackvarname if($VERBOSE);
+
+        #force user var to be undefined:
+        delete $CG_USER_VARS{$topvarname} if (defined($CG_USER_VARS{$topvarname}));
+
         return 1;   #return true because we parsed a popspec
     }
 
     my $stack_contents = $CG_USER_VARS{$stackvarname};
-    #if stack is empty (by definition, we do not pop empty strings):
+
+    #if stack is empty, we return empty string and undefine the stack:
     if ($stack_contents eq "") {
-        #undefine the caller's "top" variable:
-        delete $CG_USER_VARS{$topvarname} if (defined($CG_USER_VARS{$topvarname}));
+        $CG_USER_VARS{$topvarname} = "";
+
+        #this stack is done:
+        delete $CG_USER_VARS{$stackvarname};
         return 1;   #done
     }
 
-    my (@stack) = split($;, $CG_USER_VARS{$stackvarname});
+    my (@stack) = split($;, $stack_contents, -1); #preserve empty fields
 
     if ($ispop) {
         #get the top (right end) of the stack:
@@ -641,15 +674,15 @@ sub popspec
     } else {
         #get the bottom (left end) of the stack:
         $CG_USER_VARS{$topvarname} = shift @stack;
-#printf STDERR "shifted: top='%s' stack=(%s)\n", $CG_USER_VARS{$topvarname}, join(',', @stack);
+#printf STDERR "shifted: %s='%s' stack=(%s)#stack=%d\n", $topvarname, $CG_USER_VARS{$topvarname}, (@stack) ? join(',', @stack) : "UNDEF", $#stack;
     }
 
     #if stack has more elements, then save it:
     if ($#stack >= 0) {
         $CG_USER_VARS{$stackvarname} = join($;, @stack);
     } else {
-        #otherwise, set it to empty string <=> empty stack:
-        $CG_USER_VARS{$stackvarname} = "";
+        #stack is now undefined:
+        delete $CG_USER_VARS{$stackvarname};
     }
 
     return 1;
@@ -680,7 +713,7 @@ sub pragma_spec
 
     #these pragmas require no value:
     if ($lhs eq 'reset_stack_delimiter') {
-        $CG_USER_VARS{'CG_STACK_DELIMITER'} = $; ;
+        $CG_USER_VARS{'CG_STACK_DELIMITER'} = "\t" ;
         return 1;  #recognized and processed a %pragma
     }
 
@@ -1651,7 +1684,7 @@ sub whilespec
     my $varvalue = &expand_macros($varexpr);
     printf STDERR "%s: varvalue=%d\n", $token, $varvalue if ($DEBUG);
 
-    #nothing to do if expression is false:
+    #nothing to do if expression is false or variable undefined:
     return 1 unless (&istrueExpr($varvalue));
 
     #otherwise, write command to file and process the file until condition satisfied:
@@ -1884,7 +1917,7 @@ sub istrueExpr
 {
     my ($boolstr) = @_;
 
-    return 0 if ($boolstr eq "" || $boolstr eq "0");
+    return 0 if ($boolstr eq "" || $boolstr eq "0" || &isUndefinedValue($boolstr));
     return 0 if ($boolstr =~ /^\s*[-+]?\s*\d+\s*$/ && $boolstr == 0);
 
     return 1;
@@ -1893,21 +1926,59 @@ sub istrueExpr
 sub definition
 #true if we see a definition.  add definition to global hash.
 {
-    my ($line, $linecnt, $_lhs, $_rhs, $_is_multiline, $_eoi_tok, $_raw_assign) = @_;
+    my ($line, $linecnt, $_lhs, $_rhs, $_is_multiline, $_eoi_tok, $_raw_assign, $_append_assign, $_numop) = @_;
 
     #set results:
     ${$_lhs} = "";
     ${$_rhs} = "";
     ${$_is_multiline} = 0;
     ${$_eoi_tok} = $; ;    #almost guaranteed to never match any input
-    ${$_raw_assign} = ($line =~ /:=/) ? 1 : 0;
-    my ($is_raw) = ${$_raw_assign};
 
-    #do we have a definition expression?
-    return 0 if ($line !~  /:?=/);
+    #set result parameters:
+    ${$_raw_assign} = ${$_append_assign} = ${$_numop} = 0;
 
-    my ($lhs,$rhs) = split(/\s*:?=\s*/, $line, 2);
-    $lhs =~ s/^\s+//; #trim the lhs of the variable name
+    #return early if this cannot be a definition:
+    return 0 unless ($line =~  /=/);
+
+    my ($is_raw)       = 0;
+    my ($is_append)    = 0;
+    my ($numop)        = 0;    #if detected, we set to ord(op), where op is +,0,/,*, etc.
+
+#printf STDERR "\ndefinition:  line='%s'\n", $line;
+
+    my ($lhs,$rhs);
+    if ($line =~ /^\s*([^\s\.=:]*)\s*\.:=\s*(.*)$/) {
+        $lhs = $1; $rhs = $2;
+        $is_raw = $is_append = 1;
+#printf STDERR "T1 line='%s' lhs='%s' rhs='%s'\n", $line, $lhs, $rhs;
+    } elsif ($line =~ /^\s*([^\*\s]*)\s*\*\*=\s*(.*)$/) {
+        $lhs = $1; $numop = ord('e'); $rhs = $2;  # 'e' for exponent
+#printf STDERR "T2 lhs='%s' rhs='%s' numop=%d(%s)\n", $lhs, $rhs, $numop, chr($numop);
+    #} elsif ($line =~ /^\s*([^\s:\.\/\*\+\-\%\&\|\^]*)\s*([:\.\/\*\+\-\%\&\|\^])=\s*(.*)$/) {
+    #this is really looking for:  var_expr op data_expr
+    } elsif ($line =~ /^\s*([a-zA-Z_0-9\${}:]*)\s*([x:\.\/\*\+\-\%\&\|\^])=\s*(.*)$/) {
+        $lhs = $1; $numop = ord($2); $rhs = $3;
+        if ($numop == ord('.')) {
+            $is_append = 1; $numop=0;
+        } elsif ($numop == ord(':')) {
+            $is_raw = 1;  $numop=0;
+        } else {
+            $numop = $numop;    #we have a valid numeric op (+=, etc)
+        }
+#printf STDERR "T3 lhs='%s' rhs='%s' numop=%d(%s)\n", $lhs, $rhs, $numop, chr($numop);
+    } elsif ($line =~ /^\s*([^=\s]*)\s*=\s*(.*)$/) {
+        $lhs = $1; $rhs = $2;
+#printf STDERR "T4 lhs='%s' rhs='%s'\n", $lhs, $rhs;
+    } else {
+#printf STDERR "T5\n";
+        return 0;
+    }
+
+#printf STDERR "T6 lhs='%s'numop=%d  rhs='%s'\n", $lhs, $numop, $rhs;
+    #reset result parameters:
+    ${$_raw_assign}    = $is_raw;
+    ${$_append_assign} = $is_append;
+    ${$_numop}         = $numop;
 
     #check for here-now token:
     my (@tmp, $xx);
@@ -1930,14 +2001,14 @@ sub definition
         return 1;
     }
 
-    return &add_definition($lhs, $rhs, $linecnt, $is_raw);
+    return &add_definition($lhs, $rhs, $linecnt, $is_raw, $is_append, $numop);
 }
 
 sub add_definition
 #add a definition to the global hash.
 #return true (1) if okay.
 {
-    my ($lhs_in, $rhs, $linecnt, $israw) = @_;
+    my ($lhs_in, $rhs, $linecnt, $israw, $isappend, $numop) = @_;
 
     #if lhs_in is a variable reference (e.g., $fooptr), then assign to valueof:
     my $lhs = $lhs_in;
@@ -1951,11 +2022,15 @@ sub add_definition
         return 1;
     }
 
-    printf STDERR "add_definition: lhs_in='%s' lhs='%s' rhs='%s' israw='%d'\n", $lhs_in, $lhs, $rhs, $israw if ($DEBUG);
+    printf STDERR "add_definition: lhs_in='%s' lhs='%s' rhs='%s' israw='%d' isappend='%d'\n", $lhs_in, $lhs, $rhs, $israw, $isappend if ($DEBUG);
 
     #if := assignment...
     if ($israw) {
-        $CG_USER_VARS{$lhs} = $rhs;
+        if ($isappend) {
+            $CG_USER_VARS{$lhs} .= $rhs;
+        } else {
+            $CG_USER_VARS{$lhs} = $rhs;
+        }
         return 1;
     }
 
@@ -1966,7 +2041,27 @@ sub add_definition
         $lhs = 'CG_TEMPLATE_PATH';
     }
 
-    $CG_USER_VARS{$lhs} = &eval_spf_expr(@spfexpr);
+    if ($isappend) {
+        $CG_USER_VARS{$lhs} .= &eval_spf_expr(@spfexpr);
+    } elsif ($numop != 0) {
+        if    ($numop == ord('+')) { $CG_USER_VARS{$lhs} += &eval_spf_expr(@spfexpr); }
+        elsif ($numop == ord('-')) { $CG_USER_VARS{$lhs} -= &eval_spf_expr(@spfexpr); }
+        elsif ($numop == ord('*')) { $CG_USER_VARS{$lhs} *= &eval_spf_expr(@spfexpr); }
+        elsif ($numop == ord('/')) { $CG_USER_VARS{$lhs} /= &eval_spf_expr(@spfexpr); }
+        elsif ($numop == ord('%')) { $CG_USER_VARS{$lhs} %= &eval_spf_expr(@spfexpr); }
+        elsif ($numop == ord('|')) { $CG_USER_VARS{$lhs} |= &eval_spf_expr(@spfexpr); }
+        elsif ($numop == ord('&')) { $CG_USER_VARS{$lhs} &= &eval_spf_expr(@spfexpr); }
+        elsif ($numop == ord('^')) { $CG_USER_VARS{$lhs} ^= &eval_spf_expr(@spfexpr); }
+        elsif ($numop == ord('x')) { $CG_USER_VARS{$lhs} x= &eval_spf_expr(@spfexpr); }
+        #'e' for exponent
+        elsif ($numop == ord('e')) { $CG_USER_VARS{$lhs} **= &eval_spf_expr(@spfexpr); }
+        else {
+            printf STDERR "%s: ERROR: line %d: unrecognized assignment operator: '%s='\n",
+                $p, $linecnt, chr($numop) unless ($QUIET);
+        }
+    } else {
+        $CG_USER_VARS{$lhs} = &eval_spf_expr(@spfexpr);
+    }
     return 1;
 }
 
@@ -2043,21 +2138,67 @@ sub lookup_def
 #WARNING:  if you change this routine, you may also need to change undef_op()
 {
     my ($varname) = @_;
-    my $varvalue = "NULL";
+    my $undefvalue = &undefname($varname);
+    my $varval = $undefvalue;
+
+    return $undefvalue unless (defined($varname));
 
     if ( defined($CLASS_VAR_REF) && defined(${$CLASS_VAR_REF}{$varname}) ) {
-        $varvalue = ${$CLASS_VAR_REF}{$varname};
+        $varval = ${$CLASS_VAR_REF}{$varname};
     } elsif (defined($CG_USER_VARS{$varname})) {
-        $varvalue = $CG_USER_VARS{$varname};
+        $varval = $CG_USER_VARS{$varname};
+        #if value of variable is undefined, then garbage collect variable:
+        delete $CG_USER_VARS{$varname} if (&isUndefinedVarnameValue($varname, $varval));
     } elsif ($ENV_VARS_OKAY && defined($ENV{$varname})) {
-        $varvalue = $ENV{$varname};
-    } else {
-        $varvalue = sprintf('${%s:undef}', $varname);
+        $varval = $ENV{$varname};
     }
 
-    printf STDERR "lookup_def:  in='%s' out='%s'\n", $varname, $varvalue if ($DEBUG);
+    printf STDERR "lookup_def:  in='%s' out='%s'\n", $varname, $varval if ($DEBUG);
 
-    return $varvalue;
+    return $varval;
+}
+
+sub var_defined
+#return 1 if a codegen variable is defined
+{
+    my ($varname) = @_;
+    my $varval = &lookup_def($varname);
+
+#printf STDERR "var_defined:  isUndefinedVarnameValue(%s, %s)=%d\n", $varname, $varval, isUndefinedVarnameValue($varname, $varval);
+    return !&isUndefinedVarnameValue($varname, $varval);
+}
+
+sub isUndefinedVarnameValue
+#true if variable is undefined or has the undefined value
+{
+    my ($varname, $varval) = @_;
+
+    return 1 if (!defined($varname) || !defined($varval) || $varval eq &nullundefname() || $varval eq &undefname($varname) );
+    return 0;
+}
+
+sub isUndefinedValue
+#return true if argument is an undefined variable pattern,
+{
+    my ($varval) = @_;
+    return 1 if (!defined($varval) || $varval =~ /^\${[a-zA-Z_][a-zA-Z_0-9]*:undef}$/);
+    return 0;
+}
+
+sub undefname
+#return the unique name for an undefined variable.
+{
+    my ($varname) = @_;
+
+    return &nullundefname() unless (defined($varname));
+
+    return sprintf('${%s:undef}', $varname);
+}
+
+sub nullundefname
+#return the unique name for an undefined variable.
+{
+    return '${null:undef}';
 }
 
 sub find_template
@@ -3074,6 +3215,8 @@ sub init_spec_vars
         if ($ENV_VARS_OKAY && defined($ENV{'CG_ROOT'})) {
             $CG_ROOT = $ENV{'CG_ROOT'};
             printf STDERR "%s: INFO: inherited CG_ROOT='%s' from environment.\n", $p, $CG_ROOT if ($VERBOSE);
+        } else {
+            $CG_ROOT = &undefname('CG_ROOT');
         }
     }
 
@@ -3086,6 +3229,8 @@ sub init_spec_vars
         if (defined($ENV{'CG_TMPDIR'})) {
             $CG_TMPDIR = $ENV{'CG_TMPDIR'};
             printf STDERR "%s: INFO: inherited CG_TMPDIR='%s' from environment.\n", $p, $CG_TMPDIR if ($VERBOSE);
+        } else {
+            $CG_TMPDIR = &undefname('CG_TMPDIR');
         }
         #note we avoid setting until used.
     }
@@ -3107,11 +3252,12 @@ sub init_spec_vars
     $CG_USER_VARS{'CG_TEMPLATE_PATH'} = $CG_TEMPLATE_PATH;
     $CG_USER_VARS{'CG_NEWLINE_BEFORE_CLASS_BRACE'} = $CG_NEWLINE_BEFORE_CLASS_BRACE;
     $CG_USER_VARS{'CG_INDENT_STRING'} = $CG_INDENT_STRING;
-    $CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'} = undef;
+    $CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'} = "";
     $CG_USER_VARS{'CG_SHELL_STATUS'} = undef;
     $CG_USER_VARS{'CG_EXIT_STATUS'} = undef;
     $CG_USER_VARS{'CG_LINE_NUMBER'} = 0;
-    $CG_USER_VARS{'CG_STACK_DELIMITER'} = $; ;
+    $CG_USER_VARS{'CG_STACK_DELIMITER'} = "\t";  #input/output stack display delimiter.
+    $CG_USER_VARS{'CG_SPLIT_PATTERN'} = '/[\t,]/';
     $LINE_CNT_REF = \$CG_USER_VARS{'CG_LINE_NUMBER'};
 }
 
@@ -3127,8 +3273,7 @@ sub create_cg_root
 #create the current CG_ROOT dir if it doesn't yet exist
 #return false if unable to create
 {
-    my $cg_root = $CG_USER_VARS{'CG_ROOT'};
-    if ($cg_root eq "NULL") {
+    if (!&var_defined('CG_ROOT')) {
         #default it to cwd:
         $CG_USER_VARS{'CG_ROOT'} = $DOT;
         printf STDERR "%s: WARNING: CG_ROOT is UNDEFINED, setting to '%s'\n",
@@ -3136,9 +3281,12 @@ sub create_cg_root
         return 1;
     }
 
+    #otherwise, create CG_ROOT
+    my $cg_root = $CG_USER_VARS{'CG_ROOT'};
+
     &os::createdir($cg_root, 0775) unless (-d $cg_root);
     if (!-d $cg_root) {
-        return 0;
+        return 0;   #FAIL
     }
 
     return 1;    #true if dir is there or we created.
@@ -3148,8 +3296,7 @@ sub create_cg_tmpdir
 #create the current CG_TMPDIR directory if it doesn't yet exist
 #return false if unable to create
 {
-    my $cg_tmpdir = $CG_USER_VARS{'CG_TMPDIR'};
-    if ($cg_tmpdir eq "NULL") {
+    if (!&var_defined('CG_TMPDIR')) {
         #if there is already a dir named "./tmp", then use it.
         #this prevents problems if we run in /:
         if (-d &path::mkpathname($DOT, "tmp")) {
@@ -3159,10 +3306,12 @@ sub create_cg_tmpdir
         }
         printf STDERR "%s: WARNING: CG_TMPDIR is UNDEFINED, setting to '%s'\n",
             $p, $CG_USER_VARS{'CG_TMPDIR'} if ($VERBOSE);
+
+        #we are using an existing dir so we are done:
         return 1;
     }
 
-    #heuristic to avoid writing in / - if "$cg_tmpdir/tmp" exists, then use it:
+    my $cg_tmpdir = $CG_USER_VARS{'CG_TMPDIR'};
 
     &os::createdir($cg_tmpdir, 0775) unless (-d $cg_tmpdir);
     if (!-d $cg_tmpdir) {
@@ -3360,27 +3509,6 @@ sub exec_shell_op
     }
 
     return $var;
-}
-
-sub var_defined
-#return 1 if a codegen variable is defined
-#uses same algorithm as lookup_def, but is non-destructive
-{
-    my ($varname) = @_;
-
-    if ($DEBUG) {
-        printf STDERR "var_defined(%s) e1=%d e2=%d e3=%d\n", $varname,
-            ( defined($CLASS_VAR_REF) && defined(${$CLASS_VAR_REF}{$varname}) ),
-            (defined($CG_USER_VARS{$varname}) && $CG_USER_VARS{$varname} ne "NULL"),
-            ($ENV_VARS_OKAY && defined($ENV{$varname}))
-            ;
-    }
-
-    return (
-        ( defined($CLASS_VAR_REF) && defined(${$CLASS_VAR_REF}{$varname}) ) ||
-        (defined($CG_USER_VARS{$varname}) && $CG_USER_VARS{$varname} ne "NULL") ||
-        ($ENV_VARS_OKAY && defined($ENV{$varname}))
-    );
 }
 
 sub is_number
@@ -3714,18 +3842,84 @@ sub suffix_op
     return "";
 }
 
+sub top_op
+#process :top postfix op
+#:top - return the top (last in) element on the stack
+{
+    my ($var) = @_;
+
+    return $var if (!defined($var) || $var eq "");
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+
+#printf STDERR "top_op: var='%s' #tmp=%d\n", $var, $#tmp;
+    return (pop @tmp);
+}
+
+sub car_op
+#alias for :bottom, for lisp affectionados.
+{
+    return &bottom_op(@_);
+}
+
+sub cdr_op
+#process :cdr postfix op, which is the stack minus it's :car.
+{
+    my ($var, $varname) = @_;
+
+    return undef if (!defined($var));
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+    shift @tmp;
+
+    #if stack is now empty, return last element, but undef stack:
+    if ($#tmp < 0) {
+        return sprintf("\${%s:undef}", $varname);
+    } else {
+        return join($;, @tmp);
+    }
+}
+
+sub bottom_op
+#process :bottom postfix op
+#:bottom - return the bottom (first in) element on the stack
+{
+    my ($var) = @_;
+
+    return "" if ($var eq "");
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+
+#printf STDERR "bottom_op: var='%s' #tmp=%d\n", $var, $#tmp;
+    return (shift @tmp);
+}
+
+sub showstack_op
+#display stack as list with $CG_STACK_DELIMITER separating elements.
+{
+    my ($var, $varname) = @_;
+    return &undefname($varname)  unless (defined($var));
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+
+    my $FS = &lookup_def('CG_STACK_DELIMITER');
+
+    return sprintf("%s", join($FS, @tmp));
+}
+
 sub stacksize_op
 #process :stacksize postfix op
 #:stacksize - return the stacksize of a scalar.
 #only variables created by %push will have a stacksize > 1
 #empty string returns a stacksize of 0.
 {
-    my ($var) = @_;
+    my ($var, $varname) = @_;
 
-    return 0 if ($var eq "");
+    return 0 unless (&var_defined($varname));
 
-    my @tmp = split($;, $var);
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
 
+#printf STDERR "stacksize_op: varname='%s' value='%s' #tmp=%d\n", $varname, $var, $#tmp;
     return $#tmp +1;
 }
 
@@ -3737,12 +3931,12 @@ sub stackminus_op
 
     return $var if ($var eq "");
 
-    my @thisStack = split($;, $var);
+    my @thisStack = split($;, $var, -1);
 #printf STDERR "thisStack=(%s)\n", join(",", @thisStack);
     my $specStack = $CG_USER_VARS{'CG_STACK_SPEC'};
     return $var unless (defined($specStack));
 
-    my @specStack = split($;, $specStack);
+    my @specStack = split($;, $specStack, -1);
 #printf STDERR "specStack=(%s)\n", join(",", @specStack);
 
     my @new = &MINUS(\@thisStack, \@specStack);
@@ -4046,14 +4240,44 @@ sub isint_op
 sub split_op
 #process :split postfix op
 #splits variable into a push/pop reference
-#default split set is [_,]
+#default split pattern is /[\t,]/
 {
     my ($var) = @_;
 
-    printf STDERR "%s: ERROR: split is not implemented\n", $p;
-    return $var
-}
+    #this variable should always be defined:
+    my $spat = $CG_USER_VARS{'CG_SPLIT_PATTERN'};
 
+    #we are going to make a STACK var out of our var, so we are really just doing
+    #a substitute op:
+    my $savevar = $var;
+    my $result = 0;
+
+#printf STDERR "SPLIT BEFORE spat='%s' var='%s'\n", $spat, $var;
+    
+    if ($spat =~ /^\/.*\/$/ ) {
+        #split spec has slashes.
+        eval "\$var =~ s${spat}$;/g";
+    } else {
+        #split spec has no slashes.
+        eval "\$var =~ s/${spat}/$;/g";
+    }
+
+#my @rec = split(/$;/, $var, -1);
+#printf STDERR "SPLIT AFTER spat='%s' var='%s' rec=(%s) cnt=%d\n", $spat, $var, join(',', @rec), $#rec;
+
+    if ($@) {
+        printf STDERR "%s[split]: ERROR: line %d: evaluation of CG_SPLIT_PATTERN (%s) failed for var '%s': %s\n",
+            $p, $LINE_CNT, $spat, $var, $@;
+        return $savevar;
+    } elsif (!defined($result)) {
+        #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
+        printf STDERR "%s[split]: ERROR: line %d: evaluation of CG_SPLIT_PATTERN (%s) failed for var '%s': %s\n",
+            $p, $LINE_CNT, $spat, $var, "ERROR in eval" ;
+        return $savevar;
+    }
+
+    return $var;
+}
 
 sub onecol_op
 #process :onecol postfix op
@@ -4230,6 +4454,12 @@ sub uncap_op
     #ignore leading spaces:
     $var =~ s/^(\s*)([A-Z])(.*)$/$1\l$2$3/;
     return $var;
+}
+
+sub i_op
+#alias for :incr
+{
+    return &incr_op(@_);
 }
 
 sub incr_op

@@ -6,3 +6,4 @@ codegen.prl        bin/$TARGET_OS/codegen.ksh             0555
 
 TARGET_OS=cmn, ntcmn
 codegen.pl         lib/$TARGET_OS/codegen.pl              0444
+cgdoc.txt          lib/$TARGET_OS/templates/cgdoc.txt     0444

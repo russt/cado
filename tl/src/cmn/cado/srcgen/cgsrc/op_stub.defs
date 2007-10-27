@@ -237,18 +237,84 @@ sub suffix_op
     return "";
 }
 
+sub top_op
+#process :top postfix op
+#:top - return the top (last in) element on the stack
+{
+    my ($var) = @_;
+
+    return $var if (!defined($var) || $var eq "");
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+
+#printf STDERR "top_op: var='%s' #tmp=%d\n", $var, $#tmp;
+    return (pop @tmp);
+}
+
+sub car_op
+#alias for :bottom, for lisp affectionados.
+{
+    return &bottom_op(@_);
+}
+
+sub cdr_op
+#process :cdr postfix op, which is the stack minus it's :car.
+{
+    my ($var, $varname) = @_;
+
+    return undef if (!defined($var));
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+    shift @tmp;
+
+    #if stack is now empty, return last element, but undef stack:
+    if ($#tmp < 0) {
+        return sprintf("\${%s:undef}", $varname);
+    } else {
+        return join($;, @tmp);
+    }
+}
+
+sub bottom_op
+#process :bottom postfix op
+#:bottom - return the bottom (first in) element on the stack
+{
+    my ($var) = @_;
+
+    return "" if ($var eq "");
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+
+#printf STDERR "bottom_op: var='%s' #tmp=%d\n", $var, $#tmp;
+    return (shift @tmp);
+}
+
+sub showstack_op
+#display stack as list with $CG_STACK_DELIMITER separating elements.
+{
+    my ($var, $varname) = @_;
+    return &undefname($varname)  unless (defined($var));
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+
+    my $FS = &lookup_def('CG_STACK_DELIMITER');
+
+    return sprintf("%s", join($FS, @tmp));
+}
+
 sub stacksize_op
 #process :stacksize postfix op
 #:stacksize - return the stacksize of a scalar.
 #only variables created by %push will have a stacksize > 1
 #empty string returns a stacksize of 0.
 {
-    my ($var) = @_;
+    my ($var, $varname) = @_;
 
-    return 0 if ($var eq "");
+    return 0 unless (&var_defined($varname));
 
-    my @tmp = split($;, $var);
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
 
+#printf STDERR "stacksize_op: varname='%s' value='%s' #tmp=%d\n", $varname, $var, $#tmp;
     return $#tmp +1;
 }
 
@@ -260,12 +326,12 @@ sub stackminus_op
 
     return $var if ($var eq "");
 
-    my @thisStack = split($;, $var);
+    my @thisStack = split($;, $var, -1);
 #printf STDERR "thisStack=(%s)\n", join(",", @thisStack);
     my $specStack = $CG_USER_VARS{'CG_STACK_SPEC'};
     return $var unless (defined($specStack));
 
-    my @specStack = split($;, $specStack);
+    my @specStack = split($;, $specStack, -1);
 #printf STDERR "specStack=(%s)\n", join(",", @specStack);
 
     my @new = &MINUS(\@thisStack, \@specStack);
@@ -569,14 +635,44 @@ sub isint_op
 sub split_op
 #process :split postfix op
 #splits variable into a push/pop reference
-#default split set is [_,]
+#default split pattern is /[\t,]/
 {
     my ($var) = @_;
 
-    printf STDERR "%s: ERROR: split is not implemented\n", $p;
-    return $var
-}
+    #this variable should always be defined:
+    my $spat = $CG_USER_VARS{'CG_SPLIT_PATTERN'};
 
+    #we are going to make a STACK var out of our var, so we are really just doing
+    #a substitute op:
+    my $savevar = $var;
+    my $result = 0;
+
+#printf STDERR "SPLIT BEFORE spat='%s' var='%s'\n", $spat, $var;
+    
+    if ($spat =~ /^\/.*\/$/ ) {
+        #split spec has slashes.
+        eval "\$var =~ s${spat}$;/g";
+    } else {
+        #split spec has no slashes.
+        eval "\$var =~ s/${spat}/$;/g";
+    }
+
+#my @rec = split(/$;/, $var, -1);
+#printf STDERR "SPLIT AFTER spat='%s' var='%s' rec=(%s) cnt=%d\n", $spat, $var, join(',', @rec), $#rec;
+
+    if ($@) {
+        printf STDERR "%s[split]: ERROR: line %d: evaluation of CG_SPLIT_PATTERN (%s) failed for var '%s': %s\n",
+            $p, $LINE_CNT, $spat, $var, $@;
+        return $savevar;
+    } elsif (!defined($result)) {
+        #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
+        printf STDERR "%s[split]: ERROR: line %d: evaluation of CG_SPLIT_PATTERN (%s) failed for var '%s': %s\n",
+            $p, $LINE_CNT, $spat, $var, "ERROR in eval" ;
+        return $savevar;
+    }
+
+    return $var;
+}
 
 sub onecol_op
 #process :onecol postfix op
@@ -753,6 +849,12 @@ sub uncap_op
     #ignore leading spaces:
     $var =~ s/^(\s*)([A-Z])(.*)$/$1\l$2$3/;
     return $var;
+}
+
+sub i_op
+#alias for :incr
+{
+    return &incr_op(@_);
 }
 
 sub incr_op

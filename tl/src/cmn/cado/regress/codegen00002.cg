@@ -159,3 +159,245 @@ result=FAILED
 CG_COMPARE_SPEC = $somevarwithpercents
 %if $output:eq result=PASSED
 %echo somevarwithpercents test $result
+
+#####
+tname = .=
+tnum = 0
+%echo
+%echo $tname ASSIGNMENT OPERATOR TESTS
+#####
+
+foo = abc
+foo .= def
+CG_COMPARE_SPEC := abcdef
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname OPERATOR TEST #$tnum:incr:assign $result
+
+%echo test multi-line append
+foo = << .
+line 1
+line 2
+.
+foo .= << .
+line 3
+line 4
+.
+CG_COMPARE_SPEC := << EOF
+line 1
+line 2
+line 3
+line 4
+EOF
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname OPERATOR TEST #$tnum:incr:assign $result
+
+#####
+tname = .:=
+tnum = 0
+#####
+foo := $blah$blah
+foo .:= $bar$bar
+CG_COMPARE_SPEC := $blah$blah$bar$bar
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname OPERATOR TEST #$tnum:incr:assign $result
+
+%echo test multi-line raw append
+foo := << .
+$line 1
+$line 2
+.
+foo .:= << .
+$line 3
+$line 4
+.
+CG_COMPARE_SPEC := << EOF
+$line 1
+$line 2
+$line 3
+$line 4
+EOF
+result=FAILED
+%if $foo:eq	result=PASSED
+%echo $tname OPERATOR TEST #$tnum:incr:assign $result
+
+%echo
+%echo test for correct parsing of assignments when rhs has [.:=] patterns:
+
+    foo = =
+%echo foo='$foo'
+
+    foo = :=
+%echo foo='$foo'
+
+    foo = .=
+%echo foo='$foo'
+
+    foo = .:=
+%echo foo='$foo'
+
+    foo := =
+%echo foo='$foo'
+
+    foo := :=
+%echo foo='$foo'
+
+    foo := .=
+%echo foo='$foo'
+
+    foo := .:=
+%echo foo='$foo'
+
+%echo
+%echo #same tests with different spacing:
+
+foo==
+%echo foo='$foo'
+
+foo=:=
+%echo foo='$foo'
+
+foo=.=
+%echo foo='$foo'
+
+foo=.:=
+%echo foo='$foo'
+
+foo:==
+%echo foo='$foo'
+
+foo:=:=
+%echo foo='$foo'
+
+foo:=.=
+%echo foo='$foo'
+
+foo:=.:=
+%echo foo='$foo'
+
+#####
+#test exotic assignment operators:
+#####
+
+foo = 2
+%echo foo = 2 -> foo=$foo
+
+foo -= 2
+%echo foo -= 2 -> foo=$foo
+
+foo += 2
+%echo foo += 2 -> foo=$foo
+
+foo *= 2
+%echo foo *= 2 -> foo=$foo
+
+foo /= 2
+%echo foo /= 2 -> foo=$foo
+
+foo **= 3
+%echo foo **= 3 -> foo=$foo
+
+foo %= 3
+%echo foo %= 3 -> foo=$foo
+
+foo |= 4
+%echo foo |= 4 -> foo=$foo
+
+foo &= 2
+%echo foo &= 2 -> foo=$foo
+
+foo ^= 2
+%echo foo ^= 2 -> foo=$foo
+
+foo x= 10
+%echo foo x= 10 -> foo=$foo
+
+
+%echo
+msg := rerun with $foovar = foo on the lhs:
+%echo $msg
+
+foovar = foo
+
+$foovar = 2
+%echo foo = 2 -> foo=$foo
+
+$foovar -= 2
+%echo foo -= 2 -> foo=$foo
+
+$foovar += 2
+%echo foo += 2 -> foo=$foo
+
+$foovar *= 2
+%echo foo *= 2 -> foo=$foo
+
+$foovar /= 2
+%echo foo /= 2 -> foo=$foo
+
+$foovar **= 3
+%echo foo **= 3 -> foo=$foo
+
+$foovar %= 3
+%echo foo %= 3 -> foo=$foo
+
+$foovar |= 4
+%echo foo |= 4 -> foo=$foo
+
+$foovar &= 2
+%echo foo &= 2 -> foo=$foo
+
+$foovar ^= 2
+%echo foo ^= 2 -> foo=$foo
+
+$foovar x= 10
+%echo foo x= 10 -> foo=$foo
+
+
+%echo
+msg := rerun with ${foo:nameof} on the lhs:
+%echo $msg
+
+${foo:nameof} = 2
+%echo foo = 2 -> foo=$foo
+
+${foo:nameof} -= 2
+%echo foo -= 2 -> foo=$foo
+
+${foo:nameof} += 2
+%echo foo += 2 -> foo=$foo
+
+${foo:nameof} *= 2
+%echo foo *= 2 -> foo=$foo
+
+${foo:nameof} /= 2
+%echo foo /= 2 -> foo=$foo
+
+${foo:nameof} **= 3
+%echo foo **= 3 -> foo=$foo
+
+${foo:nameof} %= 3
+%echo foo %= 3 -> foo=$foo
+
+${foo:nameof} |= 4
+%echo foo |= 4 -> foo=$foo
+
+${foo:nameof} &= 2
+%echo foo &= 2 -> foo=$foo
+
+${foo:nameof} ^= 2
+%echo foo ^= 2 -> foo=$foo
+
+${foo:nameof} x= 10
+%echo foo x= 10 -> foo=$foo
+
+%echo
+msg := more tests  with ${foo:nameof} on the lhs:
+%echo $msg
+
+${foo:nameof} := 10
+%echo foo := 10 -> foo=$foo
+
+${foo_2:nameof}:=10
+%echo foo_2:=10 -> foo_2=$foo_2

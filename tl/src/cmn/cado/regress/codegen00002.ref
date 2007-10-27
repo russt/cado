@@ -35,3 +35,72 @@ test evaltemplate 3c: echo_out3='.evaltemplate test 3a (init).evaltemplate test 
 
 output='%a %b %c'
 somevarwithpercents test PASSED
+
+.= ASSIGNMENT OPERATOR TESTS
+.= OPERATOR TEST #1 PASSED
+test multi-line append
+.= OPERATOR TEST #2 PASSED
+.:= OPERATOR TEST #1 PASSED
+test multi-line raw append
+.:= OPERATOR TEST #2 PASSED
+
+test for correct parsing of assignments when rhs has [.:=] patterns:
+foo='='
+foo=':='
+foo='.='
+foo='.:='
+foo='='
+foo=':='
+foo='.='
+foo='.:='
+
+#same tests with different spacing:
+foo='='
+foo=':='
+foo='.='
+foo='.:='
+foo='='
+foo=':='
+foo='.='
+foo='.:='
+foo = 2 -> foo=2
+foo -= 2 -> foo=0
+foo += 2 -> foo=2
+foo *= 2 -> foo=4
+foo /= 2 -> foo=2
+foo **= 3 -> foo=8
+foo %= 3 -> foo=2
+foo |= 4 -> foo=6
+foo &= 2 -> foo=2
+foo ^= 2 -> foo=0
+foo x= 10 -> foo=0000000000
+
+rerun with $foovar = foo on the lhs:
+foo = 2 -> foo=2
+foo -= 2 -> foo=0
+foo += 2 -> foo=2
+foo *= 2 -> foo=4
+foo /= 2 -> foo=2
+foo **= 3 -> foo=8
+foo %= 3 -> foo=2
+foo |= 4 -> foo=6
+foo &= 2 -> foo=2
+foo ^= 2 -> foo=0
+foo x= 10 -> foo=0000000000
+
+rerun with ${foo:nameof} on the lhs:
+foo = 2 -> foo=2
+foo -= 2 -> foo=0
+foo += 2 -> foo=2
+foo *= 2 -> foo=4
+foo /= 2 -> foo=2
+foo **= 3 -> foo=8
+foo %= 3 -> foo=2
+foo |= 4 -> foo=6
+foo &= 2 -> foo=2
+foo ^= 2 -> foo=0
+foo x= 10 -> foo=0000000000
+
+more tests  with ${foo:nameof} on the lhs:
+foo := 10 -> foo=10
+foo_2:=10 -> foo_2=10

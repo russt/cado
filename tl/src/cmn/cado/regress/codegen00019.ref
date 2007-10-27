@@ -1,37 +1,71 @@
 TESTNAME is codegen00019
-%push test 1 PASSED
-%push test 1 MYSTACK:stacksize=1
-%push test 1 MYSTACK='trailing   spaces   '
-%pop test 2 PASSED
-%pop test 2 MYSTACK:stacksize=0
-%pop test 2 foo='trailing   spaces   '
-%push test 3 PASSED
-%push test 3 MYSTACK:stacksize=3
-%push test 3 MYSTACK='trailing   spaces   middle elementlast element'
-%pop test 4 foo='last element' MYSTACK:stacksize=2
-%pop test 4 foo='middle element' MYSTACK:stacksize=1
-%pop test 4 foo='trailing   spaces   ' MYSTACK:stacksize=0
-%pop test 4 PASSED
-%push test 5 PASSED (missing rhs)
+
+%push/%pop STATEMENT TESTS
+%push/%pop test 1 PASSED
+%push/%pop test 1 MYSTACK:stacksize=1
+%push/%pop test 1 MYSTACK='trailing   spaces   '
+%push/%pop test 2 PASSED
+%push/%pop test 2 MYSTACK:stacksize=0
+%push/%pop test 2 foo='trailing   spaces   '
+%push/%pop test 3 PASSED
+%push/%pop test 3 MYSTACK:stacksize=3
+%push/%pop test 3 MYSTACK='trailing   spaces   middle elementlast element'
+%push/%pop test 4 foo='last element' MYSTACK:stacksize=2
+%push/%pop test 4 foo='middle element' MYSTACK:stacksize=1
+%push/%pop test 4 foo='trailing   spaces   ' MYSTACK:stacksize=0
+%push/%pop test 4 PASSED
+%push/%pop test 5 PASSED (missing rhs)
 MYSTACK=${rhs:undef} size=1
-%push test 6 PASSED (undef rhs)
+%push/%pop test 6 PASSED (undef rhs)
+
+%upush STATEMENT TESTS
 MYSTACK=ab size=2
-%upush test 7 PASSED
+%upush test 1 PASSED
 MYSTACK=abc size=3
-%upush test 8 PASSED
+%upush test 2 PASSED
 MYSTACK=abcdef size=6
-%upush test 9 PASSED
-%push test 10 PASSED
-%push test 11 PASSED
-%push test 12 PASSED
-%push test 13 PASSED
-%push test 14 PASSED
-%push test 15 PASSED
-%push test 16 PASSED
-%push test 17 PASSED
-%push test 18 PASSED
-%push test 19 PASSED
-%push test 20 PASSED
-%push test 21 PASSED
-%push test 22 PASSED
-%push test 23 PASSED
+%upush test 3 PASSED
+
+%push CG_STACK_DELIMITER STATEMENT TESTS
+%push CG_STACK_DELIMITER test 1 PASSED
+%push CG_STACK_DELIMITER test 2 PASSED
+%push CG_STACK_DELIMITER test 3 PASSED
+%push CG_STACK_DELIMITER test 4 PASSED
+%push CG_STACK_DELIMITER test 5 PASSED
+%push CG_STACK_DELIMITER test 6 PASSED
+%push CG_STACK_DELIMITER test 7 PASSED
+%push CG_STACK_DELIMITER test 8 PASSED
+%push CG_STACK_DELIMITER test 9 PASSED
+%push CG_STACK_DELIMITER test 10 PASSED
+%push CG_STACK_DELIMITER test 11 PASSED
+%push CG_STACK_DELIMITER test 12 PASSED
+%push CG_STACK_DELIMITER test 13 PASSED
+%push CG_STACK_DELIMITER test 14 PASSED
+
+%pushv STATEMENT TESTS
+POSTFIX OPERATOR %pushv TEST #1 PASSED
+POSTFIX OPERATOR %pushv TEST #2 PASSED
+####### with //'s
+SI_010101_01	SI_020202_02	SI_030303_03	SI_040404_04	SI_050505_05	SI_060606_06	SI_070707_07	SI_080808_08	SI_090909_09	SI_101010_10
+elem='SI_010101_01'
+elem='SI_020202_02'
+elem='SI_030303_03'
+elem='SI_040404_04'
+elem='SI_050505_05'
+elem='SI_060606_06'
+elem='SI_070707_07'
+elem='SI_080808_08'
+elem='SI_090909_09'
+elem='SI_101010_10'
+####### without //'s
+SI_010101_01	SI_020202_02	SI_030303_03	SI_040404_04	SI_050505_05	SI_060606_06	SI_070707_07	SI_080808_08	SI_090909_09	SI_101010_10
+elem='SI_010101_01'
+elem='SI_020202_02'
+elem='SI_030303_03'
+elem='SI_040404_04'
+elem='SI_050505_05'
+elem='SI_060606_06'
+elem='SI_070707_07'
+elem='SI_080808_08'
+elem='SI_090909_09'
+elem='SI_101010_10'

@@ -82,11 +82,12 @@ amacro: cnt=00
 :undef test 2 PASSED
 foo=${foo:undef}
 :undef test 3 PASSED (foo=${foo:undef})
+:undef test 4 PASSED (foo2=${foo:undef})
 foo=    xxx
 foo=${foo:undef}
-:undef test 4 PASSED
-foo=${foo:undef}
 :undef test 5 PASSED
+foo=${foo:undef}
+:undef test 6 PASSED
 
 foo=${foo:undef} foo:zero=0
 :clr/:zero test 1 PASSED

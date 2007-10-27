@@ -1,4 +1,7 @@
+#
 #this script generates the codegen processor and documentation.
+#
+#Usage:  codegen -u -cgroot .. codegen.cg
 
 PWD=
 PWD=$PWD:pwd
@@ -10,13 +13,13 @@ PWD=$PWD:pwd
 #save CG_ROOT base setting as we will adjust it for different sections:
 CG_ROOT_BASE = $CG_ROOT
 
-
 #generate file test  ops:
 %include cgsrc/filetest_op.defs
 
 %include cgsrc/codegen.defs
 
 cgsrc/codegen.pl	/codegen.pl
+cgsrc/cgdoc.txt	/cgdoc.txt
 
 #display test skel if requested for cut/paste
 %ifdef SHOW_TESTS %echo $REGRESS_FILETEST_OPS

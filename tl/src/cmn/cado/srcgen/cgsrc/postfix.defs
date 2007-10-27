@@ -134,27 +134,6 @@ sub exec_shell_op
     return $var;
 }
 
-sub var_defined
-#return 1 if a codegen variable is defined
-#uses same algorithm as lookup_def, but is non-destructive
-{
-    my ($varname) = @_;
-
-    if ($DEBUG) {
-        printf STDERR "var_defined(%s) e1=%d e2=%d e3=%d\n", $varname,
-            ( defined($CLASS_VAR_REF) && defined(${$CLASS_VAR_REF}{$varname}) ),
-            (defined($CG_USER_VARS{$varname}) && $CG_USER_VARS{$varname} ne "NULL"),
-            ($ENV_VARS_OKAY && defined($ENV{$varname}))
-            ;
-    }
-
-    return (
-        ( defined($CLASS_VAR_REF) && defined(${$CLASS_VAR_REF}{$varname}) ) ||
-        (defined($CG_USER_VARS{$varname}) && $CG_USER_VARS{$varname} ne "NULL") ||
-        ($ENV_VARS_OKAY && defined($ENV{$varname}))
-    );
-}
-
 sub is_number
 #true if <var> is a number (integer or decimal).
 {

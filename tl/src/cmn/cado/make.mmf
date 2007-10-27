@@ -3,8 +3,12 @@ TEMPLATE    = file.mmf
 PKG =  bin
 PKG2    =  lib
 
+PKG3    =  lib
+DEST3   =  ${BASE}/${PKG3}/${TARGET_OS}/templates
+
 MODE    =  0555
 MODE2   =  0444
 
 FILES   = codegen.prl
 FILES2  = codegen.pl
+FILES3  = cgdoc.txt

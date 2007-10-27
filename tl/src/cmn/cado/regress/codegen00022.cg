@@ -73,9 +73,146 @@ result=FAILED
 tname=:split
 tnum = 0
 %echo $tname POSTFIX OPERATOR TESTS
-%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
 #####
-foo = 1,2,3
+MYSTACK=1,2,3
 result=FAILED
-%if   $foo:split	result=PASSED
+%ifnot $MYSTACK:split:stacksize:minus3	result=PASSED
 %echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+#1
+
+#check that we can change SPLIT delimeter:
+MYSTACK=1,2,3
+CG_COMPARE_SPEC = $MYSTACK
+CG_SPLIT_PATTERN = /\t/
+result=FAILED
+%if $MYSTACK:split:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+#2
+
+#check that we can split on tab:
+CG_SPLIT_PATTERN = /\t/
+t = $t:clr:tab
+MYSTACK=1${t}2${t}3
+result=FAILED
+%ifnot $MYSTACK:split:stacksize:minus3	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+#3
+
+#check that we can split on newline:
+CG_SPLIT_PATTERN = /\n/
+n = $n:clr:newline
+MYSTACK=1${n}2${n}3
+result=FAILED
+%ifnot $MYSTACK:split:stacksize:minus3	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+#4
+
+#try a pathname split:
+CG_SPLIT_PATTERN = /\/+/
+MYSTACK=/a/b//c/
+result=FAILED
+#%echo BEFORE MYSTACK=$MYSTACK size=$MYSTACK:stacksize
+%ifnot $MYSTACK:split:a:stacksize:minus5	result=PASSED
+#%echo  AFTER MYSTACK=$MYSTACK size=$MYSTACK:stacksize
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+
+
+shiftlooppre := << EOF
+{
+    %shift elem theStack
+    %ifndef elem %return
+    ee = $ee:incr
+    %echo SHIFT elem[$ee]='$elem'
+}
+EOF
+
+poplooppre := << EOF
+{
+    %pop elem theStack
+    %ifndef elem %return
+    ee = $ee:incr
+    %echo POP elem[$ee]='$elem'
+}
+EOF
+
+shiftlooppost := << EOF
+{
+    ee = $ee:incr
+    %echo SHIFT elem[$ee]='$elem'
+    %shift elem theStack
+}
+EOF
+
+poplooppost := << EOF
+{
+    ee = $ee:incr
+    %echo POP elem[$ee]='$elem'
+    %pop elem theStack
+}
+EOF
+
+####### using top/bottom ops:
+%echo ############ pop with top
+ee=0
+theStack = $MYSTACK
+elem = $theStack:top
+%whiledef elem %call poplooppre
+
+%echo ############ shift with bottom
+ee=0
+theStack = $MYSTACK
+elem = $theStack:bottom
+%whiledef elem %call shiftlooppre
+
+####### old method:
+%echo ############ pop w/o top
+ee=0
+theStack = $MYSTACK
+%pop elem theStack
+%whiledef elem %call poplooppost
+
+%echo ############ shift w/o bottom
+ee=0
+theStack = $MYSTACK
+%shift elem theStack
+%whiledef elem %call shiftlooppost
+
+#####
+tname=:car,:cdr
+tnum = 0
+%echo
+%echo $tname POSTFIX OPERATOR TESTS
+#####
+
+CG_SPLIT_PATTERN = ,
+mystack = a,b,c
+mystack = $mystack:split
+savestack = $mystack
+
+CG_COMPARE_SPEC := a
+result=FAILED
+%if   $mystack:car:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+#1
+
+result=FAILED
+%ifnot $mystack:cdr:stacksize:minus2	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+#2
+
+loop := << loop
+    %echo LOOP:  car=$mystack:car
+    mystack=$mystack:cdr
+loop
+
+#note that this will exit on first empty element:
+%echo
+%echo POSTFIX OPERATOR $tname  %while
+mystack = $savestack
+%while $mystack:car %call loop
+
+%echo
+%echo POSTFIX OPERATOR $tname  %whiledef
+mystack = $savestack
+#note - this now works because :cdr will return ${mystack:undef} on empty stack:
+%whiledef mystack %call loop

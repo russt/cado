@@ -166,16 +166,27 @@ result=FAILED
 %ifdef foo	result=PASSED
 %echo $tname test $tnum:incr:assign $result
 
-foo2 = $foo:undef
+foo2 = ${foo:undef}
 result=FAILED
 %ifndef foo	result=PASSED
 %echo $tname test $tnum:incr:assign $result
 
+#test that when we explicitly assign the undefined variable string
+#to a variable, that the variable is deleted on the next lookup.
 foo =
 foo = $foo:undef
 %echo foo=$foo
 result=FAILED
-%ifdef foo	result=PASSED (foo=$foo)
+#variable is deleted by $ifndef:
+%ifndef foo	result=PASSED (foo=$foo)
+%echo $tname test $tnum:incr:assign $result
+
+#test that if we assign the undef value of one variable to a different
+#variable, the second var is *not* treated as undefined:
+foo = $foo:undef
+foo2 = $foo
+result=FAILED
+%ifdef foo2	result=PASSED (foo2=$foo2)
 %echo $tname test $tnum:incr:assign $result
 
 foo = xxx
@@ -233,4 +244,5 @@ EOF
 
 %echo foo:xmlcommentblock:
 %echo -n $foo:xmlcommentblock
+%echo
 }

@@ -28,9 +28,12 @@
 # END_HEADER - DO NOT EDIT
 #
 
-#test %push/%pop statements
-
+#####
+tname=%push/%pop
 tnum = 0
+%echo
+%echo $tname STATEMENT TESTS
+#####
 
 #put some spaces at the end:
 top = trailing   spaces   
@@ -40,30 +43,30 @@ MYSTACK =
 
 result=FAILED
 %ifnot $MYSTACK:stacksize:minus1	result=PASSED
-%echo %push test $tnum:incr:assign $result
-%echo %push test $tnum MYSTACK:stacksize=$MYSTACK:stacksize
-%echo %push test $tnum MYSTACK='$MYSTACK'
+%echo $tname test $tnum:incr:assign $result
+%echo $tname test $tnum MYSTACK:stacksize=$MYSTACK:stacksize
+%echo $tname test $tnum MYSTACK='$MYSTACK'
 
 %pop foo MYSTACK
 
 result=FAILED
 CG_COMPARE_SPEC = $top
 %if $foo:eq	result=PASSED
-%echo %pop test $tnum:incr:assign $result
-%echo %pop test $tnum MYSTACK:stacksize=$MYSTACK:stacksize
-%echo %pop test $tnum foo='$foo'
+%echo $tname test $tnum:incr:assign $result
+%echo $tname test $tnum MYSTACK:stacksize=$MYSTACK:stacksize
+%echo $tname test $tnum foo='$foo'
 
 %push MYSTACK $top
 %push MYSTACK middle element
 %push MYSTACK last element
 result=FAILED
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum:incr:assign $result
-%echo %push test $tnum MYSTACK:stacksize=$MYSTACK:stacksize
-%echo %push test $tnum MYSTACK='$MYSTACK'
+%echo $tname test $tnum:incr:assign $result
+%echo $tname test $tnum MYSTACK:stacksize=$MYSTACK:stacksize
+%echo $tname test $tnum MYSTACK='$MYSTACK'
 
 loop_macro := << EOF
-%echo %pop test $tnum foo='$foo' MYSTACK:stacksize=$MYSTACK:stacksize
+%echo $tname test $tnum foo='$foo' MYSTACK:stacksize=$MYSTACK:stacksize
 %pop foo MYSTACK
 EOF
 
@@ -72,7 +75,7 @@ tnum = $tnum:incr
 %pop foo MYSTACK
 %whiledef foo %call loop_macro
 %ifndef foo	result=PASSED
-%echo %pop test $tnum $result
+%echo $tname test $tnum $result
 
 #if missing value, then stack is unmodified:
 result=FAILED
@@ -80,7 +83,7 @@ tnum = $tnum:incr
 %undef MYSTACK
 %push MYSTACK
 %ifndef MYSTACK	result=PASSED
-%echo %push test $tnum $result (missing rhs)
+%echo $tname test $tnum $result (missing rhs)
 
 #if rhs is undefined, we push :undef so error is noticed:
 result=FAILED
@@ -90,7 +93,14 @@ tnum = $tnum:incr
 %push MYSTACK $rhs
 %echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
 %ifnot $MYSTACK:stacksize:minus1	result=PASSED
-%echo %push test $tnum $result (undef rhs)
+%echo $tname test $tnum $result (undef rhs)
+
+#####
+tname=%upush
+tnum = 0
+%echo
+%echo $tname STATEMENT TESTS
+#####
 
 result=FAILED
 tnum = $tnum:incr
@@ -101,7 +111,7 @@ tnum = $tnum:incr
 %upush MYSTACK
 %echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
 %ifnot $MYSTACK:stacksize:minus2	result=PASSED
-%echo %upush test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -110,7 +120,7 @@ tnum = $tnum:incr
 %upush MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %upush test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -119,7 +129,14 @@ tnum = $tnum:incr
 %upush MYSTACK d${CG_STACK_DELIMITER}e${CG_STACK_DELIMITER}f
 %echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
 %ifnot $MYSTACK:stacksize:minus6	result=PASSED
-%echo %upush test $tnum $result
+%echo $tname test $tnum $result
+
+#####
+tname=%push CG_STACK_DELIMITER
+tnum = 0
+%echo
+%echo $tname STATEMENT TESTS
+#####
 
 result=FAILED
 tnum = $tnum:incr
@@ -127,7 +144,7 @@ CG_STACK_DELIMITER = |
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -135,7 +152,7 @@ CG_STACK_DELIMITER := $
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -143,7 +160,7 @@ CG_STACK_DELIMITER = ^
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -151,7 +168,7 @@ CG_STACK_DELIMITER = &
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -159,7 +176,7 @@ CG_STACK_DELIMITER = -
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -167,7 +184,7 @@ CG_STACK_DELIMITER = *
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -175,7 +192,7 @@ CG_STACK_DELIMITER = @
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -183,7 +200,7 @@ CG_STACK_DELIMITER = ?
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -191,7 +208,7 @@ CG_STACK_DELIMITER = '
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -199,7 +216,7 @@ CG_STACK_DELIMITER = "
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -207,7 +224,7 @@ CG_STACK_DELIMITER = .
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -215,7 +232,7 @@ CG_STACK_DELIMITER = +
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -223,7 +240,7 @@ CG_STACK_DELIMITER = \
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
 
 result=FAILED
 tnum = $tnum:incr
@@ -231,4 +248,60 @@ CG_STACK_DELIMITER = [
 %undef MYSTACK
 %push MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
-%echo %push test $tnum $result
+%echo $tname test $tnum $result
+
+#####
+tname=%pushv
+tnum = 0
+%echo
+%echo $tname STATEMENT TESTS
+#####
+
+#create some date-based variables
+
+yy = 00
+mm = 00
+dd = 00
+
+ii = 00
+
+SI_$yy:i:a$mm:i:a${dd:i:a}_$ii:i:a = $ii
+SI_$yy:i:a$mm:i:a${dd:i:a}_$ii:i:a = $ii
+SI_$yy:i:a$mm:i:a${dd:i:a}_$ii:i:a = $ii
+SI_$yy:i:a$mm:i:a${dd:i:a}_$ii:i:a = $ii
+SI_$yy:i:a$mm:i:a${dd:i:a}_$ii:i:a = $ii
+SI_$yy:i:a$mm:i:a${dd:i:a}_$ii:i:a = $ii
+SI_$yy:i:a$mm:i:a${dd:i:a}_$ii:i:a = $ii
+SI_$yy:i:a$mm:i:a${dd:i:a}_$ii:i:a = $ii
+SI_$yy:i:a$mm:i:a${dd:i:a}_$ii:i:a = $ii
+SI_$yy:i:a$mm:i:a${dd:i:a}_$ii:i:a = $ii
+
+
+loop := << EOF
+    %echo elem='$elem'
+    %shift elem varstack
+EOF
+
+%pushv varstack /^SI_.*/
+CG_COMPARE_SPEC := SI_010101_01
+result=FAILED
+%if   $varstack:car:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+
+result=FAILED
+CG_COMPARE_SPEC := SI_101010_10
+%if   $varstack:top:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:assign $result
+
+%pragma reset_stack_delimiter
+
+%echo ####### with //'s
+%echo $varstack:showstack
+%shift elem varstack
+%whiledef elem %call loop
+
+%echo ####### without //'s
+%pushv varstack ^SI_.*
+%echo $varstack:showstack
+%shift elem varstack
+%whiledef elem %call loop

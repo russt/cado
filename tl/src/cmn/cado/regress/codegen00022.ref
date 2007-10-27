@@ -24,3 +24,44 @@ POSTFIX OPERATOR :isint TEST #2 PASSED
 :split POSTFIX OPERATOR TESTS
 POSTFIX OPERATOR :split TEST #1 PASSED
 POSTFIX OPERATOR :split TEST #2 PASSED
+POSTFIX OPERATOR :split TEST #3 PASSED
+POSTFIX OPERATOR :split TEST #4 PASSED
+POSTFIX OPERATOR :split TEST #5 PASSED
+############ pop with top
+POP elem[1]=''
+POP elem[2]='c'
+POP elem[3]='b'
+POP elem[4]='a'
+POP elem[5]=''
+############ shift with bottom
+SHIFT elem[1]=''
+SHIFT elem[2]='a'
+SHIFT elem[3]='b'
+SHIFT elem[4]='c'
+SHIFT elem[5]=''
+############ pop w/o top
+POP elem[1]=''
+POP elem[2]='c'
+POP elem[3]='b'
+POP elem[4]='a'
+POP elem[5]=''
+############ shift w/o bottom
+SHIFT elem[1]=''
+SHIFT elem[2]='a'
+SHIFT elem[3]='b'
+SHIFT elem[4]='c'
+SHIFT elem[5]=''
+
+:car,:cdr POSTFIX OPERATOR TESTS
+POSTFIX OPERATOR :car,:cdr TEST #1 PASSED
+POSTFIX OPERATOR :car,:cdr TEST #2 PASSED
+
+POSTFIX OPERATOR :car,:cdr  %while
+LOOP:  car=a
+LOOP:  car=b
+LOOP:  car=c
+
+POSTFIX OPERATOR :car,:cdr  %whiledef
+LOOP:  car=a
+LOOP:  car=b
+LOOP:  car=c

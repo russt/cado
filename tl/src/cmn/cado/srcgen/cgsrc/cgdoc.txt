@@ -1,0 +1,279 @@
+
+                    =========================
+                     Codegen Quick Reference
+                    Version {=VERSION=}, {=VERSION_DATE=}
+                    =========================
+
+{
+                    ==========================
+                    ASSIGNMENT, INITIALIZATION
+                    ==========================
+
+:assign, :a         - assign current value of variable to the named variable
+:nameof             - substitute the name of the variable
+:undef              - return undefined value
+:valueof            - return the value of a variable
+:zero               - set a variable to zero.
+:clr                - set a variable to empty string.
+:env                - lookup in environment, e.g.  $HOME = $HOME:nameof:env
+
+                    =======
+                    NUMERIC
+                    =======
+:decr               - decrement by 1
+:incr               - increment by 1
+:i                  - alias for :incr
+:isint              - returns 1 if <val> is a positive integer, else zero.
+:pad                - pad a number or string as specified by sprintf CG_PAD_SPEC
+
+:plus<n>            - add <n> to variable. maintains pad setting.  :plus1 <=> :incr
+:minus<n>           - subtract <n> from variable. maintains pad setting.  :minus1 <=> :decr
+:times<n>           - multiply variable times <n>
+:div<n>             - divide variable by <n> (integer division).
+:rem<n>             - modulo <n> of varible, i.e., $foo:rem2 <=> ($foo % 2)
+
+                    =====================
+                    SPECIALIZED OPERATORS
+                    =====================
+:crc                - return crcfile, and if that fails, crcstr.
+:crcfile            - return the crc of the file named by the string.
+:crcstr             - return the crc of the contents of a string
+:freq               - get the frequency of each line.
+:method2rec         - convert a java method signature to a tab separated record
+:stripRcsKeywords   - strip all RCS keywords from the string
+:antvar             - convert to an ant variable reference:
+:onecol             - 
+:oneline            - replace \s*EOL\s* sequences with a single space, and trim result:
+
+                    =============
+                    XML OPERATORS
+                    =============
+:xmlcomment         - wrap $var in xml comment:
+:xmlcommentblock    - wrap $var in multi-line xml comment: #wrap the input string in an xml comment
+
+                    ================
+                    STRING OPERATORS
+                    ================
+:indent<n>          - indent each line (<n> x CG_INDENT_STRING) levels. example $foo:indent2
+:basename           - return basename of input var
+:dirname            - return dirname of input var
+:suffix             - return suffix of input var
+
+:cap                - this op capitalizes the first letter of a string.
+:uncap              - uncapitalize the first letter of a string.
+
+:lnewline           - 
+:rnewline           - 
+:newline            - 
+:fixeol             - force at most one newline at the end of the string
+:eoltrim            - 
+
+:ltrim              - trim leading whitespace (tabs, spaces, and newlines)
+:rtrim              - trim trailing whitespace
+:trim               - trim lead and trailing whitespace
+
+:substitute         - apply substitute pattern specified by $CG_SUBSTITUTE_SPEC
+:s                  - alias for :substitute
+
+:lspace             - add one leading space to string iff non-empty string.
+:rspace             - add one trailing space iff non-empty string.
+:space              - use this to add spaces to empty string.
+:tab                - use this to add tabs to empty string.
+
+:todos              - convert a string to dos text
+:tounix             - convert a string to unix text
+
+:toupper            - capitalize letters in a string
+:tolower            - uncapitalize letters in a string
+
+
+                    ==============================================
+                    STACK VARIABLES.  See also: STACK MANIPULATION
+                    ==============================================
+:top                - return top value of stack (last-in)
+:bottom             - return bottom value of stack (first-in)
+:car                - alias for :bottom for lisp affectionados
+:cdr                - return the stack minus it's :car
+:split              - create stack variable by splitting text with $CG_SPLIT_PATTERN.
+                      Default split pattern is:  /[\t,]/
+:stacksize          - return the size of a stack created with %push.
+:stackminus         - subtract the members of CG_STACK_SPEC from current stack (as in set subtaction).
+:showstack          - display stack as list $CG_STACK_DELIMITER separating elements.
+
+                    =============
+                    FILE TEST OPS
+                    =============
+:B                  - return non-zero if file is Binary file.
+:T                  - return non-zero if file is Text file.
+:d                  - return non-zero if file is directory.
+:e                  - return non-zero if file is exists.
+:f                  - return non-zero if file is plain file.
+:l                  - return non-zero if file is symlink.
+:r                  - return non-zero if file is readable.
+:sz                 - return non-zero if file is non-zero size (returns size).
+:w                  - return non-zero if file is writable.
+:x                  - return non-zero if file is executable.
+:z                  - return non-zero if file is zero length.
+
+                    =====================
+                    COMPARISON & MATCHING
+                    =====================
+:eq                 - :eq - will compare against CG_COMPARE_SPEC
+:ne                 - :ne - will compare against CG_COMPARE_SPEC
+:ge                 - :ge - will compare against CG_COMPARE_SPEC
+:gt                 - :gt - will compare against CG_COMPARE_SPEC
+:le                 - :le - will compare against CG_COMPARE_SPEC
+:lt                 - :lt - will compare against CG_COMPARE_SPEC
+:match              - match against CG_MATCH_SPEC 
+:m                  - alias for :match
+:rangelb            - :rangelb => m..n => m
+:rangeub            - :rangeub => m..n => n
+
+                    ==========
+                    FILE INPUT
+                    ==========
+:openfile           - open a file if it is open. return error string or empty if no error.
+:closefile          - close a file if it is open. set $var to error or empty if no error.
+:getnextline        - get the next line of a file if it is open.
+:currentline        - return the current input line of a file, or undef varname if file is closed
+:currentlinenumber  - (1..nlines), 0 => file closed
+
+}
+{                   =======
+                    PRAGMAS
+                    =======
+preserve_multiline_lnewline
+                    - if 1, preserve the first newline in a here-now document (normally trimmed).
+copy                - if 1, do not expand templates when generating documents.
+require perl_file   - read a <perl_file> into the current context.
+
+reset_stack_delimiter
+                    - restore CG_STACK_DELIMITER to default value. 
+
+debug               - if 1, set -debug option.
+ddebug              - if 1, set -ddebug option.
+quiet               - if 1, set -q(uiet) option.
+verbose             - if 1, set -v(erbose) option.
+
+}
+
+
+{                   ==================
+                    RESERVED VARIABLES
+                    ==================
+
+                    =============
+                    USER SETTABLE
+                    =============
+$CG_ARGV
+$CG_ROOT            - The root of the output directory.  all files are generated relative to $CG_ROOT
+$CG_TEMPLATE_PATH   - All includes are processed relative to directories listed in $CG_TEMPLATE_PATH,
+
+$CG_EXIT_STATUS
+
+$CG_MODE            - generate files with this mode.  Default is 0664.
+$CG_SHELL_COMMAND_ARGS
+                    - arguments to pass to external commands specified as postfix operators.
+
+$CG_STACK_DELIMITER - Input delimiter character for creating stacks with %push.  Default is "\t".
+$CG_SPLIT_PATTERN   - split pattern for creating stack variables.  default pattern is:  /[\t,]/
+
+$CG_MATCH_SPEC
+$CG_SUBSTITUTE_SPEC
+$CG_COMPARE_SPEC
+
+$CG_NEWLINE_BEFORE_CLASS_BRACE
+$CG_INDENT_STRING
+
+                    ======================
+                    SET BY THE INTERPRETER
+                    ======================
+
+$CG_ARGV            - arguments provided on the command line to the user script
+$CG_INFILE          - the file name currently being interpreted.
+$CG_LINE_NUMBER     - the line number of the current statement, relative to the current CG_INFILE
+$CG_SHELL_STATUS    - exit status of the last %shell command
+
+                    ==============================================
+                    GENERATED VARIABLES DURING TEMPLATE PROCESSING
+                    ==============================================
+
+CG_TEMPLATE         - the name of the template file (mytemplate.jtpl).
+CG_DIRNAME          - the name of the output dir (com/acme/roles/baker).
+CG_FILENAME         - the name of the output file (BreadMaker.java).
+CG_CLASSNAME        - the name of the current class (BreadMaker).
+CG_FULL_CLASSNAME   - the full class name (com.acme.roles.baker.BreadMaker).
+CG_PKGNAME          - the relative package name (baker).
+CG_FULL_PKGNAME     - the full package name (com.acme.roles.baker).
+}
+
+{                   ==========
+                    STATEMENTS
+                    ==========
+
+                    ====================
+                    ASSIGNMENT OPERATORS
+                    ====================
+lhs  = rhs          - assign rhs to variable on lhs, with expansion of rhs.
+lhs := rhs          - assign rhs to variable on lhs, with NO expansion of rhs (raw assignment).
+lhs .= rhs          - append rhs to lhs, with expansion of rhs.
+lhs .:= rhs         - assign rhs to lhs, with NO expansion of rhs.
+
+lhs += rhs          - lhs = $lhs + $rhs  (addition)
+lhs -= rhs          - lhs = $lhs - $rhs  (subtraction)
+lhs *= rhs          - lhs = $lhs * $rhs  (multiplication)
+lhs /= rhs          - lhs = $lhs / $rhs  (division)
+lhs **= rhs         - lhs = $lhs ** $rhs (exponentiation)
+lhs %= rhs          - lhs = $lhs % $rhs  (modulo)
+lhs |= rhs          - lhs = $lhs | $rhs  (bitwise or)
+lhs &= rhs          - lhs = $lhs & $rhs  (bitwise and)
+lhs ^= rhs          - lhs = $lhs ^ $rhs  (bitwise complement)
+lhs x= rhs          - lhs = $lhs x $rhs  (string replication)
+
+$varexpr = rhs      - expand $varexpr, which must result in a variable name, and then assign the rhs to
+                      the named variable.  Also valid for :=, .=, ... (all other assignment operators).
+
+                    ==================
+                    STACK MANIPULATION
+                    ==================
+%push               - push one or more elements on stack.  Usage:  %push mystack [values...]
+%pushv              - push variables onto stack whose name matches a pattern:  %pushv myvarstack /perl RE/
+%upush              - push elements on stack uniquely
+%pop                - pop last-in value:  %pop xx mystack
+%shift              - shift first-in value:  %shift xx  mystack
+
+%pragma             - %pragma var value
+
+%evalmacro          - if output var is prefixed by '>>', then we append the variable.
+%evaltemplate       - %evaltemplate spec
+%readtemplate       - %readtemplate spec
+%include            - process include.
+
+%interpret          - interpret the contents of a variable:  %interpret varname
+%call               - alias for %interpret
+
+%shell              - call to the shell
+%echo               - echo text
+%print              - alias for %echo
+%void               - useful for evaluating postfix ops without assignment.
+
+%undef              - eliminates variables. Usage:  %undef [/pattern /]
+
+%export             - export a variable to the env.
+%unexport           - delete a variable from the env.
+
+                    ============
+                    CONDITIONALS
+                    ============
+%ifdef              - 
+%ifndef             - 
+%if                 - 
+%ifnot              - 
+
+                    =======
+                    LOOPING
+                    =======
+%whiledef           - true if we see an %whiledef statement
+%while              - true if we see an %while statement
+%foreach            - %foreach iterator_var range_var statement
+}
