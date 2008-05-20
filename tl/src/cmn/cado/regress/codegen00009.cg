@@ -1,6 +1,6 @@
 #
 # BEGIN_HEADER - DO NOT EDIT
-# 
+#
 # The contents of this file are subject to the terms
 # of the Common Development and Distribution License
 # (the "License").  You may not use this file except
@@ -24,7 +24,7 @@
 # @(#)test9.cg - ver 1.1 - 01/04/2006
 #
 # Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
-# 
+#
 # END_HEADER - DO NOT EDIT
 #
 
@@ -95,7 +95,7 @@ FOOVAR = << EOF
 
 line1
    leading space
-trailing space   
+trailing space
 line2
 
 
@@ -128,16 +128,16 @@ FOOVAR = public synchronized String [] [] foomethod () { impl }
 ds:=$
 fooptr = foo1
 foo1 = foo1_value
-%echo 7a. ${ds}fooptr:valueof=$fooptr:valueof' 
+%echo 7a. ${ds}fooptr:valueof=$fooptr:valueof'
 
 fooptr = foo1
 foo1 = foo2
 foo2 = foo2_value
-%echo 7b. ${ds}fooptr:valueof:valueof=$fooptr:valueof:valueof' 
+%echo 7b. ${ds}fooptr:valueof:valueof=$fooptr:valueof:valueof'
 
 fooptr = foo1
 %undef foo1
-%echo 7c. ${ds}fooptr:valueof=$fooptr:valueof' 
+%echo 7c. ${ds}fooptr:valueof=$fooptr:valueof'
 
 #test 8:  test lhs of definition (assignment) statement is an expression:
 %undef foo1
@@ -335,4 +335,37 @@ result=FAILED
 
 result=FAILED
 %if $foo:todos:ne	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+%undef CG_SHELL_COMMAND_ARGS
+
+#####
+#test that postfix op can work relative to $CG_SHELL_CWD.
+#####
+tname=CG_SHELL_CWD
+tnum = 0
+%echo TEST $tname with postfix operator
+%echo
+#####
+
+CG_ROOT = $TSTTMPDIR/ls_test
+
+#create a couple of files:
+ECHO_TXT = some text
+echo aa
+echo bb
+
+%undef CG_SHELL_COMMAND_ARGS
+CG_SHELL_CWD = $CG_ROOT
+
+#this should show "aa bb":
+CG_COMPARE_SPEC = << EOF
+aa
+bb
+EOF
+CG_COMPARE_SPEC = $CG_COMPARE_SPEC:trim
+
+foo=
+%echo $foo:ls
+result=FAILED
+%if $foo:ls:trim:eq	result=PASSED
 %echo $tname TEST #$tnum:incr:a $result

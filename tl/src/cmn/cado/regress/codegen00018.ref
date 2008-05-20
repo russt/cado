@@ -48,6 +48,8 @@ foo='D:\a\b\c\foo.9' foo:basename='foo.9'
 POSTFIX OPERATOR :basename TEST #2 PASSED
 foo='//a///b//c/foo.c/' foo:basename=''
 POSTFIX OPERATOR :basename TEST #3 PASSED
+foo='simplename' foo:basename='simplename'
+POSTFIX OPERATOR :basename TEST #4 PASSED
 
 :pad POSTFIX OPERATOR TESTS
 POSTFIX OPERATOR :pad TEST #1 PASSED

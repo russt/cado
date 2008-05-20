@@ -1,0 +1,13 @@
+%ifndef CG_ROOT CG_ROOT = .
+
+#do not expand macros:
+%pragma copy 1
+
+#install generated files but only if they are different:
+bld/maven2/element_names.txt	maven2/element_names.txt
+bld/maven2/generated_element_ref.txt	maven2/generated_element_ref.txt
+bld/maven2/maven_lib.cg	maven2/maven_lib.cg
+bld/maven2/maven_lib_doc.txt	maven2/maven_lib_doc.txt
+bld/maven2/maven_settings_lib.cg	maven2/maven_settings_lib.cg
+bld/maven2/maven_settings_lib_doc.txt	maven2/maven_settings_lib_doc.txt
+bld/maven2/settings_element_unique.txt	maven2/settings_element_unique.txt

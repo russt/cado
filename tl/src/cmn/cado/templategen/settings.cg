@@ -161,4 +161,7 @@
     %echo
     %echo Generating DOC:  $CG_ROOT/maven_settings_lib_doc.txt
     echo    /maven_settings_lib_doc.txt
+
+    #restore CG_ROOT:
+    CG_ROOT = $CG_ROOT_BASE
 }

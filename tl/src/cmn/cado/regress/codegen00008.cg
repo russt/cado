@@ -40,19 +40,22 @@ ECHO_TXT := << EOF
 EOF
 echo	/show_permissions.awk
 
+#execute shell commands relative to CG_ROOT:
+CG_SHELL_CWD = $CG_ROOT
+
 thefile = ${TESTNAME}.default
-%shell rm -f $thefile
+%rm -f $thefile
 ${TESTNAME}.txt	/$thefile
-%shell ls -l $CG_ROOT/${TESTNAME}.default | awk -f $CG_ROOT/show_permissions.awk
+%ls -l ${TESTNAME}.default | awk -f show_permissions.awk
 
 thefile = ${TESTNAME}.readonly
-%shell rm -f $thefile
+%rm -f $thefile
 CG_MODE = 0444
 ${TESTNAME}.txt	/$thefile
-%shell ls -l $CG_ROOT/$thefile | awk -f $CG_ROOT/show_permissions.awk
+%ls -l $thefile | awk -f show_permissions.awk
 
 thefile = ${TESTNAME}.exe
-%shell rm -f $thefile
+%rm -f $thefile
 CG_MODE = 0555
 ${TESTNAME}.txt	/$thefile
-%shell ls -l $CG_ROOT/$thefile | awk -f $CG_ROOT/show_permissions.awk
+%ls -l $thefile | awk -f show_permissions.awk

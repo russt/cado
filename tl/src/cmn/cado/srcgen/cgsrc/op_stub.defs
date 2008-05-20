@@ -214,6 +214,9 @@ sub basename_op
 {
     my ($var) = @_;
 
+    #if not a path name, then just return simple name:
+    return $var unless ( $var =~ /[\/\\]/ );
+
     return $1 if ( $var =~ /[\/\\]([^\/\\]*)$/ );
     return "";
 }

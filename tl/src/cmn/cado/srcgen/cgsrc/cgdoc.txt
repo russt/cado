@@ -155,6 +155,9 @@ ddebug              - if 1, set -ddebug option.
 quiet               - if 1, set -q(uiet) option.
 verbose             - if 1, set -v(erbose) option.
 
+filegen_notices_to_stdout
+                    - send file generation (x -> y) messages to stdout (default is stderr).
+
 }
 
 
@@ -172,6 +175,12 @@ $CG_TEMPLATE_PATH   - All includes are processed relative to directories listed 
 $CG_EXIT_STATUS
 
 $CG_MODE            - generate files with this mode.  Default is 0664.
+$CG_SHELL_CWD       - the current working directory for shell commands.  If the directory exists,
+                      all explicit and implied %shell commands will cd to this directory before executing
+                      the remainder of the command string.  Commands will be executed in the interpreter's
+                      current working directory if CG_SHELL_CWD is undefined.  Same semantics apply to
+                      shell postfix operators, e.g., "$somevar:pwd" will show the calculated working dir
+                      using the above semantics.
 $CG_SHELL_COMMAND_ARGS
                     - arguments to pass to external commands specified as postfix operators.
 

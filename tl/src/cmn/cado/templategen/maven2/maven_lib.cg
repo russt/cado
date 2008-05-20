@@ -1,7 +1,7 @@
 #
 # WARNING:  this library is generated, DO NOT EDIT.  Run "codegen genmavenlib.cg: instead
 #
-# This library is used to xml files, from simple declarations.
+# This library is used to generate pom.xml files, from simple declarations.
 #
 
 #only include this once:
@@ -106,8 +106,8 @@ EOF
 maven_project_parent := << EOF
 #%eecho ENTER maven_project_parent: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_parent: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_parent: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -285,8 +285,8 @@ EOF
 maven_project_prerequisites := << EOF
 #%eecho ENTER maven_project_prerequisites: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_prerequisites: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_prerequisites: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -382,8 +382,8 @@ EOF
 maven_project_issueManagement := << EOF
 #%eecho ENTER maven_project_issueManagement: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_issueManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_issueManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -581,8 +581,8 @@ EOF
 maven_ciManagement_notifier := << EOF
 #%eecho ENTER maven_ciManagement_notifier: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_ciManagement_notifier: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_ciManagement_notifier: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -842,8 +842,8 @@ EOF
 maven_ciManagement_notifiers := << EOF
 #%eecho ENTER maven_ciManagement_notifiers: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_ciManagement_notifiers: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_ciManagement_notifiers: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -927,8 +927,8 @@ EOF
 maven_project_ciManagement := << EOF
 #%eecho ENTER maven_project_ciManagement: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_ciManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_ciManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -1132,8 +1132,8 @@ EOF
 maven_project_mailingList := << EOF
 #%eecho ENTER maven_project_mailingList: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_mailingList: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_mailingList: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -1361,8 +1361,8 @@ EOF
 maven_project_mailingLists := << EOF
 #%eecho ENTER maven_project_mailingLists: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_mailingLists: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_mailingLists: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -1544,8 +1544,8 @@ EOF
 maven_developer := << EOF
 #%eecho ENTER maven_developer: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_developer: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_developer: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -1869,8 +1869,8 @@ EOF
 maven_project_developers := << EOF
 #%eecho ENTER maven_project_developers: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_developers: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_developers: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -2038,8 +2038,8 @@ EOF
 maven_contributor := << EOF
 #%eecho ENTER maven_contributor: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_contributor: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_contributor: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -2331,8 +2331,8 @@ EOF
 maven_project_contributors := << EOF
 #%eecho ENTER maven_project_contributors: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_contributors: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_contributors: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -2444,8 +2444,8 @@ EOF
 maven_project_license := << EOF
 #%eecho ENTER maven_project_license: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_license: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_license: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -2609,8 +2609,8 @@ EOF
 maven_project_licenses := << EOF
 #%eecho ENTER maven_project_licenses: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_licenses: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_licenses: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -2722,8 +2722,8 @@ EOF
 maven_project_scm := << EOF
 #%eecho ENTER maven_project_scm: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_scm: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_scm: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -2915,8 +2915,8 @@ EOF
 maven_project_organization := << EOF
 #%eecho ENTER maven_project_organization: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_organization: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_organization: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -3058,8 +3058,8 @@ EOF
 maven_build_extension := << EOF
 #%eecho ENTER maven_build_extension: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_extension: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_extension: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -3191,8 +3191,8 @@ EOF
 maven_build_extensions := << EOF
 #%eecho ENTER maven_build_extensions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_extensions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_extensions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -3318,8 +3318,8 @@ EOF
 maven_build_resource := << EOF
 #%eecho ENTER maven_build_resource: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_resource: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_resource: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -3515,8 +3515,8 @@ EOF
 maven_build_resources := << EOF
 #%eecho ENTER maven_build_resources: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_resources: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_resources: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -3642,8 +3642,8 @@ EOF
 maven_build_testResource := << EOF
 #%eecho ENTER maven_build_testResource: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_testResource: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_testResource: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -3839,8 +3839,8 @@ EOF
 maven_build_testResources := << EOF
 #%eecho ENTER maven_build_testResources: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_testResources: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_testResources: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -3966,8 +3966,8 @@ EOF
 maven_build_pluginManagement_plugin_execution := << EOF
 #%eecho ENTER maven_build_pluginManagement_plugin_execution: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_pluginManagement_plugin_execution: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_pluginManagement_plugin_execution: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -4163,8 +4163,8 @@ EOF
 maven_build_pluginManagement_plugin_executions := << EOF
 #%eecho ENTER maven_build_pluginManagement_plugin_executions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_pluginManagement_plugin_executions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_pluginManagement_plugin_executions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -4248,8 +4248,8 @@ EOF
 maven_build_pluginManagement_plugin_dependency_exclusion := << EOF
 #%eecho ENTER maven_build_pluginManagement_plugin_dependency_exclusion: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_pluginManagement_plugin_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_pluginManagement_plugin_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -4349,8 +4349,8 @@ EOF
 maven_build_pluginManagement_plugin_dependency_exclusions := << EOF
 #%eecho ENTER maven_build_pluginManagement_plugin_dependency_exclusions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_pluginManagement_plugin_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_pluginManagement_plugin_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -4518,8 +4518,8 @@ EOF
 maven_build_pluginManagement_plugin_dependency := << EOF
 #%eecho ENTER maven_build_pluginManagement_plugin_dependency: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_pluginManagement_plugin_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_pluginManagement_plugin_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -4831,8 +4831,8 @@ EOF
 maven_build_pluginManagement_plugin_dependencies := << EOF
 #%eecho ENTER maven_build_pluginManagement_plugin_dependencies: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_pluginManagement_plugin_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_pluginManagement_plugin_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -4986,8 +4986,8 @@ EOF
 maven_build_pluginManagement_plugin := << EOF
 #%eecho ENTER maven_build_pluginManagement_plugin: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_pluginManagement_plugin: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_pluginManagement_plugin: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -5287,8 +5287,8 @@ EOF
 maven_build_pluginManagement_plugins := << EOF
 #%eecho ENTER maven_build_pluginManagement_plugins: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_pluginManagement_plugins: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_pluginManagement_plugins: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -5344,8 +5344,8 @@ EOF
 maven_build_pluginManagement := << EOF
 #%eecho ENTER maven_build_pluginManagement: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_pluginManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_pluginManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -5471,8 +5471,8 @@ EOF
 maven_build_plugin_execution := << EOF
 #%eecho ENTER maven_build_plugin_execution: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_plugin_execution: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_plugin_execution: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -5668,8 +5668,8 @@ EOF
 maven_build_plugin_executions := << EOF
 #%eecho ENTER maven_build_plugin_executions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_plugin_executions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_plugin_executions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -5753,8 +5753,8 @@ EOF
 maven_build_plugin_dependency_exclusion := << EOF
 #%eecho ENTER maven_build_plugin_dependency_exclusion: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_plugin_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_plugin_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -5854,8 +5854,8 @@ EOF
 maven_build_plugin_dependency_exclusions := << EOF
 #%eecho ENTER maven_build_plugin_dependency_exclusions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_plugin_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_plugin_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -6023,8 +6023,8 @@ EOF
 maven_build_plugin_dependency := << EOF
 #%eecho ENTER maven_build_plugin_dependency: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_plugin_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_plugin_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -6336,8 +6336,8 @@ EOF
 maven_build_plugin_dependencies := << EOF
 #%eecho ENTER maven_build_plugin_dependencies: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_plugin_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_plugin_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -6491,8 +6491,8 @@ EOF
 maven_build_plugin := << EOF
 #%eecho ENTER maven_build_plugin: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_plugin: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_plugin: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -6792,8 +6792,8 @@ EOF
 maven_build_plugins := << EOF
 #%eecho ENTER maven_build_plugins: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_build_plugins: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_build_plugins: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -6975,8 +6975,8 @@ EOF
 maven_project_build := << EOF
 #%eecho ENTER maven_project_build: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_build: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_build: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -7456,8 +7456,8 @@ EOF
 maven_profile_activation_os := << EOF
 #%eecho ENTER maven_profile_activation_os: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_activation_os: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_activation_os: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -7649,8 +7649,8 @@ EOF
 maven_profile_activation_property := << EOF
 #%eecho ENTER maven_profile_activation_property: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_activation_property: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_activation_property: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -7778,8 +7778,8 @@ EOF
 maven_profile_activation_file := << EOF
 #%eecho ENTER maven_profile_activation_file: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_activation_file: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_activation_file: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -7907,8 +7907,8 @@ EOF
 maven_profile_activation := << EOF
 #%eecho ENTER maven_profile_activation: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_activation: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_activation: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -8138,8 +8138,8 @@ EOF
 maven_profile_build_resource := << EOF
 #%eecho ENTER maven_profile_build_resource: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_resource: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_resource: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -8335,8 +8335,8 @@ EOF
 maven_profile_build_resources := << EOF
 #%eecho ENTER maven_profile_build_resources: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_resources: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_resources: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -8462,8 +8462,8 @@ EOF
 maven_profile_build_testResource := << EOF
 #%eecho ENTER maven_profile_build_testResource: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_testResource: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_testResource: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -8659,8 +8659,8 @@ EOF
 maven_profile_build_testResources := << EOF
 #%eecho ENTER maven_profile_build_testResources: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_testResources: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_testResources: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -8786,8 +8786,8 @@ EOF
 maven_profile_build_pluginManagement_plugin_execution := << EOF
 #%eecho ENTER maven_profile_build_pluginManagement_plugin_execution: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_pluginManagement_plugin_execution: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_pluginManagement_plugin_execution: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -8983,8 +8983,8 @@ EOF
 maven_profile_build_pluginManagement_plugin_executions := << EOF
 #%eecho ENTER maven_profile_build_pluginManagement_plugin_executions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_pluginManagement_plugin_executions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_pluginManagement_plugin_executions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -9068,8 +9068,8 @@ EOF
 maven_profile_build_pluginManagement_plugin_dependency_exclusion := << EOF
 #%eecho ENTER maven_profile_build_pluginManagement_plugin_dependency_exclusion: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_pluginManagement_plugin_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_pluginManagement_plugin_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -9169,8 +9169,8 @@ EOF
 maven_profile_build_pluginManagement_plugin_dependency_exclusions := << EOF
 #%eecho ENTER maven_profile_build_pluginManagement_plugin_dependency_exclusions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_pluginManagement_plugin_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_pluginManagement_plugin_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -9338,8 +9338,8 @@ EOF
 maven_profile_build_pluginManagement_plugin_dependency := << EOF
 #%eecho ENTER maven_profile_build_pluginManagement_plugin_dependency: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_pluginManagement_plugin_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_pluginManagement_plugin_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -9651,8 +9651,8 @@ EOF
 maven_profile_build_pluginManagement_plugin_dependencies := << EOF
 #%eecho ENTER maven_profile_build_pluginManagement_plugin_dependencies: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_pluginManagement_plugin_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_pluginManagement_plugin_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -9806,8 +9806,8 @@ EOF
 maven_profile_build_pluginManagement_plugin := << EOF
 #%eecho ENTER maven_profile_build_pluginManagement_plugin: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_pluginManagement_plugin: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_pluginManagement_plugin: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -10107,8 +10107,8 @@ EOF
 maven_profile_build_pluginManagement_plugins := << EOF
 #%eecho ENTER maven_profile_build_pluginManagement_plugins: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_pluginManagement_plugins: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_pluginManagement_plugins: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -10164,8 +10164,8 @@ EOF
 maven_profile_build_pluginManagement := << EOF
 #%eecho ENTER maven_profile_build_pluginManagement: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_pluginManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_pluginManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -10291,8 +10291,8 @@ EOF
 maven_profile_build_plugin_execution := << EOF
 #%eecho ENTER maven_profile_build_plugin_execution: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_plugin_execution: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_plugin_execution: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -10488,8 +10488,8 @@ EOF
 maven_profile_build_plugin_executions := << EOF
 #%eecho ENTER maven_profile_build_plugin_executions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_plugin_executions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_plugin_executions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -10573,8 +10573,8 @@ EOF
 maven_profile_build_plugin_dependency_exclusion := << EOF
 #%eecho ENTER maven_profile_build_plugin_dependency_exclusion: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_plugin_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_plugin_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -10674,8 +10674,8 @@ EOF
 maven_profile_build_plugin_dependency_exclusions := << EOF
 #%eecho ENTER maven_profile_build_plugin_dependency_exclusions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_plugin_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_plugin_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -10843,8 +10843,8 @@ EOF
 maven_profile_build_plugin_dependency := << EOF
 #%eecho ENTER maven_profile_build_plugin_dependency: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_plugin_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_plugin_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -11156,8 +11156,8 @@ EOF
 maven_profile_build_plugin_dependencies := << EOF
 #%eecho ENTER maven_profile_build_plugin_dependencies: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_plugin_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_plugin_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -11311,8 +11311,8 @@ EOF
 maven_profile_build_plugin := << EOF
 #%eecho ENTER maven_profile_build_plugin: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_plugin: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_plugin: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -11612,8 +11612,8 @@ EOF
 maven_profile_build_plugins := << EOF
 #%eecho ENTER maven_profile_build_plugins: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build_plugins: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build_plugins: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -11725,8 +11725,8 @@ EOF
 maven_profile_build := << EOF
 #%eecho ENTER maven_profile_build: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_build: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_build: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -12012,8 +12012,8 @@ EOF
 maven_profile_repository_releases := << EOF
 #%eecho ENTER maven_profile_repository_releases: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_repository_releases: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_repository_releases: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -12187,8 +12187,8 @@ EOF
 maven_profile_repository_snapshots := << EOF
 #%eecho ENTER maven_profile_repository_snapshots: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_repository_snapshots: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_repository_snapshots: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -12376,8 +12376,8 @@ EOF
 maven_profile_repository := << EOF
 #%eecho ENTER maven_profile_repository: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_repository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_repository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -12581,8 +12581,8 @@ EOF
 maven_profile_repositories := << EOF
 #%eecho ENTER maven_profile_repositories: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_repositories: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_repositories: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -12680,8 +12680,8 @@ EOF
 maven_profile_pluginRepository_releases := << EOF
 #%eecho ENTER maven_profile_pluginRepository_releases: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_pluginRepository_releases: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_pluginRepository_releases: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -12855,8 +12855,8 @@ EOF
 maven_profile_pluginRepository_snapshots := << EOF
 #%eecho ENTER maven_profile_pluginRepository_snapshots: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_pluginRepository_snapshots: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_pluginRepository_snapshots: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -13044,8 +13044,8 @@ EOF
 maven_profile_pluginRepository := << EOF
 #%eecho ENTER maven_profile_pluginRepository: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_pluginRepository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_pluginRepository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -13249,8 +13249,8 @@ EOF
 maven_profile_pluginRepositories := << EOF
 #%eecho ENTER maven_profile_pluginRepositories: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_pluginRepositories: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_pluginRepositories: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -13334,8 +13334,8 @@ EOF
 maven_profile_dependency_exclusion := << EOF
 #%eecho ENTER maven_profile_dependency_exclusion: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -13435,8 +13435,8 @@ EOF
 maven_profile_dependency_exclusions := << EOF
 #%eecho ENTER maven_profile_dependency_exclusions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -13604,8 +13604,8 @@ EOF
 maven_profile_dependency := << EOF
 #%eecho ENTER maven_profile_dependency: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -13917,8 +13917,8 @@ EOF
 maven_profile_dependencies := << EOF
 #%eecho ENTER maven_profile_dependencies: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -14030,8 +14030,8 @@ EOF
 maven_profile_reporting_plugin_reportSet := << EOF
 #%eecho ENTER maven_profile_reporting_plugin_reportSet: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_reporting_plugin_reportSet: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_reporting_plugin_reportSet: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -14195,8 +14195,8 @@ EOF
 maven_profile_reporting_plugin_reportSets := << EOF
 #%eecho ENTER maven_profile_reporting_plugin_reportSets: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_reporting_plugin_reportSets: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_reporting_plugin_reportSets: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -14322,8 +14322,8 @@ EOF
 maven_profile_reporting_plugin := << EOF
 #%eecho ENTER maven_profile_reporting_plugin: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_reporting_plugin: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_reporting_plugin: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -14539,8 +14539,8 @@ EOF
 maven_profile_reporting_plugins := << EOF
 #%eecho ENTER maven_profile_reporting_plugins: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_reporting_plugins: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_reporting_plugins: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -14624,8 +14624,8 @@ EOF
 maven_profile_reporting := << EOF
 #%eecho ENTER maven_profile_reporting: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_reporting: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_reporting: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -14773,8 +14773,8 @@ EOF
 maven_profile_dependencyManagement_dependency_exclusion := << EOF
 #%eecho ENTER maven_profile_dependencyManagement_dependency_exclusion: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_dependencyManagement_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_dependencyManagement_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -14874,8 +14874,8 @@ EOF
 maven_profile_dependencyManagement_dependency_exclusions := << EOF
 #%eecho ENTER maven_profile_dependencyManagement_dependency_exclusions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_dependencyManagement_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_dependencyManagement_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -15043,8 +15043,8 @@ EOF
 maven_profile_dependencyManagement_dependency := << EOF
 #%eecho ENTER maven_profile_dependencyManagement_dependency: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_dependencyManagement_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_dependencyManagement_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -15356,8 +15356,8 @@ EOF
 maven_profile_dependencyManagement_dependencies := << EOF
 #%eecho ENTER maven_profile_dependencyManagement_dependencies: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_dependencyManagement_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_dependencyManagement_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -15413,8 +15413,8 @@ EOF
 maven_profile_dependencyManagement := << EOF
 #%eecho ENTER maven_profile_dependencyManagement: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_dependencyManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_dependencyManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -15540,8 +15540,8 @@ EOF
 maven_profile_distributionManagement_repository := << EOF
 #%eecho ENTER maven_profile_distributionManagement_repository: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_distributionManagement_repository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_distributionManagement_repository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -15807,8 +15807,8 @@ EOF
 maven_profile_distributionManagement_snapshotRepository := << EOF
 #%eecho ENTER maven_profile_distributionManagement_snapshotRepository: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_distributionManagement_snapshotRepository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_distributionManagement_snapshotRepository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -16046,8 +16046,8 @@ EOF
 maven_profile_distributionManagement_site := << EOF
 #%eecho ENTER maven_profile_distributionManagement_site: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_distributionManagement_site: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_distributionManagement_site: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -16235,8 +16235,8 @@ EOF
 maven_profile_distributionManagement_relocation := << EOF
 #%eecho ENTER maven_profile_distributionManagement_relocation: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_distributionManagement_relocation: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_distributionManagement_relocation: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -16428,8 +16428,8 @@ EOF
 maven_profile_distributionManagement := << EOF
 #%eecho ENTER maven_profile_distributionManagement: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_profile_distributionManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_profile_distributionManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -16665,8 +16665,8 @@ EOF
 maven_project_profile := << EOF
 #%eecho ENTER maven_project_profile: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_profile: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_profile: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -16990,8 +16990,8 @@ EOF
 maven_project_profiles := << EOF
 #%eecho ENTER maven_project_profiles: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_profiles: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_profiles: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -17089,8 +17089,8 @@ EOF
 maven_project_repository_releases := << EOF
 #%eecho ENTER maven_project_repository_releases: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_repository_releases: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_repository_releases: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -17264,8 +17264,8 @@ EOF
 maven_project_repository_snapshots := << EOF
 #%eecho ENTER maven_project_repository_snapshots: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_repository_snapshots: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_repository_snapshots: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -17453,8 +17453,8 @@ EOF
 maven_project_repository := << EOF
 #%eecho ENTER maven_project_repository: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_repository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_repository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -17658,8 +17658,8 @@ EOF
 maven_project_repositories := << EOF
 #%eecho ENTER maven_project_repositories: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_repositories: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_repositories: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -17757,8 +17757,8 @@ EOF
 maven_project_pluginRepository_releases := << EOF
 #%eecho ENTER maven_project_pluginRepository_releases: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_pluginRepository_releases: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_pluginRepository_releases: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -17932,8 +17932,8 @@ EOF
 maven_project_pluginRepository_snapshots := << EOF
 #%eecho ENTER maven_project_pluginRepository_snapshots: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_pluginRepository_snapshots: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_pluginRepository_snapshots: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -18121,8 +18121,8 @@ EOF
 maven_project_pluginRepository := << EOF
 #%eecho ENTER maven_project_pluginRepository: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_pluginRepository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_pluginRepository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -18326,8 +18326,8 @@ EOF
 maven_project_pluginRepositories := << EOF
 #%eecho ENTER maven_project_pluginRepositories: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_pluginRepositories: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_pluginRepositories: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -18411,8 +18411,8 @@ EOF
 maven_dependency_exclusion := << EOF
 #%eecho ENTER maven_dependency_exclusion: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -18512,8 +18512,8 @@ EOF
 maven_dependency_exclusions := << EOF
 #%eecho ENTER maven_dependency_exclusions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -18681,8 +18681,8 @@ EOF
 maven_dependency := << EOF
 #%eecho ENTER maven_dependency: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -18994,8 +18994,8 @@ EOF
 maven_project_dependencies := << EOF
 #%eecho ENTER maven_project_dependencies: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -19107,8 +19107,8 @@ EOF
 maven_project_reporting_plugin_reportSet := << EOF
 #%eecho ENTER maven_project_reporting_plugin_reportSet: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_reporting_plugin_reportSet: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_reporting_plugin_reportSet: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -19272,8 +19272,8 @@ EOF
 maven_project_reporting_plugin_reportSets := << EOF
 #%eecho ENTER maven_project_reporting_plugin_reportSets: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_reporting_plugin_reportSets: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_reporting_plugin_reportSets: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -19399,8 +19399,8 @@ EOF
 maven_project_reporting_plugin := << EOF
 #%eecho ENTER maven_project_reporting_plugin: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_reporting_plugin: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_reporting_plugin: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -19616,8 +19616,8 @@ EOF
 maven_project_reporting_plugins := << EOF
 #%eecho ENTER maven_project_reporting_plugins: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_reporting_plugins: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_reporting_plugins: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -19701,8 +19701,8 @@ EOF
 maven_project_reporting := << EOF
 #%eecho ENTER maven_project_reporting: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_reporting: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_reporting: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -19850,8 +19850,8 @@ EOF
 maven_project_dependencyManagement_dependency_exclusion := << EOF
 #%eecho ENTER maven_project_dependencyManagement_dependency_exclusion: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_dependencyManagement_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_dependencyManagement_dependency_exclusion: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -19951,8 +19951,8 @@ EOF
 maven_project_dependencyManagement_dependency_exclusions := << EOF
 #%eecho ENTER maven_project_dependencyManagement_dependency_exclusions: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_dependencyManagement_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_dependencyManagement_dependency_exclusions: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -20120,8 +20120,8 @@ EOF
 maven_project_dependencyManagement_dependency := << EOF
 #%eecho ENTER maven_project_dependencyManagement_dependency: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_dependencyManagement_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_dependencyManagement_dependency: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -20433,8 +20433,8 @@ EOF
 maven_project_dependencyManagement_dependencies := << EOF
 #%eecho ENTER maven_project_dependencyManagement_dependencies: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_dependencyManagement_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_dependencyManagement_dependencies: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -20490,8 +20490,8 @@ EOF
 maven_project_dependencyManagement := << EOF
 #%eecho ENTER maven_project_dependencyManagement: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_dependencyManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_dependencyManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -20617,8 +20617,8 @@ EOF
 maven_project_distributionManagement_repository := << EOF
 #%eecho ENTER maven_project_distributionManagement_repository: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_distributionManagement_repository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_distributionManagement_repository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -20884,8 +20884,8 @@ EOF
 maven_project_distributionManagement_snapshotRepository := << EOF
 #%eecho ENTER maven_project_distributionManagement_snapshotRepository: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_distributionManagement_snapshotRepository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_distributionManagement_snapshotRepository: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -21123,8 +21123,8 @@ EOF
 maven_project_distributionManagement_site := << EOF
 #%eecho ENTER maven_project_distributionManagement_site: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_distributionManagement_site: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_distributionManagement_site: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -21312,8 +21312,8 @@ EOF
 maven_project_distributionManagement_relocation := << EOF
 #%eecho ENTER maven_project_distributionManagement_relocation: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_distributionManagement_relocation: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_distributionManagement_relocation: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -21505,8 +21505,8 @@ EOF
 maven_project_distributionManagement := << EOF
 #%eecho ENTER maven_project_distributionManagement: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project_distributionManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project_distributionManagement: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -21854,8 +21854,8 @@ EOF
 maven_project := << EOF
 #%eecho ENTER maven_project: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho maven_project: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MAVEN_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho maven_project: ERROR: MAVEN_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 

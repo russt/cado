@@ -226,6 +226,13 @@ CG_COMPARE_SPEC :=
 %if $foo:basename:eq	result=PASSED
 %echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
 
+foo = simplename
+result=FAILED
+%echo foo='$foo' foo:basename='$foo:basename'
+CG_COMPARE_SPEC := simplename
+%if $foo:basename:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
 #####  test pad operator:
 tname=:pad
 tnum = 0

@@ -8,7 +8,7 @@ gen_maven_lib_header := << EOF_DEF
 #
 # WARNING:  this library is generated, DO NOT EDIT.  Run "codegen genmavenlib.cg: instead
 #
-# This library is used to xml files, from simple declarations.
+# This library is used to generate pom.xml files, from simple declarations.
 #
 
 #only include this once:
@@ -168,8 +168,8 @@ non_terminal_template := << EOF_DEF
 {=macro_name=} := << EOF
 #%eecho ENTER {=macro_name=}: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=${=UMACRO_PREFIX=}_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho {=macro_name=}: ERROR: {=UMACRO_PREFIX=}_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=${=UMACRO_PREFIX=}_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho {=macro_name=}: ERROR: {=UMACRO_PREFIX=}_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 

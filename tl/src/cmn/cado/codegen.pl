@@ -179,6 +179,14 @@
 #       Add %pushv statement, to create a stack of varibles names matching a pattern.
 #       Interpret ${varname:undef} as undefined value for $varname.
 #       Add versioned cgdoc.txt to distribution.
+#  04-Dec-2007 (russt) [Version 1.67]
+#       Search for unimplemented "%" commands externally (e.g. %mkdir, etc).
+#       All external commands (%shell and postfix ops) now first cd to CG_SHELL_CWD,
+#       Add %pragma "filegen_notices_to_stdout".  If set, will redirect file
+#       generation messages to stdout (default is stderr).
+#  02-Apr-2008 (russt) [Version 1.68]
+#       Fix bug in :basename operator, and add regression test for it.
+#       Fix bug in maven templates, and add some instructions.
 #
 
 use strict;
@@ -188,8 +196,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.66",         #VERSION - the program version number.
-    "26-Oct-2007",  #VERSION_DATE - date this version was released.
+    "1.68",         #VERSION - the program version number.
+    "02-Apr-2008",  #VERSION_DATE - date this version was released.
 );
 require "path.pl";
 require "os.pl";
@@ -227,6 +235,7 @@ my (
     $pragma_ddebug,
     $pragma_quiet,
     $pragma_verbose,
+    $pragma_filegen_notices_to_stdout,
     $STRIPTOSHARPBANG,
     $LOOKINPATH,
 ) = (
@@ -260,6 +269,7 @@ my (
     0,              #pragma_ddebug - set DDEBUG option
     0,              #pragma_quiet - set QUIET option
     0,              #pragma_verbose - set VERBOSE option
+    0,              #pragma_filegen_notices_to_stdout - send file generation (x -> y) messages to stdout, not stderr.
     0,              #STRIPTOSHARPBANG -  true if we have a -x option
     0,              #LOOKINPATH - true if we have a -S option
 );
@@ -274,6 +284,7 @@ my %PRAGMAS = (
     'verbose', 1,
     'quiet', 1,
     'reset_stack_delimiter', 1,
+    'filegen_notices_to_stdout', 1,
 );
 
 my @INPUT_DATA;
@@ -499,6 +510,8 @@ sub interpret
                         }
                     }
                 }
+            } elsif (&extern_cmd($line, $linecnt)) {
+                ;
             } elsif (&filespec($line, $linecnt)) {
                 ;       #process filespec and generate source file
             } else {
@@ -745,6 +758,7 @@ sub pragma_spec
     if (0) {
         $pragma_preserve_multiline_lnewline = $pragma_preserve_multiline_lnewline;
         $pragma_copy = $pragma_copy;
+        $pragma_filegen_notices_to_stdout = $pragma_filegen_notices_to_stdout;
     }
 
     #set verbosity based on pragma values
@@ -1090,6 +1104,55 @@ sub expand_include_fn
     return $tmpfn;
 }
 
+sub get_shell_cwd
+#if CG_SHELL_CWD is defined, then return it - otherwise, return CG_ROOT.
+#if CG_ROOT is used and doesn't exist, then we create it.
+{
+    return &lookup_def('CG_SHELL_CWD') if (&var_defined('CG_SHELL_CWD'));
+
+    return($DOT);
+}
+
+sub get_shell_cd_cmd
+#generate command string to cd to the current shell directory.
+#if directory doesn't exist, then return empty string.
+{
+    my $cwd = &get_shell_cwd();
+
+    return "" if ($cwd eq $DOT);  #skip cd if we are already there
+
+    return ( (-d $cwd)? sprintf("cd %s && ", $cwd) : "" );
+}
+
+sub extern_cmd
+#processed last.  If we have a "%" command that is not handled,
+#then we look for an external command of the same name.
+#returns true if command is processed.
+#does not work if command name has spaces in it.
+{
+    my ($line, $linecnt) = @_;
+
+    return 0 unless ($line =~ /^\s*%([a-zA-Z0-9_\\\/\-\.]+)\s*(.*)$/);
+
+    #otherwise, pull out the command name:
+    my $cmdname = $1;
+    my $cmdargs = (defined($2) ? " " . $2 : "");
+
+    #for simplicity, we currently do not allow the command name to be a variable expression.  RT 11/21/07
+    $cmdargs = &expand_macros($cmdargs) if ($cmdargs ne "");
+
+    #execute command in current shell directory:
+    my $cmd = sprintf("sh -c '%s%s%s'", &get_shell_cd_cmd(), $cmdname, $cmdargs);
+
+    printf STDERR "%s: processing external shell command '%s'\n", $p, $cmd if ($VERBOSE);
+
+    $CG_USER_VARS{'CG_SHELL_STATUS'} = 254;    #unless shell sets status, we assume bad
+    system($cmd);
+    $CG_USER_VARS{'CG_SHELL_STATUS'} = $?;
+
+    return 1;   #we found and processed a shell command, even if there were errors...
+}
+
 sub shellspec
 #returns true if we have an call to the shell
 {
@@ -1104,7 +1167,7 @@ sub shellspec
     #expand definitions in command string:
     $cmd = &expand_macros($cmd);
 
-    $cmd = sprintf("sh -c '%s'", $cmd);
+    $cmd = sprintf("sh -c '%s%s'", &get_shell_cd_cmd(), $cmd);
 
     printf STDERR "%s: processing shell command '%s'\n", $p, $cmd if ($VERBOSE);
 
@@ -2232,6 +2295,10 @@ sub gen_sourcefile
 {
     my ($cvar_ref, $line, $linecnt, $is_append, $cgroot) = @_;
 
+    #this is the file handle where we send file generation messages:
+    my $msgfh = \*STDERR;
+    $msgfh = \*STDOUT if ($pragma_filegen_notices_to_stdout);    #we want messages on stdout
+
     #get local vars for codegen:
     my ($dirname) = ${$cvar_ref}{'CG_DIRNAME'};
     my ($filename) = ${$cvar_ref}{'CG_FILENAME'};
@@ -2329,19 +2396,19 @@ sub gen_sourcefile
                 printf STDERR "%s [gen_sourcefile]: ERROR: cannot remove temp file '%s' (%s)\n", $p, $outfile, $!;
                 ++$errcnt;
             } 
-            printf STDERR "%s -> %s -> update -> dest same as source.\n", $template, $original_outfile if ($VERBOSE);
+            printf $msgfh "%s -> %s -> update -> dest same as source.\n", $template, $original_outfile if ($VERBOSE);
         } else {
             #move the temp file to the original:
             if (&os::rename($outfile, $original_outfile) != 0) {
                 printf STDERR "%s [gen_sourcefile]: ERROR: cannot replace '%s' with temp file '%s' (%s)\n", $p, $original_outfile, $outfile, $!;
                 ++$errcnt;
             } else {
-                printf STDERR "%s -> %s\n", $template, $original_outfile unless ($QUIET);
+                printf $msgfh "%s -> %s\n", $template, $original_outfile unless ($QUIET);
                 $errcnt += &setmode($original_outfile);
             }
         }
     } else {
-        printf STDERR "%s -> %s\n", $template, $outfile unless ($QUIET);
+        printf $msgfh "%s -> %s\n", $template, $outfile unless ($QUIET);
         $errcnt += &setmode($outfile);
     }
 
@@ -2492,7 +2559,10 @@ sub eval_template_expr
             $macro =~ s/`(.*)`/%exec $1/;
         }
         
-        if ($macro =~ /^%/) {
+        if ($macro =~ /^#/) {
+            #ignore comments
+            ;
+        } elsif ($macro =~ /^%/) {
             $errcnt += &exec_macro($outfile_ref, $macro);   #member with results of execution
         } elsif ($macro =~ /\$/) {
             #we have a variable expression:
@@ -3252,7 +3322,7 @@ sub init_spec_vars
     $CG_USER_VARS{'CG_TEMPLATE_PATH'} = $CG_TEMPLATE_PATH;
     $CG_USER_VARS{'CG_NEWLINE_BEFORE_CLASS_BRACE'} = $CG_NEWLINE_BEFORE_CLASS_BRACE;
     $CG_USER_VARS{'CG_INDENT_STRING'} = $CG_INDENT_STRING;
-    $CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'} = "";
+    $CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'} = undef;
     $CG_USER_VARS{'CG_SHELL_STATUS'} = undef;
     $CG_USER_VARS{'CG_EXIT_STATUS'} = undef;
     $CG_USER_VARS{'CG_LINE_NUMBER'} = 0;
@@ -3472,7 +3542,7 @@ sub exec_shell_op
 #returns <var> unmodified if there is an error creating the pipe,
 #otherwise, the output from the command.
 {
-    my ($cmd, $var) = @_;
+    my ($cmdname, $var) = @_;
 
     #write $var to a tmp file:
     my $tmpfile = &os'TempFile;
@@ -3488,9 +3558,11 @@ sub exec_shell_op
         close TMPFILE;
 
         #check for command line arguments:
-        my $args = "";
-        $args = $CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'} if ( defined($CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'}) );
-        $cmd = "$cmd $args" if ($args ne "");
+        my $cmdargs = "";
+        $cmdargs = (" " .  &lookup_def('CG_SHELL_COMMAND_ARGS')) if (&var_defined('CG_SHELL_COMMAND_ARGS'));
+
+        #execute command in current shell directory:
+        my $cmd = sprintf("%s%s%s", &get_shell_cd_cmd(), $cmdname, $cmdargs);
 
         #now open pipe to command:
         $CG_USER_VARS{'CG_SHELL_STATUS'} = 255;    #unless shell sets status, we assume bad
@@ -3818,6 +3890,9 @@ sub basename_op
 #return basename of input var
 {
     my ($var) = @_;
+
+    #if not a path name, then just return simple name:
+    return $var unless ( $var =~ /[\/\\]/ );
 
     return $1 if ( $var =~ /[\/\\]([^\/\\]*)$/ );
     return "";

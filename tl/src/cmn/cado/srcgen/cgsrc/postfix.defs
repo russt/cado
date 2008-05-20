@@ -95,7 +95,7 @@ sub exec_shell_op
 #returns <var> unmodified if there is an error creating the pipe,
 #otherwise, the output from the command.
 {
-    my ($cmd, $var) = @_;
+    my ($cmdname, $var) = @_;
 
     #write $var to a tmp file:
     my $tmpfile = &os'TempFile;
@@ -111,9 +111,11 @@ sub exec_shell_op
         close TMPFILE;
 
         #check for command line arguments:
-        my $args = "";
-        $args = $CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'} if ( defined($CG_USER_VARS{'CG_SHELL_COMMAND_ARGS'}) );
-        $cmd = "$cmd $args" if ($args ne "");
+        my $cmdargs = "";
+        $cmdargs = (" " .  &lookup_def('CG_SHELL_COMMAND_ARGS')) if (&var_defined('CG_SHELL_COMMAND_ARGS'));
+
+        #execute command in current shell directory:
+        my $cmd = sprintf("%s%s%s", &get_shell_cd_cmd(), $cmdname, $cmdargs);
 
         #now open pipe to command:
         $CG_USER_VARS{'CG_SHELL_STATUS'} = 255;    #unless shell sets status, we assume bad

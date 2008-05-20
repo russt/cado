@@ -48,6 +48,8 @@
 #    %echo
 #    %echo perl xmlcgutil.pl -m < maven2/element_ref.txt > $CG_ROOT/gen_mvn2_macro.defs
 #    %shell perl xmlcgutil.pl -m < maven2/element_ref.txt > $CG_ROOT/gen_mvn2_macro.defs
+#    #restore CG_ROOT:
+#    CG_ROOT = $CG_ROOT_BASE
 #    %exit
 }
 
@@ -163,4 +165,7 @@
     %echo
     %echo Generating DOC:  $CG_ROOT/maven_lib_doc.txt
     echo    /maven_lib_doc.txt
+
+    #restore CG_ROOT:
+    CG_ROOT = $CG_ROOT_BASE
 }

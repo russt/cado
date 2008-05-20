@@ -96,3 +96,8 @@ TEST :cap/:uncap operator
 -------
 :tounix/:todos TEST #25 PASSED
 :tounix/:todos TEST #26 PASSED
+TEST CG_SHELL_CWD with postfix operator
+
+aa
+bb
+CG_SHELL_CWD TEST #1 PASSED

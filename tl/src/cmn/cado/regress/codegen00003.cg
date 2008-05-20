@@ -42,4 +42,7 @@ VERSION= 0.0
 class.jtpl	com.foo.aclass
 FOOVAR = $CG_CLASSNAME
 %echo FOOVAR=$FOOVAR
-%shell cat $CG_ROOT/com/foo/aclass.java
+
+#exec shell command relative to CG_ROOT:
+CG_SHELL_CWD = $CG_ROOT
+%shell cat com/foo/aclass.java

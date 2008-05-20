@@ -1,5 +1,12 @@
+#
 #this script generates maven 1.1.x and maven 2.0.x libraries, runs tests, etc.
 #WARNING:  no script to do end-to-end gen for maven 1.x yet.  RT 6/13/06
+#
+# Procedure:
+#    codegen -u top.cg
+#    codegen -u install.cg
+#
+# the install.cg script copies files from bld/maven2 to maven2 if they have changed.
 #
 
 ######
@@ -16,4 +23,7 @@ CG_ROOT_BASE = $CG_ROOT
 ###### end setup
 
 %include settings.cg
+
+#this is defensive:
+CG_ROOT = $CG_ROOT_BASE
 %include maven2.cg

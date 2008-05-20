@@ -1,7 +1,7 @@
 #
 # WARNING:  this library is generated, DO NOT EDIT.  Run "codegen genmavenlib.cg: instead
 #
-# This library is used to xml files, from simple declarations.
+# This library is used to generate pom.xml files, from simple declarations.
 #
 
 #only include this once:
@@ -162,8 +162,8 @@ EOF
 mvnconf_proxy := << EOF
 #%eecho ENTER mvnconf_proxy: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_proxy: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_proxy: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -455,8 +455,8 @@ EOF
 mvnconf_proxies := << EOF
 #%eecho ENTER mvnconf_proxies: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_proxies: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_proxies: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -624,8 +624,8 @@ EOF
 mvnconf_server := << EOF
 #%eecho ENTER mvnconf_server: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_server: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_server: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -917,8 +917,8 @@ EOF
 mvnconf_servers := << EOF
 #%eecho ENTER mvnconf_servers: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_servers: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_servers: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -1030,8 +1030,8 @@ EOF
 mvnconf_mirror := << EOF
 #%eecho ENTER mvnconf_mirror: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_mirror: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_mirror: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -1195,8 +1195,8 @@ EOF
 mvnconf_mirrors := << EOF
 #%eecho ENTER mvnconf_mirrors: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_mirrors: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_mirrors: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -1308,8 +1308,8 @@ EOF
 mvnconf_profile_activation_o := << EOF
 #%eecho ENTER mvnconf_profile_activation_o: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile_activation_o: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile_activation_o: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -1501,8 +1501,8 @@ EOF
 mvnconf_profile_activation_property := << EOF
 #%eecho ENTER mvnconf_profile_activation_property: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile_activation_property: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile_activation_property: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -1630,8 +1630,8 @@ EOF
 mvnconf_profile_activation_file := << EOF
 #%eecho ENTER mvnconf_profile_activation_file: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile_activation_file: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile_activation_file: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -1759,8 +1759,8 @@ EOF
 mvnconf_profile_activation := << EOF
 #%eecho ENTER mvnconf_profile_activation: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile_activation: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile_activation: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -1962,8 +1962,8 @@ EOF
 mvnconf_profile_repository_release := << EOF
 #%eecho ENTER mvnconf_profile_repository_release: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile_repository_release: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile_repository_release: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -2137,8 +2137,8 @@ EOF
 mvnconf_profile_repository_snapshot := << EOF
 #%eecho ENTER mvnconf_profile_repository_snapshot: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile_repository_snapshot: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile_repository_snapshot: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -2326,8 +2326,8 @@ EOF
 mvnconf_profile_repository := << EOF
 #%eecho ENTER mvnconf_profile_repository: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile_repository: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile_repository: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -2531,8 +2531,8 @@ EOF
 mvnconf_profile_repositories := << EOF
 #%eecho ENTER mvnconf_profile_repositories: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile_repositories: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile_repositories: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -2630,8 +2630,8 @@ EOF
 mvnconf_profile_pluginRepository_release := << EOF
 #%eecho ENTER mvnconf_profile_pluginRepository_release: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile_pluginRepository_release: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile_pluginRepository_release: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -2805,8 +2805,8 @@ EOF
 mvnconf_profile_pluginRepository_snapshot := << EOF
 #%eecho ENTER mvnconf_profile_pluginRepository_snapshot: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile_pluginRepository_snapshot: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile_pluginRepository_snapshot: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -2994,8 +2994,8 @@ EOF
 mvnconf_profile_pluginRepository := << EOF
 #%eecho ENTER mvnconf_profile_pluginRepository: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile_pluginRepository: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile_pluginRepository: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -3199,8 +3199,8 @@ EOF
 mvnconf_profile_pluginRepositories := << EOF
 #%eecho ENTER mvnconf_profile_pluginRepositories: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile_pluginRepositories: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile_pluginRepositories: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -3284,8 +3284,8 @@ EOF
 mvnconf_profile := << EOF
 #%eecho ENTER mvnconf_profile: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profile: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profile: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -3445,8 +3445,8 @@ EOF
 mvnconf_profiles := << EOF
 #%eecho ENTER mvnconf_profiles: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_profiles: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_profiles: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
@@ -3586,8 +3586,8 @@ EOF
 mvnconf_settings := << EOF
 #%eecho ENTER mvnconf_settings: parent_instance_count=$parent_instance_count
     #parent_instance_count is zero for top element - normalize spec and increment:
-    %ifnot $parent_instance_count NORMALIZE RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
-    %ifnot $parent_instance_count %ifnot $NORMALIZE RESULT %eecho mvnconf_settings: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
+    %ifnot $parent_instance_count NORMALIZE_RESULT=$MVNCONF_:nameof:xmlcg_normalize_counts
+    %ifnot $parent_instance_count %ifnot $NORMALIZE_RESULT %eecho mvnconf_settings: ERROR: MVNCONF_:nameof:xmlcg_normalize_counts FAILED - is xmlcg_ops.pl in your CG_TEMPLATE_PATH?
 
     %ifnot $parent_instance_count parent_instance_count = 01
 
