@@ -5,10 +5,31 @@ Requests for Enhancements to codegen
 *******************
 
 -------------------
+30-May-2008 (russt)
+
+o should codegen search for input program using CG_TEMPLATE_PATH?
+
+  This would be handy to run examples:
+
+      codegen sample2.cg
+
+  It could be confusing, however.
+
+  Perhaps add a flag to allow this, but default would be to look for relative filename.
+
+o add %pragma echo_leading_space to preserve leading space in %echo statements.
+
+  This would make up for the fact that we have no quoting mechanism for echo strings.
+
+  Currently, you have to add a non-whitespace char to align output, e.g.:
+
+      %echo .    some string
+
+-------------------
 05-Apr-2006 (russt)
 
 add :eval postfix op that will execute the contents of a var as if it was written
-to a file an then included.
+to a file and then included.
 
 for example:
 

@@ -19,16 +19,27 @@ CG_ROOT_BASE = $CG_ROOT
 %include cgsrc/codegen.defs
 
 cgsrc/codegen.pl	/codegen.pl
-cgsrc/cgdoc.txt	/cgdoc.txt
+
+#generate documentation:
+CG_TMPDIR  = $CG_ROOT_BASE/tmp
+CG_ROOT  = $CG_TMPDIR
+CG_TEMPLATE_PATH = $CG_ROOT;$CG_TEMPLATE_PATH
+
+%pragma quiet 1
+cgsrc/cgdoc.txt	/cgdoc_tmp.txt
+
+#document for template operators can not be interpolated:
+%pragma copy 1
+cgsrc/templatedoc.txt >>	/cgdoc_tmp.txt
+%pragma quiet 0
+
+#generate final (copy):
+CG_ROOT  = $CG_ROOT_BASE
+cgdoc_tmp.txt	/cgdoc.txt
+
+#clean up:
+#%echo removing $CG_TMPDIR
+#%rm -rf $CG_TMPDIR
 
 #display test skel if requested for cut/paste
 %ifdef SHOW_TESTS %echo $REGRESS_FILETEST_OPS
-
-#NOTE:  Here is the original order before re-org:
-#    {=CODEGEN_HEADER=}
-#    {=CODEGEN_MAIN=}
-#    {=POSTFIX_OPS=}
-#    {=CODEGEN_MAIN2=}
-#    {=POSTFIX_FILE_OPS=}
-#    {=CODEGEN_USAGE=}
-#    {=POSTFIX_OPS2=}

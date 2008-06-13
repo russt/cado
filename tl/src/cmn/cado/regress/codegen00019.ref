@@ -69,3 +69,5 @@ elem='SI_070707_07'
 elem='SI_080808_08'
 elem='SI_090909_09'
 elem='SI_101010_10'
+PASS BAD REGULAR EXPRESSION TO %pushv:
+if we get here program did not exit

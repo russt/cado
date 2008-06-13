@@ -58,3 +58,45 @@ POSTFIX OPERATOR :pad TEST #3 PASSED
 POSTFIX OPERATOR :pad TEST #4 PASSED
 POSTFIX OPERATOR :pad TEST #5 PASSED
 POSTFIX OPERATOR :pad TEST #6 PASSED
+
+:studyclass POSTFIX OPERATOR TESTS
+.        CG_DIRNAME='com/acme/roles/baker'
+.       CG_FILENAME='BreadMaker.java'
+.      CG_CLASSNAME='BreadMaker'
+. CG_FULL_CLASSNAME='com.acme.roles.baker.BreadMaker'
+.        CG_PKGNAME='baker'
+.   CG_FULL_PKGNAME='com.acme.roles.baker'
+BEFORE somevar=
+              dirname is {=CG_DIRNAME=}
+             filename is {=CG_FILENAME=}
+            classname is {=CG_CLASSNAME=}
+       full classname is {=CG_FULL_CLASSNAME=}
+         package name is {=CG_PKGNAME=}
+    full package name is {=CG_FULL_PKGNAME=}
+
+AFTER somevar=
+              dirname is com/acme/roles/baker
+             filename is BreadMaker.java
+            classname is BreadMaker
+       full classname is com.acme.roles.baker.BreadMaker
+         package name is baker
+    full package name is com.acme.roles.baker
+
+POSTFIX OPERATOR :studyclass TEST #1 PASSED
+POSTFIX OPERATOR :studyclass TEST #2 PASSED
+POSTFIX OPERATOR :studyclass TEST #3 PASSED
+POSTFIX OPERATOR :studyclass TEST #4 PASSED
+POSTFIX OPERATOR :studyclass TEST #5 PASSED
+POSTFIX OPERATOR :studyclass TEST #6 PASSED
+.        CG_DIRNAME=''
+.       CG_FILENAME='bogus'
+.      CG_CLASSNAME='bogus'
+. CG_FULL_CLASSNAME='.bogus'
+.        CG_PKGNAME='bogus'
+.   CG_FULL_PKGNAME=''
+.        CG_DIRNAME='/tmp/foo/not'
+.       CG_FILENAME='java'
+.      CG_CLASSNAME='java'
+. CG_FULL_CLASSNAME='.tmp.foo.not.java'
+.        CG_PKGNAME='not'
+.   CG_FULL_PKGNAME='.tmp.foo.not'

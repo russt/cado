@@ -1,7 +1,7 @@
 
                     =========================
                      Codegen Quick Reference
-                    Version 1.68, 02-Apr-2008
+                    Version 1.69, 12-June-2008
                     =========================
 
 {
@@ -40,6 +40,7 @@
 :crcstr             - return the crc of the contents of a string
 :freq               - get the frequency of each line.
 :method2rec         - convert a java method signature to a tab separated record
+:studyclass         - generate CG_CLASS variables, just as if we generated a real class file
 :stripRcsKeywords   - strip all RCS keywords from the string
 :antvar             - convert to an ant variable reference:
 :onecol             - 
@@ -142,21 +143,20 @@
 {                   =======
                     PRAGMAS
                     =======
-preserve_multiline_lnewline
-                    - if 1, preserve the first newline in a here-now document (normally trimmed).
-copy                - if 1, do not expand templates when generating documents.
-require perl_file   - read a <perl_file> into the current context.
+%pragma require <perl_file>   - read a <perl_file> into the current context.
+%pragma reset_stack_delimiter - restore CG_STACK_DELIMITER to default value. 
 
-reset_stack_delimiter
-                    - restore CG_STACK_DELIMITER to default value. 
+%pragma echo_expands [1|0]    - if 1, auto-expand macros in %echo template argument list.
+%pragma copy    [1|0]         - if 1, do not expand templates when generating documents.
+%pragma debug   [1|0]         - if 1, set -debug option.
+%pragma ddebug  [1|0]         - if 1, set -ddebug option.
+%pragma quiet   [1|0]         - if 1, set -q(uiet) option.
+%pragma verbose [1|0]         - if 1, set -v(erbose) option.
 
-debug               - if 1, set -debug option.
-ddebug              - if 1, set -ddebug option.
-quiet               - if 1, set -q(uiet) option.
-verbose             - if 1, set -v(erbose) option.
-
-filegen_notices_to_stdout
-                    - send file generation (x -> y) messages to stdout (default is stderr).
+%pragma filegen_notices_to_stdout [1|0]
+                              - send file generation (x -> y) messages to stdout instead of stderr.
+%pragma preserve_multiline_lnewline [1|0]
+                              - if 1, preserve the first newline in a here-now document (normally trimmed).
 
 }
 
@@ -246,28 +246,36 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                     STACK MANIPULATION
                     ==================
 %push               - push one or more elements on stack.  Usage:  %push mystack [values...]
-%pushv              - push variables onto stack whose name matches a pattern:  %pushv myvarstack /perl RE/
 %upush              - push elements on stack uniquely
 %pop                - pop last-in value:  %pop xx mystack
 %shift              - shift first-in value:  %shift xx  mystack
 
+                    ==========
+                    PROCESSING
+                    ==========
 %pragma             - %pragma var value
 
 %evalmacro          - if output var is prefixed by '>>', then we append the variable.
 %evaltemplate       - %evaltemplate spec
 %readtemplate       - %readtemplate spec
-%include            - process include.
 
+%include            - process include.
 %interpret          - interpret the contents of a variable:  %interpret varname
 %call               - alias for %interpret
 
-%shell              - call to the shell
 %echo               - echo text
 %print              - alias for %echo
 %void               - useful for evaluating postfix ops without assignment.
 
-%undef              - eliminates variables. Usage:  %undef [/pattern /]
+%shell              - call to the shell, e.g.  "%shell date".  See also $CG_SHELL_CWD setting.
+%<cmd>              - equivalent to "%shell <cmd> ...".  <cmd> cannot be an expression - use %shell for that.
 
+                    ======================
+                    VARIABLES, ENVIRONMENT
+                    ======================
+%pushv              - push variables whose name matches a pattern onto a new or existing stack.
+                      E.g., "%pushv myvarstack /perl RE/".  If RE is missing, push ALL variables onto stack.
+%undef              - eliminates variables. Usage:  %undef [/pattern /]
 %export             - export a variable to the env.
 %unexport           - delete a variable from the env.
 
@@ -285,4 +293,14 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %whiledef           - true if we see an %whiledef statement
 %while              - true if we see an %while statement
 %foreach            - %foreach iterator_var range_var statement
+
+                    ===================
+                    TEMPLATE EXPANSIONS
+                    ===================
+{=%include <fn>=}   - read <fn> into current template.
+{=%perl <expr>=}    - tell perl to evaluate <expr> and insert results.
+{=%gen_imports <expr>=}
+                    - create java import statements from simple package list in <expr>.
+{=%gen_javadoc <expr>=}
+                    - add javadoc wrapper to simple text block <expr>.
 }

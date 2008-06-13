@@ -305,3 +305,10 @@ CG_COMPARE_SPEC := SI_101010_10
 %echo $varstack:showstack
 %shift elem varstack
 %whiledef elem %call loop
+
+### test bug that causes perl to exit if RE is not properly formulated:
+
+%echo  PASS BAD REGULAR EXPRESSION TO %pushv:
+%pushv foo *
+%echo  if we get here program did not exit
+

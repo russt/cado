@@ -27,6 +27,18 @@ sub undef_op
     return $var;
 }
 
+sub studyclass_op
+#generate CG_ classname variables.
+#return 1 if successful
+{
+    my ($classname) = @_;
+
+    %CLASS_VARS = (); 
+    &gen_classvars(\%CLASS_VARS, $classname);
+
+    return 1;
+}
+
 sub m_op
 #alias for :match
 {

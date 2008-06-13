@@ -1,5 +1,5 @@
-VERSION = 1.68
-VERSION_DATE = 02-Apr-2008
+VERSION = 1.69
+VERSION_DATE = 12-June-2008
 
 {
 CODEGEN_PACKAGE := << EOF
@@ -41,7 +41,6 @@ my (
     $CG_TMPDIR,
     $INPUT_FILE,
     $LOGNAME,
-    $CLASS_VAR_REF,
     $DOT,
     $CG_NEWLINE_BEFORE_CLASS_BRACE,
     $CG_INDENT_STRING,
@@ -51,6 +50,7 @@ my (
     $LINE_CNT_REF,
     $pragma_preserve_multiline_lnewline,
     $pragma_copy,
+    $pragma_echo_expands,
     $pragma_require,
     $pragma_debug,
     $pragma_ddebug,
@@ -75,7 +75,6 @@ my (
     "NULL",         #CG_TMPDIR - directory for temporary files.
     "",             #INPUT_FILE
     "",             #LOGNAME
-    undef,          #CLASS_VAR_REF - holds reference to local class vars during codegen
     $main::DOT,
     " ",            #CG_NEWLINE_BEFORE_CLASS_BRACE - default is not
     " " x 4,        #CG_INDENT_STRING - define one level of indent, usually 4 spaces
@@ -85,6 +84,7 @@ my (
     undef,          #LINE_CNT_REF - reference to user-level line count var CG_LINE_NUMBER
     0,              #pragma_preserve_multiline_lnewline - preserve left newline in here-now defs.
     0,              #pragma_copy - generate files without macro interpolation
+    0,              #pragma_echo_expands - template %echo expands macros in argument expression.
     0,              #pragma_require - require a new perl file to allow user to add postfix ops dynamically
     0,              #pragma_debug - set DEBUG option
     0,              #pragma_ddebug - set DDEBUG option
@@ -99,6 +99,7 @@ my (
 my %PRAGMAS = (
     'preserve_multiline_lnewline', 1,
     'copy', 1,
+    'echo_expands', 1,
     'require', 1,
     'debug', 1,
     'ddebug', 1,
@@ -401,8 +402,9 @@ sub pushspec
 
     #expand lhs varible refs:
     $lhs = &expand_macros($lhs);
-    my $lhs_contents = $CG_USER_VARS{$lhs};
 
+    #this is a PUSH operation, so we add to lhs if defined:
+    my $lhs_contents = $CG_USER_VARS{$lhs};
     my @rhs_contents = ();
 
     #NOTE: if we are processing a %pushv spec, then missing rhs => *all* variables.
@@ -414,7 +416,9 @@ sub pushspec
             my $pat = $rhs;
             $pat =~ s/^\///;    #strip leading slashes
             $pat =~ s/\/$//;    #strip trailing slashes
-            @rhs_contents = grep($_ =~ /$pat/, &get_user_vars());
+#printf STDERR "pushv rhs='%s' pat='%s'\n", $rhs, $pat;
+            #we use eval here so interpreter does not exit if passed a bad RE:
+            eval( "\@rhs_contents = grep(\$_ =~ /$pat/, \&get_user_vars());" );
 #printf STDERR "pushv pat='%s' \@rhs_contents=(%s)\n", $pat, join(',', @rhs_contents) ;
         }
     } else {
@@ -579,6 +583,7 @@ sub pragma_spec
     if (0) {
         $pragma_preserve_multiline_lnewline = $pragma_preserve_multiline_lnewline;
         $pragma_copy = $pragma_copy;
+        $pragma_echo_expands = $pragma_echo_expands;
         $pragma_filegen_notices_to_stdout = $pragma_filegen_notices_to_stdout;
     }
 
@@ -684,58 +689,14 @@ sub evalmacro_spec
 
 #printf STDERR "evalmacro_spec: output_var='%s' macro_var='%s'\n", $output_var, $macro_var;
 
-    #get a tempfile name:
-    my $tmpfile = sprintf("_cg_evalmacroA.%d", $$);
-    my $tmpfile_fullpath = &get_cg_tmpfile_name($tmpfile);
-    unlink $tmpfile_fullpath;
+    my $tmp = &expand_string_template($macro_var);
 
-    #write the macro into tmp file:
-    if (!&os::write_str2file(\$macro_var, $tmpfile_fullpath, 0) == 0) {
-        printf STDERR "%s[%s]: ERROR: line %d: FAILED to write macro to file '%s': %s\n",
-            $p, $token, $linecnt, $tmpfile_fullpath, $! unless($QUIET);
-        ++ $GLOBAL_ERROR_COUNT;
-        return 1;   #return true because we parsed a evalmacro_spec
-    }
-
-    my $tmpfileB = sprintf("_cg_evalmacroB.%d", $$);
-    my $tmpfileB_fullpath = &get_cg_tmpfile_name($tmpfileB);
-    unlink $tmpfileB_fullpath;
-
-    #generate a file spec to eval into a second tmp file:
-    my $filespecline = sprintf("%s\t/%s", $tmpfile_fullpath, $tmpfileB);
-
-#printf STDERR "evalmacro_spec: filespecline='%s'\n", $filespecline;
-
-    my $save_quiet = $QUIET;
-    $QUIET = 1;
-    if (!&filespec($filespecline, $linecnt, $CG_USER_VARS{'CG_TMPDIR'})) {
-        printf STDERR "%s[%s]: ERROR: line %d: FAILED to execute filespec '%s'\n",
-            $p, $token, $linecnt, $filespecline unless($QUIET);
-        ++ $GLOBAL_ERROR_COUNT;
-        $QUIET = $save_quiet;
-        unlink $tmpfile_fullpath, $tmpfileB_fullpath;
-        return 1;   #return true because we parsed a evalmacro_spec
-    }
-    $QUIET = $save_quiet;
-
-#printf STDERR "evalmacro_spec: ATTEMPTING to read result\n";
-
-    #read the output file into the output_var:
-    my $tmp = "";
-    if (&os::read_file2str(\$tmp, $tmpfileB_fullpath, 0) == 0) {
-        if ($is_append && defined($CG_USER_VARS{$output_var})) {
-            $CG_USER_VARS{$output_var} .= $tmp;
-        } else {
-            $CG_USER_VARS{$output_var} = $tmp;
-        }
+    if ($is_append && defined($CG_USER_VARS{$output_var})) {
+        $CG_USER_VARS{$output_var} .= $tmp;
     } else {
-        printf STDERR "%s[%s]: ERROR: line %d: FAILED to read file '%s': %s\n",
-            $p, $token, $linecnt, $tmpfile_fullpath, $! unless($QUIET);
-        ++ $GLOBAL_ERROR_COUNT;
+        $CG_USER_VARS{$output_var} = $tmp;
     }
 
-    #delete the tmp files:
-    unlink $tmpfile_fullpath, $tmpfileB_fullpath;
     return 1;
 }
 
@@ -781,7 +742,7 @@ sub evaltemplate_spec
 
     #read the output file into the output_var:
     my $tmp = "";
-    if (&os::read_file2str(\$tmp, $tmpfile_fullpath, 0) == 0) {
+    if (&os::read_file2str(\$tmp, $tmpfile_fullpath) == 0) {
         if ($is_append && defined($CG_USER_VARS{$output_var})) {
             $CG_USER_VARS{$output_var} .= $tmp;
         } else {
@@ -820,7 +781,7 @@ sub readtemplate_spec
     #read the template file into the output_var:
     my $ovref = \$CG_USER_VARS{$output_var};
     $$ovref = "";
-    if (&os::read_file2str($ovref, $template_fn, 0) != 0) {
+    if (&os::read_file2str($ovref, $template_fn) != 0) {
         $$ovref = "";
         printf STDERR "%s/readtemplate_spec: FAILED to read file '%s'\n", $p, $template_fn;
         ++ $GLOBAL_ERROR_COUNT;
@@ -1119,7 +1080,14 @@ sub filespec
 #otherwise, if prefixed or delimited by '/' then user must supply suffix if desired
 #if prefixed by '>>', then we append to the file, otherwise we create new.
 {
-    my ($line, $linecnt, $cgroot) = @_;
+    my ($line, $linecnt, $cgroot, $isTmpFilespec) = @_;
+
+    #if we are processing an internally generated filespec, then we take a slightly
+    #different path.  In particular, we don't disturb the CG_* class variables.
+    #NOTE:  formerly, we generated an internal filespec to process %evalmacro.  Now we
+    #use expand_string_template(), which is simpler and more efficient.
+    #Hence the isTmpFilespec feature is currently unused.  RT 5/30/08.
+    $isTmpFilespec = 0 unless (defined($isTmpFilespec));
 
     #kill leading white-space:
     $line =~ s/^\s+//;
@@ -1151,17 +1119,25 @@ sub filespec
     #create the following template variables:
     #  templatefilename
 
-    %CLASS_VARS = (); 
-    $CLASS_VAR_REF = \%CLASS_VARS;  #this ref is used by lookup routine
-
     $filespec = &expand_macros($filespec);
     $template = &expand_macros($template);
-    &gen_classvars(\%CLASS_VARS, $filespec);
 
-    #expand template var AFTER we create the class vars from the filespec:
-    $template = &expand_macros($template);
+    my $fvars_ref = undef;
+    if ($isTmpFilespec) {
+        #don't want to rewrite these based on tmp filespec generated by %evalmacro:
+        my %anonhash = ();
+        $fvars_ref = \%anonhash;
+    } else {
+        $fvars_ref = \%CLASS_VARS; 
+    }
 
-    $CLASS_VARS{'CG_TEMPLATE'} = $template;
+    &gen_classvars($fvars_ref, $filespec);
+
+    #expand template var a second time, AFTER we create the class vars from the filespec:
+    #$template = &expand_macros($template) unless ($isTmpFilespec);
+
+    #reset input template:
+    $$fvars_ref{'CG_TEMPLATE'} = $template;
 
     &dumphash(\%CLASS_VARS, "CLASS_VARS") if ($DEBUG);
 
@@ -1181,7 +1157,7 @@ sub filespec
     }
 
     #now create the sourcefile from the template:
-    &gen_sourcefile(\%CLASS_VARS, $line, $linecnt, $is_append, $cgroot);
+    &gen_sourcefile($fvars_ref, $line, $linecnt, $is_append, $cgroot);
 
     return 1;
 }
@@ -2032,8 +2008,8 @@ sub lookup_def
 
     return $undefvalue unless (defined($varname));
 
-    if ( defined($CLASS_VAR_REF) && defined(${$CLASS_VAR_REF}{$varname}) ) {
-        $varval = ${$CLASS_VAR_REF}{$varname};
+    if ( defined($CLASS_VARS{$varname}) ) {
+        $varval = $CLASS_VARS{$varname};
     } elsif (defined($CG_USER_VARS{$varname})) {
         $varval = $CG_USER_VARS{$varname};
         #if value of variable is undefined, then garbage collect variable:
@@ -2115,20 +2091,22 @@ sub find_template
 }
 
 sub gen_sourcefile
-#INPUT:   CLASS_VARS hash, which contains spec for generating a source file
+#INPUT:   FILE_VARS hash, which contains spec for generating a source file
 #OUTPUT:  a file generated from input template in output location.
 #RETURNS:  zero if no errors, otherwise error count.
 {
-    my ($cvar_ref, $line, $linecnt, $is_append, $cgroot) = @_;
+    my ($fvar_ref, $line, $linecnt, $is_append, $cgroot) = @_;
 
     #this is the file handle where we send file generation messages:
     my $msgfh = \*STDERR;
     $msgfh = \*STDOUT if ($pragma_filegen_notices_to_stdout);    #we want messages on stdout
 
     #get local vars for codegen:
-    my ($dirname) = ${$cvar_ref}{'CG_DIRNAME'};
-    my ($filename) = ${$cvar_ref}{'CG_FILENAME'};
-    my ($template) = ${$cvar_ref}{'CG_TEMPLATE'};
+    my ($dirname) = ${$fvar_ref}{'CG_DIRNAME'};
+    my ($filename) = ${$fvar_ref}{'CG_FILENAME'};
+    my ($template) = ${$fvar_ref}{'CG_TEMPLATE'};
+
+#printf STDERR "gen_sourcefile: cgroot='%s', dirname='%s' filename='%s' template='%s'\n", $cgroot, $dirname, $filename, $template;
 
     #exit early if we can't read in the template:
     my ($intemplate) = &find_template($template);
@@ -2256,6 +2234,85 @@ sub setmode
     ++ $GLOBAL_ERROR_COUNT;
 
     return 1;
+}
+
+sub expand_string_template
+#this routine takes a string, expands template macros, and returns the
+#resultant string.
+{
+    my($inputStr) = @_;
+    my($token) = "expand_string_template";
+
+    #this is an optimization - avoid macro processing if no macros:
+    return $inputStr if ( $inputStr eq "" || ($inputStr !~ /{=/ && $inputStr !~ /=}/) );
+
+    #get a tempfile names:
+    my $tmpfile = sprintf("_cg_%s_in.%d", $token, $$);
+    my $tmpfile_fullpath = &get_cg_tmpfile_name($tmpfile);
+    unlink $tmpfile_fullpath;
+
+    #get another temp file name for output:
+    my $tmpfileB = sprintf("_cg_%s_out.%d", $token, $$);
+    my $tmpfileB_fullpath = &get_cg_tmpfile_name($tmpfileB);
+    unlink $tmpfileB_fullpath;
+
+    #open outfile, as expand_template expects a file-ref:
+    my ($fhidx) = &get_avaliable_filehandle($token);
+
+    if ($fhidx < 0) {
+        printf STDERR "%s [%s]: ERROR: out of file descriptors for nested templates (max is %d).\n", $p, $token, $LAST_TEMPLATE_FD_KEY+1;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    my ($outfile_ref) = $TEMPLATE_FD_REFS[$fhidx];
+    if (!open($outfile_ref, ">$tmpfileB_fullpath")) {
+        printf STDERR "%s [%s]: ERROR: cannot open file '%s' (%s)\n", $p, $token, $tmpfileB_fullpath, $!;
+        ++ $GLOBAL_ERROR_COUNT;
+        &free_filehandle($fhidx, $token);   #free our allocated filehandle
+        return 1;
+    }
+
+    #write input string to tmp file:
+    if ( &os::write_str2file(\$inputStr, $tmpfile_fullpath) != 0) {
+        printf STDERR "%s[%s]: ERROR: FAILED to write macro to file '%s': %s\n",
+            $p, $token, $tmpfile_fullpath, $! unless($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+
+        #clean up transaction:
+        close($outfile_ref);
+        unlink $tmpfile_fullpath, $tmpfileB_fullpath;
+        &free_filehandle($fhidx, $token);   #free our allocated filehandle
+
+        return $inputStr;    #return input string
+    }
+
+
+    #######
+    #expand template into output file:
+    #######
+    &expand_template($outfile_ref, $tmpfile_fullpath);
+
+    #close file so we can re-read it:
+    close($outfile_ref);
+    &free_filehandle($fhidx, $token);   #free our allocated filehandle
+
+    #read string from outfile and return it:
+    my $outputStr = "";
+    if (&os::read_file2str(\$outputStr, $tmpfileB_fullpath) != 0) {
+        printf STDERR "%s[%s]: ERROR: FAILED to read file '%s': %s\n",
+            $p, $token, $tmpfileB_fullpath, $! unless($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+
+        unlink $tmpfile_fullpath, $tmpfileB_fullpath;
+        return $inputStr;    #return input string
+    }
+
+#printf STDERR "%s [%s]: inputStr=\n%s\noutputStr=\n%s\n", $p, $token, $inputStr, $outputStr;
+
+    unlink $tmpfile_fullpath, $tmpfileB_fullpath;
+
+    return $outputStr;    #success!
 }
 
 sub expand_template
@@ -2586,6 +2643,9 @@ sub cg_gen_imports
     #expand macros in arg:
     $importlist = &expand_macros($importlist);
 
+    #expand template macros in arg:
+    $importlist = &expand_string_template($importlist);
+
 #printf STDERR "%s[cg_gen_imports]: importlist=%s\n", $p, $importlist;
 
     #eliminate trailing whitespace (already did leading whitespace):
@@ -2641,6 +2701,9 @@ sub cg_gen_javadoc
     #expand macros in arg:
     $doctxt = &expand_macros($doctxt);
 
+    #expand template macros in arg:
+    $doctxt = &expand_string_template($doctxt);
+
     #eliminate trailing whitespace (already did leading whitespace):
     $doctxt =~ s/\s+$//;
     #okay no javadoc
@@ -2676,15 +2739,19 @@ sub cg_echo
 #returns 0 if okay, otherwise error count.
 {
     my($outfile_ref, $echotxt) = @_;
+    my $token = "cg_echo";
 
-    printf STDERR "%s[cg_echo]: echotxt=%s\n", $p, $echotxt if ($DEBUG);
+    printf STDERR "%s[%s]: echotxt=%s\n", $p, $token, $echotxt if ($DEBUG);
 
-    #expand macros in arg:
+    #expand variable expression:
     $echotxt = &expand_macros($echotxt);
 
     return 0 if ($echotxt eq "");
 
+    #expand macros in argument expression if pragma is set:
+    $echotxt = &expand_string_template($echotxt) if ( $pragma_echo_expands );
     print $outfile_ref $echotxt;
+
     return 0;
 }
 
@@ -3265,7 +3332,7 @@ sub write_string_to_cg_tmp_file
     my $tmpfile_fullpath = &get_cg_tmpfile_name();
 
     #write the string into tmp file:
-    if (!&os::write_str2file(\$theStr, $tmpfile_fullpath, 0) == 0) {
+    if ( &os::write_str2file(\$theStr, $tmpfile_fullpath) != 0 ) {
         printf STDERR "%s[write_string_to_cg_tmp_file]: ERROR: line %d: write FAILED\n",
             $p, $LINE_CNT, $tmpfile_fullpath;
         return "NULL";   #FAILED
@@ -3469,9 +3536,17 @@ CODEGEN_HEADER := << EOF
 #       All external commands (%shell and postfix ops) now first cd to CG_SHELL_CWD,
 #       Add %pragma "filegen_notices_to_stdout".  If set, will redirect file
 #       generation messages to stdout (default is stderr).
-#  02-Apr-2008 (russt) [Version 1.68]
-#       Fix bug in :basename operator, and add regression test for it.
+#  06-Mar-2008 (russt) [no version change]
 #       Fix bug in maven templates, and add some instructions.
+#  20-May-2008 (russt) [Version 1.68]
+#       Fix bug in :basename operator, and add regression test for it.
+#  12-June-2008 (russt) [Version 1.69]
+#       Fixed bug in %pushv causing interpreter to exit when user program passes in a bad RE.
+#       Add :studyclass op, which generates CG_ class variables.
+#       Rework %evalmacro to use more efficient expand_string_template().
+#       The template operators: gen_imports, and gen_javadoc, are now evaluated in place.
+#       The %echo template operator will also expand in place, but only if %pragma echo_expands 1.
+#       Added documentation for template expansion operators.
 #
 
 EOF

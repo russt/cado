@@ -280,3 +280,83 @@ result=FAILED
 %if $foo:pad:eq	result=PASSED
 %echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
 #%echo POSTFIX OPERATOR $tname TEST #$tnum foo:pad='$foo:pad' CG_COMPARE_SPEC='$CG_COMPARE_SPEC'
+
+#####  test studyclass operator:
+tname=:studyclass
+tnum = 0
+%echo
+%echo $tname POSTFIX OPERATOR TESTS
+#####
+
+showvars := << EOF
+{
+    %echo .        CG_DIRNAME='$CG_DIRNAME'
+    %echo .       CG_FILENAME='$CG_FILENAME'
+    %echo .      CG_CLASSNAME='$CG_CLASSNAME'
+    %echo . CG_FULL_CLASSNAME='$CG_FULL_CLASSNAME'
+    %echo .        CG_PKGNAME='$CG_PKGNAME'
+    %echo .   CG_FULL_PKGNAME='$CG_FULL_PKGNAME'
+}
+EOF
+
+aclass = com.acme.roles.baker.BreadMaker
+%void $aclass:studyclass
+%call showvars
+
+{
+    somevar := << EOF
+              dirname is {=CG_DIRNAME=}
+             filename is {=CG_FILENAME=}
+            classname is {=CG_CLASSNAME=}
+       full classname is {=CG_FULL_CLASSNAME=}
+         package name is {=CG_PKGNAME=}
+    full package name is {=CG_FULL_PKGNAME=}
+EOF
+
+    %echo BEFORE somevar=
+    %echo $somevar
+
+    #ensure that class vars are not touched by %evalmacro:
+    %evalmacro somevar somevar
+
+    %echo AFTER somevar=
+    %echo $somevar
+}
+
+CG_COMPARE_SPEC = com/acme/roles/baker
+result=FAILED
+%if $CG_DIRNAME:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+CG_COMPARE_SPEC = BreadMaker.java
+result=FAILED
+%if $CG_FILENAME:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+CG_COMPARE_SPEC = BreadMaker
+result=FAILED
+%if $CG_CLASSNAME:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+CG_COMPARE_SPEC = com.acme.roles.baker.BreadMaker
+result=FAILED
+%if $CG_FULL_CLASSNAME:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+CG_COMPARE_SPEC = baker
+result=FAILED
+%if $CG_PKGNAME:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+CG_COMPARE_SPEC = com.acme.roles.baker
+result=FAILED
+%if $CG_FULL_PKGNAME:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+aclass = bogus
+%void $aclass:studyclass
+%call showvars
+
+aclass = /tmp/foo/not/java
+%void $aclass:studyclass
+%call showvars
