@@ -33,3 +33,7 @@ FOO is no longer defined, life is good.
 %undef test 1 PASSED
 %undef test 2 PASSED
 %undef test 3 EXPECTED VARIABLE REFERENCE WARNING
+
+%ifdef contagious STATEMENT TESTS
+%ifdef contagious TEST #1 PASSED
+%ifdef contagious TEST #2 PASSED

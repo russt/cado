@@ -28,6 +28,7 @@
 # END_HEADER - DO NOT EDIT
 #
 
+{
 #####
 tname=%push/%pop
 tnum = 0
@@ -85,15 +86,27 @@ tnum = $tnum:incr
 %ifndef MYSTACK	result=PASSED
 %echo $tname test $tnum $result (missing rhs)
 
-#if rhs is undefined, we push :undef so error is noticed:
+#if stack is new, and we push an undefined value, then stack is still undefined
+#NOT SURE THESE ARE THE SEMANTICS I WANT!!  RT 6/27/08
 result=FAILED
-tnum = $tnum:incr
 %undef MYSTACK
 %undef rhs
 %push MYSTACK $rhs
 %echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
 %ifnot $MYSTACK:stacksize:minus1	result=PASSED
-%echo $tname test $tnum $result (undef rhs)
+%echo $tname test $tnum:i:a $result (undef rhs)
+
+#if stack has a good value, and we push and :undef value, what is the result?
+result=FAILED
+%undef MYSTACK
+%push MYSTACK one
+%undef rhs
+%push MYSTACK $rhs
+%echo size=$MYSTACK:stacksize
+%ifnot $MYSTACK:stacksize:minus2	result=PASSED
+%echo $tname test $tnum:i:a $result (good + undef rhs)
+
+}
 
 #####
 tname=%upush

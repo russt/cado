@@ -195,6 +195,8 @@
 #       The template operators: gen_imports, and gen_javadoc, are now evaluated in place.
 #       The %echo template operator will also expand in place, but only if %pragma echo_expands 1.
 #       Added documentation for template expansion operators.
+#  27-June-2008 (russt) [Version 1.70]
+#       Fixed bug in %ifdef whereby :undef vars where considered defined.
 #
 
 use strict;
@@ -204,8 +206,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.69",         #VERSION - the program version number.
-    "12-June-2008",  #VERSION_DATE - date this version was released.
+    "1.70",         #VERSION - the program version number.
+    "27-June-2008",  #VERSION_DATE - date this version was released.
 );
 require "path.pl";
 require "os.pl";
@@ -1544,7 +1546,7 @@ sub ifdefspec
     my $varname = $varname_in;
     $varname = &expand_macros($varname_in) if ($varname_in =~ /\$/);
 
-    if ($varname ne $varname_in && $varname =~ /\$/) {
+    if ( $varname ne $varname_in && ($varname =~ /\$/ && !&isUndefinedValue($varname)) ) {
         printf STDERR "%s: WARNING: line %d: variable reference '%s' in %s expression is INVALID - ignored.\n",
             $p, $linecnt, $varname_in, $token unless ($QUIET);
         ++ $GLOBAL_ERROR_COUNT;
@@ -1552,7 +1554,7 @@ sub ifdefspec
         return 1;
     }
 
-    my $vardefined  = &var_defined($varname);
+    my $vardefined  = &var_defined_strict($varname);
     my $doeval = ( ($vardefined && $isifdef) || (!$vardefined && !$isifdef) );
 
     printf STDERR "%s: vardefined=%d doeval=%d\n", $token, $vardefined, $doeval if ($DEBUG);
@@ -2215,12 +2217,23 @@ sub var_defined
     return !&isUndefinedVarnameValue($varname, $varval);
 }
 
+sub var_defined_strict
+#return 1 if a codegen variable is defined in the strict sense.
+#this means the variable does not contain the undefined value of another variable.
+#used only in %ifdef statement
+{
+    my ($varname) = @_;
+    my $varval = &lookup_def($varname);
+
+    return (!&isUndefinedVarnameValue($varname, $varval) && !&isUndefinedValue($varval));
+}
+
 sub isUndefinedVarnameValue
 #true if variable is undefined or has the undefined value
 {
     my ($varname, $varval) = @_;
 
-    return 1 if (!defined($varname) || !defined($varval) || $varval eq &nullundefname() || $varval eq &undefname($varname) );
+    return 1 if ( !defined($varname) || !defined($varval) || $varval eq &nullundefname() || $varval eq &undefname($varname) );
     return 0;
 }
 

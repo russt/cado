@@ -1,0 +1,10 @@
+                    ===================
+                    TEMPLATE EXPANSIONS
+                    ===================
+{=%include <fn>=}   - read <fn> into current template.
+{=%perl <expr>=}    - tell perl to evaluate <expr> and insert results.
+{=%gen_imports <expr>=}
+                    - create java import statements from simple package list in <expr>.
+{=%gen_javadoc <expr>=}
+                    - add javadoc wrapper to simple text block <expr>.
+}

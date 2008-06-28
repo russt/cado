@@ -182,11 +182,11 @@ result=FAILED
 %echo $tname test $tnum:incr:assign $result
 
 #test that if we assign the undef value of one variable to a different
-#variable, the second var is *not* treated as undefined:
+#variable, the second var is *also* treated as undefined:
 foo = $foo:undef
 foo2 = $foo
 result=FAILED
-%ifdef foo2	result=PASSED (foo2=$foo2)
+%ifndef foo2	result=PASSED (foo2=$foo2)
 %echo $tname test $tnum:incr:assign $result
 
 foo = xxx

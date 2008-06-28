@@ -176,6 +176,7 @@ result=FAILED
 %ifndef $fooptr	result=PASSED
 %echo %ifndef test $tnum:incr:assign $result
 
+{
 #test pointers in undef expressions:
 tnum = 0
 fooptr = foo1
@@ -195,3 +196,27 @@ result=FAILED
 %undef $nullpointer
 result=EXPECTED VARIABLE REFERENCE WARNING
 %echo %undef test $tnum:incr:assign $result
+}
+
+{
+#####
+#test that when a variable returns an undefined value (${blah:undef}) that we see it as undefined:
+tname=%ifdef contagious
+tnum = 0
+%echo
+%echo $tname STATEMENT TESTS
+#####
+
+varname = somerandomvar
+
+result=FAILED
+%ifndef $varname:valueof    result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+varnamevalue = $varname:valueof
+
+result=FAILED
+%ifndef varnamevalue    result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+}

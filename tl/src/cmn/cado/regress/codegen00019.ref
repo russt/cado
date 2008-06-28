@@ -17,6 +17,8 @@ TESTNAME is codegen00019
 %push/%pop test 5 PASSED (missing rhs)
 MYSTACK=${rhs:undef} size=1
 %push/%pop test 6 PASSED (undef rhs)
+size=2
+%push/%pop test 7 PASSED (good + undef rhs)
 
 %upush STATEMENT TESTS
 MYSTACK=ab size=2
