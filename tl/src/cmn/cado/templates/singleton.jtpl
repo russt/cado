@@ -4,12 +4,24 @@ package {=CG_FULL_PKGNAME=};
 {=%include $CLASS_IMPORTS=}
 {=%include $CLASS_JAVADOC=}
 public final class {=CG_CLASSNAME=}{=$CLASS_EXTENDS:lspace:eoltrim=}{=$CLASS_IMPLEMENTS:lspace:eoltrim=}{=CG_NEWLINE_BEFORE_CLASS_BRACE=}{
-    /** Singleton */
-    private final static {=CG_CLASSNAME=} SINGLETON = new {=CG_CLASSNAME=}();
+    /**
+     * Note that the singleton class is final so that it remains a singleton.
+     * Protected constructor is sufficient to suppress unauthorized calls to the constructor
+     */
+    protected {=CG_CLASSNAME=}() {}
 
-    /** Constructor is private to enforce singleton access.  */
-    private {=CG_CLASSNAME=}()
-    {
+    /**
+     * This is the "safe" multi-threaded lazy-init singleton pattern recomended by Bill Pugh.
+     * See also:
+     *    http://en.wikipedia.org/wiki/Singleton_pattern
+     *    http://www.cs.umd.edu/~pugh/java/memoryModel/DoubleCheckedLocking.html
+     *
+     * {=CG_CLASSNAME=}Holder is loaded on the first execution of {=CG_CLASSNAME=}.getInstance()
+     * or the first access to {=CG_CLASSNAME=}Holder.instance, not before.
+     *
+     */
+    private static class {=CG_CLASSNAME=}Holder {
+        private final static {=CG_CLASSNAME=} INSTANCE = new {=CG_CLASSNAME=}();
     }
 
     /**
@@ -18,8 +30,7 @@ public final class {=CG_CLASSNAME=}{=$CLASS_EXTENDS:lspace:eoltrim=}{=$CLASS_IMP
      */
     public static {=CG_CLASSNAME=} getInstance()
     {
-        return SINGLETON;
+        return {=CG_CLASSNAME=}Holder.INSTANCE;
     }
-
 {=%include $CLASS_METHODS=}
 }

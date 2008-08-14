@@ -1,8 +1,18 @@
                     ===================
                     TEMPLATE EXPANSIONS
                     ===================
+{=SIMPLE_VAR=}      - expand $SIMPLE_VAR into template.
+{=<expr>=}          - expand <expr> into template, where <expr> is expanded as in in rhs of simple
+                      assignment statement.
+{=%echo <expr>=}    - expand <expr> into output.  auto-eval template macros if "%pragma echo_expands" is set.
+                      (note that auto-eval is not available in simpler form: {=<expr>=}).
+
 {=%include <fn>=}   - read <fn> into current template.
+
+{=%exec <expr>=}    - execute <expr> in the shell after expanding it.
+{=`<expr>`=}        - alternate form of %exec expansion.
 {=%perl <expr>=}    - tell perl to evaluate <expr> and insert results.
+
 {=%gen_imports <expr>=}
                     - create java import statements from simple package list in <expr>.
 {=%gen_javadoc <expr>=}

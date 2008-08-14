@@ -1,0 +1,14 @@
+{=#test %exec command: =}
+{=%exec echo hello world=}
+{=#####=}
+{=#test alternate back-tick syntax: =}
+{=`echo hello world again`=}
+{=#####=}
+{=#test that we preserve double-quotes: =}
+{=`echo " some double quoted text "`=}
+{=#####=}
+{=%exec echo one two three|cat=}
+{=#####=}
+{=#test more complicated operations.  Note that codegen will expand '$', so we use ${ds} trick: =}
+{=%exec echo four five six | perl -n -a -e "{for (@F) {print \"\${ds}_\\n\";}}"=}
+{=#####=}

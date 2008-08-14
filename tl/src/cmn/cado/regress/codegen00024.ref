@@ -1,0 +1,9 @@
+TESTNAME is codegen00024
+CG_ROOT is now defined to be '../bld/cgtstroot'
+hello world
+hello world again
+ some double quoted text 
+one two three
+four
+five
+six

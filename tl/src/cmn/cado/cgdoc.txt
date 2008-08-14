@@ -1,7 +1,7 @@
 
                     =========================
                      Codegen Quick Reference
-                    Version 1.70, 27-June-2008
+                    Version 1.70, 13-Aug-2008
                     =========================
 
 {
@@ -15,6 +15,7 @@
 :valueof            - return the value of a variable
 :zero               - set a variable to zero.
 :clr                - set a variable to empty string.
+:clrifndef          - clear variable if it is undefined
 :env                - lookup in environment, e.g.  $HOME = $HOME:nameof:env
 
                     =======
@@ -148,10 +149,11 @@
 
 %pragma echo_expands [1|0]    - if 1, auto-expand macros in %echo template argument list.
 %pragma copy    [1|0]         - if 1, do not expand templates when generating documents.
-%pragma debug   [1|0]         - if 1, set -debug option.
-%pragma ddebug  [1|0]         - if 1, set -ddebug option.
-%pragma quiet   [1|0]         - if 1, set -q(uiet) option.
-%pragma verbose [1|0]         - if 1, set -v(erbose) option.
+%pragma update  [1|0]         - set/reset -u (update) option.
+%pragma debug   [1|0]         - set/reset -debug option.
+%pragma ddebug  [1|0]         - set/reset -ddebug option.
+%pragma quiet   [1|0]         - set/reset -q(uiet) option.
+%pragma verbose [1|0]         - set/reset -v(erbose) option.
 
 %pragma filegen_notices_to_stdout [1|0]
                               - send file generation (x -> y) messages to stdout instead of stderr.
@@ -292,13 +294,27 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                     =======
 %whiledef           - true if we see an %whiledef statement
 %while              - true if we see an %while statement
-%foreach            - %foreach iterator_var range_var statement
+%foreach            - %foreach iterator_var {range_var|range_var_ptr} statement
+                      example 1:  arange = 01..05
+                                  %foreach ii arange %call loop
+                      example 2:  ptr = $arange
+                                  %foreach ii $ptr %call loop
 
                     ===================
                     TEMPLATE EXPANSIONS
                     ===================
+{=SIMPLE_VAR=}      - expand $SIMPLE_VAR into template.
+{=<expr>=}          - expand <expr> into template, where <expr> is expanded as in in rhs of simple
+                      assignment statement.
+{=%echo <expr>=}    - expand <expr> into output.  auto-eval template macros if "%pragma echo_expands" is set.
+                      (note that auto-eval is not available in simpler form: {=<expr>=}).
+
 {=%include <fn>=}   - read <fn> into current template.
+
+{=%exec <expr>=}    - execute <expr> in the shell after expanding it.
+{=`<expr>`=}        - alternate form of %exec expansion.
 {=%perl <expr>=}    - tell perl to evaluate <expr> and insert results.
+
 {=%gen_imports <expr>=}
                     - create java import statements from simple package list in <expr>.
 {=%gen_javadoc <expr>=}

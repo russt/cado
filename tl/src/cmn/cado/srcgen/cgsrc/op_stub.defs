@@ -991,6 +991,18 @@ sub clr_op
     return &assign_op("", $varname, $linecnt);
 }
 
+sub clrifndef_op
+#clear variable if it is not defined
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    if (!defined($CG_USER_VARS{$varname})) {
+        return &assign_op("", $varname, $linecnt);
+    }
+
+    return $var;
+}
+
 sub zero_op
 #set a variable to zero.
 {

@@ -102,3 +102,8 @@ foo:xmlcommentblock:
  # all of the possible child elements. Child elements with children are
  # then documented further in subsequent sections.
 -->
+
+foo=${foo:undef} foo:clrifndef=
+:clrifndef test 1 PASSED
+foo=blah foo:clrifndef=blah
+:clrifndef test 2 PASSED

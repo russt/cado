@@ -1,5 +1,5 @@
 VERSION = 1.70
-VERSION_DATE = 27-June-2008
+VERSION_DATE = 13-Aug-2008
 
 {
 CODEGEN_PACKAGE := << EOF
@@ -50,6 +50,7 @@ my (
     $LINE_CNT_REF,
     $pragma_preserve_multiline_lnewline,
     $pragma_copy,
+    $pragma_update,
     $pragma_echo_expands,
     $pragma_require,
     $pragma_debug,
@@ -84,6 +85,7 @@ my (
     undef,          #LINE_CNT_REF - reference to user-level line count var CG_LINE_NUMBER
     0,              #pragma_preserve_multiline_lnewline - preserve left newline in here-now defs.
     0,              #pragma_copy - generate files without macro interpolation
+    0,              #pragma_update - turn $UPDATE option on or off
     0,              #pragma_echo_expands - template %echo expands macros in argument expression.
     0,              #pragma_require - require a new perl file to allow user to add postfix ops dynamically
     0,              #pragma_debug - set DEBUG option
@@ -99,6 +101,7 @@ my (
 my %PRAGMAS = (
     'preserve_multiline_lnewline', 1,
     'copy', 1,
+    'update', 1,
     'echo_expands', 1,
     'require', 1,
     'debug', 1,
@@ -120,6 +123,7 @@ my %MACRO_FUNCTIONS = (
     'gen_imports', \&cg_gen_imports,
     'gen_javadoc', \&cg_gen_javadoc,
     'echo', \&cg_echo,
+    'exec', \&cg_exec,
 );
 
 #keep track of template file descriptors for nested includes:
@@ -583,11 +587,15 @@ sub pragma_spec
     if (0) {
         $pragma_preserve_multiline_lnewline = $pragma_preserve_multiline_lnewline;
         $pragma_copy = $pragma_copy;
+        $pragma_update = $pragma_update;
         $pragma_echo_expands = $pragma_echo_expands;
         $pragma_filegen_notices_to_stdout = $pragma_filegen_notices_to_stdout;
     }
 
-    #set verbosity based on pragma values
+    ####
+    #for simple pragmas that effect options, check value and set corresponding option:
+    ####
+
     my $err = 1;
     if ($pragma_var eq "pragma_debug") {
         $DEBUG   = $pragma_debug,   $err=0 if ($pragma_debug =~ /0|1/);
@@ -597,6 +605,8 @@ sub pragma_spec
         $QUIET   = $pragma_quiet,   $err=0 if ($pragma_quiet =~ /0|1/);
     } elsif ($pragma_var eq "pragma_verbose") {
         $VERBOSE = $pragma_verbose, $err=0 if ($pragma_verbose =~ /0|1/);
+    } elsif ($pragma_var eq "pragma_update") {
+        $UPDATE = $pragma_update, $err=0 if ($pragma_update =~ /0|1/);
     } else {
         #not a simple option pragma:
         $err = 0;
@@ -2766,6 +2776,39 @@ sub cg_echo
     return 0;
 }
 
+sub cg_exec
+#this  executes an external command and returns the results
+
+#Example:  {=%exec date=}
+#
+#returns the output of the date command.
+{
+    my($outfile_ref, $exectxt) = @_;
+    my $token = "cg_exec";
+
+    printf STDERR "%s[%s]: exectxt=%s\n", $p, $token, $exectxt if ($DEBUG);
+
+    #expand variable expression:
+    $exectxt = &expand_macros($exectxt);
+
+    return 0 if ($exectxt eq "");
+
+    #split into at most 2 fields:
+    my ($cmdname, $tmp)  = split(/\s+/, $exectxt, 2);
+
+    my $cmdargs = "";
+    $cmdargs = " " . $tmp if (defined($tmp));
+
+    #execute command in current shell directory:
+    my $cmd = sprintf("%s%s%s", &get_shell_cd_cmd(), $cmdname, $cmdargs);
+
+    $CG_USER_VARS{'CG_SHELL_STATUS'} = 255;    #unless shell sets status, we assume bad
+    print $outfile_ref `sh -c '$cmd'`;
+    $CG_USER_VARS{'CG_SHELL_STATUS'} = $?;
+
+    return 0;
+}
+
 ##################################### UTILITY ####################################
 
 sub get_avaliable_filehandle
@@ -2963,7 +3006,7 @@ Built-in variables:
   \$CG_LINE_NUMBER         
             the line number of the current statement, relative to the current CG_INFILE
   \$CG_NEWLINE_BEFORE_CLASS_BRACE         
-            set to 1 if you like to see a newline before the opening class brace.
+            set to a newline if you like to see a newline before the opening class brace.
   \$CG_STACK_DELIMITER         
             For %push, %upush, split on this value to add list of stack elements.
             Default is \$; (perl delimiter). Example:  if delimiter is '.', then
@@ -2983,20 +3026,22 @@ Variables that modify postfix operations:
             the compare spec for :eq, :ne, :gt, :lt, :ge, :le  operators.
 
 Pragmas modifiy the behavior of the interpreter as follows:
-    \%pragma preserve_multiline_lnewline 1
+    \%pragma preserve_multiline_lnewline {0|1}
             preserve the first newline in a here-now document (normally trimmed).
-    \%pragma copy 1
+    \%pragma copy {0|1}
             do not expand templates when generating documents.
     \%pragma require perl_file
             read a <perl_file> into the current context.
-    \%pragma debug 1
+    \%pragma debug {0|1}
             set -debug option.
-    \%pragma ddebug 1
+    \%pragma ddebug {0|1}
             set -ddebug option.
-    \%pragma quiet 1
+    \%pragma quiet {0|1}
             set -q(uiet) option.
-    \%pragma verbose 1
+    \%pragma verbose {0|1}
             set -v(erbose) option.
+    \%pragma update {0|1}
+            set -u(pdate) option.
 
 Class variables:
   Class variables are available during the processing of a file-spec line.
@@ -3558,8 +3603,10 @@ CODEGEN_HEADER := << EOF
 #       The template operators: gen_imports, and gen_javadoc, are now evaluated in place.
 #       The %echo template operator will also expand in place, but only if %pragma echo_expands 1.
 #       Added documentation for template expansion operators.
-#  27-June-2008 (russt) [Version 1.70]
-#       Fixed bug in %ifdef whereby :undef vars where considered defined.
+#  15-Aug-2008 (russt) [Version 1.70]
+#       Fixed bug in %ifdef whereby :undef vars were considered defined.
+#       Implemented %exec template operator (can also use back-tick syntax).
+#       Add :clrifndef op.  Add %pragma update.
 #
 
 EOF

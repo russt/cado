@@ -19,7 +19,7 @@ sub {=PL_CONSTRUCTOR_NAME=}
     my ($invocant) = @_;
     shift @_;
 
-    #allows this constructer to be invoked with reference or with explicit package name:
+    #allows this constructor to be invoked with reference or with explicit package name:
     my $class = ref($invocant) || $invocant;
 
 {=$PL_CONSTRUCTOR_BODY:indent1=}

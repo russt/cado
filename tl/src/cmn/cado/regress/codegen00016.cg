@@ -246,3 +246,25 @@ EOF
 %echo -n $foo:xmlcommentblock
 %echo
 }
+
+{
+#####
+#test :clr operator:
+#####
+tname=:clrifndef
+tnum = 0
+%echo
+
+%undef foo
+%echo foo=$foo foo:clrifndef=$foo:clrifndef
+result=FAILED
+%ifnot $foo:clrifndef	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+
+foo=blah
+%echo foo=$foo foo:clrifndef=$foo:clrifndef
+result=FAILED
+%if $foo:clrifndef	result=PASSED
+%echo $tname test $tnum:incr:assign $result
+}
+
