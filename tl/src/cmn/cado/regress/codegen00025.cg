@@ -1,0 +1,51 @@
+#test %pragma clrifndef
+
+%pragma echo_expands 1
+#%pragma preserve_multiline_lnewline 1
+tnum = 0
+
+TEST_DATA := << EOF
+'{=FOO_VAR1=}
+{=FOO_VAR2=}
+{=FOO_VAR3=}'
+EOF
+
+#this test displays ${var:undef} for undefined vars:
+{
+    %pragma clrifndef 0
+    %undef FOO_*
+
+    ECHO_TXT = $TEST_DATA
+    echo	/${TESTNAME}_A.out
+    %echo
+    %echo ##### TEST $tnum:i:a #####
+    %cat $CG_ROOT/${TESTNAME}_A.out
+}
+
+#this test displays empty strings for undefined vars:
+{
+    %pragma clrifndef 1
+    %undef FOO_*
+    ECHO_TXT = $TEST_DATA
+    echo	/${TESTNAME}_B.out
+    %echo
+    %echo ##### TEST $tnum:i:a #####
+    %cat $CG_ROOT/${TESTNAME}_B.out
+}
+
+TEST_DATA2 := << EOF
+'{=$FOO_VAR1:clrifndef=}
+{=$FOO_VAR2:clrifndef=}
+{=$FOO_VAR3:clrifndef=}'
+EOF
+
+#the :clrifndef version of the test also displays empty strings for undefined vars:
+{
+    %pragma clrifndef 0
+    %undef FOO_*
+    ECHO_TXT = $TEST_DATA2
+    echo	/${TESTNAME}_C.out
+    %echo
+    %echo ##### TEST $tnum:i:a #####
+    %cat $CG_ROOT/${TESTNAME}_C.out
+}

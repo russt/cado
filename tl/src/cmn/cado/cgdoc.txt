@@ -1,7 +1,7 @@
 
                     =========================
                      Codegen Quick Reference
-                    Version 1.70, 13-Aug-2008
+                    Version 1.71, 17-Nov-2008
                     =========================
 
 {
@@ -15,7 +15,7 @@
 :valueof            - return the value of a variable
 :zero               - set a variable to zero.
 :clr                - set a variable to empty string.
-:clrifndef          - clear variable if it is undefined
+:clrifndef          - clear variable if it is undefined (see also %pragma clrifndef)
 :env                - lookup in environment, e.g.  $HOME = $HOME:nameof:env
 
                     =======
@@ -148,11 +148,12 @@
 %pragma reset_stack_delimiter - restore CG_STACK_DELIMITER to default value. 
 
 %pragma echo_expands [1|0]    - if 1, auto-expand macros in %echo template argument list.
+%pragma clrifndef [|0]        - if 1, undefined template macros resolve to empty string instead of ${var:undef}
 %pragma copy    [1|0]         - if 1, do not expand templates when generating documents.
-%pragma update  [1|0]         - set/reset -u (update) option.
 %pragma debug   [1|0]         - set/reset -debug option.
 %pragma ddebug  [1|0]         - set/reset -ddebug option.
 %pragma quiet   [1|0]         - set/reset -q(uiet) option.
+%pragma update  [1|0]         - set/reset -u (update) option.
 %pragma verbose [1|0]         - set/reset -v(erbose) option.
 
 %pragma filegen_notices_to_stdout [1|0]
@@ -299,6 +300,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                                   %foreach ii arange %call loop
                       example 2:  ptr = $arange
                                   %foreach ii $ptr %call loop
+
 
                     ===================
                     TEMPLATE EXPANSIONS

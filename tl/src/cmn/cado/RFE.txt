@@ -5,6 +5,12 @@ Requests for Enhancements to codegen
 *******************
 
 -------------------
+30-Sep-2008 (russt)
+
+o add doc for %return, %halt, %exit, and STATUS variables
+o add :hastabs  operator (true if a string contains tab characters).
+
+-------------------
 30-May-2008 (russt)
 
 o should codegen search for input program using CG_TEMPLATE_PATH?

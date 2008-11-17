@@ -24,8 +24,9 @@ EOF
 }
 
 #this is the number of tests:
-TNUM = 23
+TNUM = 25
 %call emit_wrapper
+###  just emit one test:
 %exit
 
 TNUM = $TNUM:incr

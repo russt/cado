@@ -199,6 +199,8 @@
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
+#  17-Nov-2008 (russt) [Version 1.71]
+#       Add %pragma clrifndef.
 #
 
 use strict;
@@ -208,8 +210,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.70",         #VERSION - the program version number.
-    "13-Aug-2008",  #VERSION_DATE - date this version was released.
+    "1.71",         #VERSION - the program version number.
+    "17-Nov-2008",  #VERSION_DATE - date this version was released.
 );
 require "path.pl";
 require "os.pl";
@@ -249,6 +251,7 @@ my (
     $pragma_quiet,
     $pragma_verbose,
     $pragma_filegen_notices_to_stdout,
+    $pragma_clrifndef,
     $STRIPTOSHARPBANG,
     $LOOKINPATH,
 ) = (
@@ -284,6 +287,7 @@ my (
     0,              #pragma_quiet - set QUIET option
     0,              #pragma_verbose - set VERBOSE option
     0,              #pragma_filegen_notices_to_stdout - send file generation (x -> y) messages to stdout, not stderr.
+    0,              #pragma_clrifndef - initialize undefined variables to empty string during macro expansion.
     0,              #STRIPTOSHARPBANG -  true if we have a -x option
     0,              #LOOKINPATH - true if we have a -S option
 );
@@ -301,6 +305,7 @@ my %PRAGMAS = (
     'quiet', 1,
     'reset_stack_delimiter', 1,
     'filegen_notices_to_stdout', 1,
+    'clrifndef', 1,
 );
 
 my @INPUT_DATA;
@@ -781,6 +786,7 @@ sub pragma_spec
         $pragma_update = $pragma_update;
         $pragma_echo_expands = $pragma_echo_expands;
         $pragma_filegen_notices_to_stdout = $pragma_filegen_notices_to_stdout;
+        $pragma_clrifndef = $pragma_clrifndef;
     }
 
     ####
@@ -2206,6 +2212,10 @@ sub lookup_def
 
     if ( defined($CLASS_VARS{$varname}) ) {
         $varval = $CLASS_VARS{$varname};
+    } elsif (!defined($CG_USER_VARS{$varname}) && $pragma_clrifndef == 1) {
+        #clear undefined variables if %pragma clrifndef 1
+        $varval = "";
+        $CG_USER_VARS{$varname} = $varval;
     } elsif (defined($CG_USER_VARS{$varname})) {
         $varval = $CG_USER_VARS{$varname};
         #if value of variable is undefined, then garbage collect variable:
