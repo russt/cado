@@ -5013,4 +5013,28 @@ sub B_op
     return (-B $fn)? 1 : 0;
 }
 
+sub factorOutShSubs_op
+{
+    my ($var, $varname, $linecnt) = @_;
+    my $prefix = "shsub_";
+
+    $prefix = $CG_USER_VARS{'CG_SHSUB_PREFIX'} if (defined($CG_USER_VARS{'CG_SHSUB_PREFIX'}));
+    $CG_USER_VARS{'CG_SHSUB_DEFS'} = "";
+    $CG_USER_VARS{'CG_SHSUB_LIST'} = "";
+
+    return $var;
+}
+
+sub factorOutShVars_op
+{
+    my ($var, $varname, $linecnt) = @_;
+    my $prefix = "shvar_";
+
+    $prefix = $CG_USER_VARS{'CG_SHVAR_PREFIX'} if (defined($CG_USER_VARS{'CG_SHVAR_PREFIX'}));
+    $CG_USER_VARS{'CG_SHVAR_DEFS'} = "";
+    $CG_USER_VARS{'CG_SHVAR_LIST'} = "";
+
+    return $var;
+}
+
 1;

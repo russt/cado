@@ -1,0 +1,112 @@
+#test shell refactoring ops:
+#    :factorOutShSubs
+#    :factorOutShVars
+
+
+sh_txt := << EOF
+v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+
+a
+b
+c
+EOF
+
+showsub_factoring :=  << EOF
+#display results of a :factorOutShSubs test
+{
+    %echo ----------------
+    %echo $tname test $tnum:i:a        OUT='$sh_txt:factorOutShSubs'
+    %echo $tname test $tnum  CG_SHSUB_DEFS='$CG_SHSUB_DEFS'
+    %echo $tname test $tnum  CG_SHSUB_LIST='$CG_SHSUB_LIST:showstack'
+    %echo
+}
+EOF
+
+showvar_factoring :=  << EOF
+#display results of a :factorOutShVars test
+{
+    %echo ----------------
+    %echo $tname test $tnum:i:a        OUT='$sh_txt:factorOutShVars'
+    %echo $tname test $tnum  CG_SHVAR_DEFS='$CG_SHVAR_DEFS'
+    %echo $tname test $tnum  CG_SHVAR_LIST='$CG_SHVAR_LIST:showstack'
+    %echo
+}
+EOF
+
+
+#test :factorOutShSubs
+{
+    tname=:factorOutShSubs
+    tnum = 0
+
+    %call showsub_factoring
+
+    #test prefix spec:
+    CG_SHSUB_PREFIX = CBSUB_
+    %call showsub_factoring
+
+    #test INCLUDE pattern:
+    %undef CG_SHSUB_EXCLUDE_PATTERN
+    CG_SHSUB_INCLUDE_PATTERN = /^(a|b)$/
+    %call showsub_factoring
+
+    #test EXCLUDE pattern:
+    %undef CG_SHSUB_INCLUDE_PATTERN
+    CG_SHSUB_EXCLUDE_PATTERN = /^(a|b)$/
+    %call showsub_factoring
+
+    #test EXCLUDE and INCLUDE pattern together:
+    CG_SHSUB_INCLUDE_PATTERN = /^(a|b|c)$/
+    CG_SHSUB_EXCLUDE_PATTERN = /^(c)$/
+    %call showsub_factoring
+}
+
+#test :factorOutShVars
+{
+    tname=:factorOutShVars
+    tnum = 0
+
+    %call showvar_factoring
+
+    CG_SHVAR_PREFIX = CBVAR_
+    %call showvar_factoring
+
+    #test INCLUDE pattern:
+    %undef CG_SHVAR_EXCLUDE_PATTERN
+    CG_SHVAR_INCLUDE_PATTERN = /^(v2|v3)$/
+    %call showvar_factoring
+
+    #test EXCLUDE pattern:
+    %undef CG_SHVAR_INCLUDE_PATTERN
+    CG_SHVAR_EXCLUDE_PATTERN = /^(v2|v3)$/
+    %call showvar_factoring
+
+    #test EXCLUDE and INCLUDE pattern together:
+    CG_SHVAR_INCLUDE_PATTERN = /^(v_1|v2|v3)$/
+    CG_SHVAR_EXCLUDE_PATTERN = /^(v_1|v3)$/
+    %call showvar_factoring
+}
+
+#Q: what if you have an exclude pattern that is later included?
+#A: it is excluded.
+
+#Q: what if you have an include pattern that is later excluded?
+#A: it is excluded.

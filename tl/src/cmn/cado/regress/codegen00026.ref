@@ -1,0 +1,281 @@
+TESTNAME is codegen00026
+----------------
+:factorOutShSubs test 1        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+
+a
+b
+c
+'
+:factorOutShSubs test 1  CG_SHSUB_DEFS=''
+:factorOutShSubs test 1  CG_SHSUB_LIST=''
+
+----------------
+:factorOutShSubs test 2        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+
+a
+b
+c
+'
+:factorOutShSubs test 2  CG_SHSUB_DEFS=''
+:factorOutShSubs test 2  CG_SHSUB_LIST=''
+
+----------------
+:factorOutShSubs test 3        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+
+a
+b
+c
+'
+:factorOutShSubs test 3  CG_SHSUB_DEFS=''
+:factorOutShSubs test 3  CG_SHSUB_LIST=''
+
+----------------
+:factorOutShSubs test 4        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+
+a
+b
+c
+'
+:factorOutShSubs test 4  CG_SHSUB_DEFS=''
+:factorOutShSubs test 4  CG_SHSUB_LIST=''
+
+----------------
+:factorOutShSubs test 5        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+
+a
+b
+c
+'
+:factorOutShSubs test 5  CG_SHSUB_DEFS=''
+:factorOutShSubs test 5  CG_SHSUB_LIST=''
+
+----------------
+:factorOutShVars test 1        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+
+a
+b
+c
+'
+:factorOutShVars test 1  CG_SHVAR_DEFS=''
+:factorOutShVars test 1  CG_SHVAR_LIST=''
+
+----------------
+:factorOutShVars test 2        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+
+a
+b
+c
+'
+:factorOutShVars test 2  CG_SHVAR_DEFS=''
+:factorOutShVars test 2  CG_SHVAR_LIST=''
+
+----------------
+:factorOutShVars test 3        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+
+a
+b
+c
+'
+:factorOutShVars test 3  CG_SHVAR_DEFS=''
+:factorOutShVars test 3  CG_SHVAR_LIST=''
+
+----------------
+:factorOutShVars test 4        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+
+a
+b
+c
+'
+:factorOutShVars test 4  CG_SHVAR_DEFS=''
+:factorOutShVars test 4  CG_SHVAR_LIST=''
+
+----------------
+:factorOutShVars test 5        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+
+a
+b
+c
+'
+:factorOutShVars test 5  CG_SHVAR_DEFS=''
+:factorOutShVars test 5  CG_SHVAR_LIST=''
+
