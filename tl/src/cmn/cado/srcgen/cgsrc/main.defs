@@ -1,5 +1,5 @@
 VERSION = 1.71
-VERSION_DATE = 18-Nov-2008
+VERSION_DATE = 19-Nov-2008
 
 {
 CODEGEN_PACKAGE := << EOF
@@ -1262,12 +1262,24 @@ sub undefspec
         return 1;
     }
 
-    #finally, treat spec as a match expression, and delete all vars
-    #that match:
+    #finally, treat spec as a match expression, and delete all vars that match:
     my $match_cnt = 0;
     my @matchvars = ();
+    my $vpat = $varname;
+
+    #delete leading/trailing "/" chars:
+    $vpat =~ s|^/|| ; $vpat =~ s|/$||;
+
+    #also delete leading "^" and trailing "$" chars:
+    $vpat =~ s|^\^|| ; $vpat =~ s|\$$||;
+
+    #user must fully specify match pattern from beginning of variable names:
+    $vpat = '^' . $vpat . '$';
+
+    printf STDERR "UNDEF SPEC:  vpat='%s'\n", $vpat if ($DEBUG);
+
     foreach my $kk (keys %CG_USER_VARS) {
-        if ($kk =~ /^${varname}$/) {
+        if ($kk =~ /$vpat/) {
             push @matchvars, $kk;
             delete $CG_USER_VARS{$kk};
             ++$match_cnt;
@@ -3624,8 +3636,9 @@ CODEGEN_HEADER := << EOF
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  18-Nov-2008 (russt) [Version 1.71]
-#       Add %pragma clrifndef, factorShSubs, factorShVars.
+#  19-Nov-2008 (russt) [Version 1.71]
+#       Add %pragma clrifndef, factorShSubs, factorShVars.  Allow %undef patterns to
+#       be wrapped with /match/ or /^match$/.
 #
 
 EOF

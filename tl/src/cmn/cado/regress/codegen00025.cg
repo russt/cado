@@ -13,7 +13,7 @@ EOF
 #this test displays ${var:undef} for undefined vars:
 {
     %pragma clrifndef 0
-    %undef FOO_*
+    %undef FOO_.*
 
     ECHO_TXT = $TEST_DATA
     echo	/${TESTNAME}_A.out
@@ -25,7 +25,7 @@ EOF
 #this test displays empty strings for undefined vars:
 {
     %pragma clrifndef 1
-    %undef FOO_*
+    %undef FOO_.*
     ECHO_TXT = $TEST_DATA
     echo	/${TESTNAME}_B.out
     %echo
@@ -42,7 +42,7 @@ EOF
 #the :clrifndef version of the test also displays empty strings for undefined vars:
 {
     %pragma clrifndef 0
-    %undef FOO_*
+    %undef FOO_.*
     ECHO_TXT = $TEST_DATA2
     echo	/${TESTNAME}_C.out
     %echo

@@ -199,7 +199,7 @@
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  18-Nov-2008 (russt) [Version 1.71]
+#  19-Nov-2008 (russt) [Version 1.71]
 #       Add %pragma clrifndef, factorShSubs, factorShVars.
 #
 
@@ -211,7 +211,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.71",         #VERSION - the program version number.
-    "18-Nov-2008",  #VERSION_DATE - date this version was released.
+    "19-Nov-2008",  #VERSION_DATE - date this version was released.
 );
 require "path.pl";
 require "os.pl";
@@ -1455,12 +1455,24 @@ sub undefspec
         return 1;
     }
 
-    #finally, treat spec as a match expression, and delete all vars
-    #that match:
+    #finally, treat spec as a match expression, and delete all vars that match:
     my $match_cnt = 0;
     my @matchvars = ();
+    my $vpat = $varname;
+
+    #delete leading/trailing "/" chars:
+    $vpat =~ s|^/|| ; $vpat =~ s|/$||;
+
+    #also delete leading "^" and trailing "$" chars:
+    $vpat =~ s|^\^|| ; $vpat =~ s|\$$||;
+
+    #user must fully specify match pattern from beginning of variable names:
+    $vpat = '^' . $vpat . '$';
+
+    printf STDERR "UNDEF SPEC:  vpat='%s'\n", $vpat if ($DEBUG);
+
     foreach my $kk (keys %CG_USER_VARS) {
-        if ($kk =~ /^${varname}$/) {
+        if ($kk =~ /$vpat/) {
             push @matchvars, $kk;
             delete $CG_USER_VARS{$kk};
             ++$match_cnt;
@@ -5029,9 +5041,19 @@ sub factorShSubs_op
     my $xpat = "";
     my $ipat = "";
 
-    $prefix = $CG_USER_VARS{'CG_SHSUB_PREFIX'}          if ( &var_defined_non_empty("CG_SHSUB_PREFIX") );
+    if ( &var_defined_non_empty("CG_SHSUB_PREFIX") ) {
+        $prefix = $CG_USER_VARS{'CG_SHSUB_PREFIX'}          
+    } else {
+        #otherwise, initialize prefix to the default so user can retrieve it:
+        &assign_op($prefix, 'CG_SHSUB_PREFIX', $linecnt);
+    }
+
     $xpat =   $CG_USER_VARS{'CG_SHSUB_EXCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHSUB_EXCLUDE_PATTERN") );
     $ipat =   $CG_USER_VARS{'CG_SHSUB_INCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHSUB_INCLUDE_PATTERN") );
+
+    #remove leading/trailing slashes if necessary:
+    ($xpat =~ s|^/|| && $xpat =~ s|/$||) unless ($xpat eq "");
+    ($ipat =~ s|^/|| && $ipat =~ s|/$||) unless ($ipat eq "");
 
     my $have_pattern_specs = ($xpat ne "" | $ipat ne "");
 
@@ -5118,7 +5140,7 @@ sub factorShSubs_op
         my $macroref = "{=$cg_srname=}";
 
         #if this subroutine is excluded by name...
-        if ( &shsub_excluded($srname, $ipat, $xpat) ) {
+        if ( &sh_name_is_excluded($srname, $ipat, $xpat) ) {
             #... then restore original text in the input:
             $var =~ s/$macroref/$srtxt/s;
 
@@ -5131,7 +5153,7 @@ sub factorShSubs_op
         #output definition:
         $srdeftxt .= << "!";
 
-### sh subroutine $srname()
+##sh subroutine $srname()
 $cg_srname := << EOF
 $srtxt
 EOF
@@ -5149,18 +5171,20 @@ EOF
     return $var;
 }
 
-sub shsub_excluded
+sub sh_name_is_excluded
+#return 1 if <name> is excluded, 0 otherwise
+#(local  utility).
 {
-    my ($srname, $ipat, $xpat) = @_;
+    my ($name, $ipat, $xpat) = @_;
 
     #do not excluded if neither include or exclude pattern was specified:
     return 0 if ($ipat eq "" && $xpat eq "");
 
     #exclude if exclude pattern is specified and matches:
-    return 1 if ($xpat ne "" && $srname =~ /$xpat/);
+    return 1 if ($xpat ne "" && $name =~ /$xpat/);
 
     #do not exclude if include pattern was not specified or if it is specified and matches:
-    return 0 if ($ipat eq "" || $srname =~ /$ipat/);
+    return 0 if ($ipat eq "" || $name =~ /$ipat/);
 
     #include pattern was specified, but did not match:
     return 1;

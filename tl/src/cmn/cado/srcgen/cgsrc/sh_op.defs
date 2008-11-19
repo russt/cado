@@ -8,9 +8,19 @@ sub factorShSubs_op
     my $xpat = "";
     my $ipat = "";
 
-    $prefix = $CG_USER_VARS{'CG_SHSUB_PREFIX'}          if ( &var_defined_non_empty("CG_SHSUB_PREFIX") );
+    if ( &var_defined_non_empty("CG_SHSUB_PREFIX") ) {
+        $prefix = $CG_USER_VARS{'CG_SHSUB_PREFIX'}          
+    } else {
+        #otherwise, initialize prefix to the default so user can retrieve it:
+        &assign_op($prefix, 'CG_SHSUB_PREFIX', $linecnt);
+    }
+
     $xpat =   $CG_USER_VARS{'CG_SHSUB_EXCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHSUB_EXCLUDE_PATTERN") );
     $ipat =   $CG_USER_VARS{'CG_SHSUB_INCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHSUB_INCLUDE_PATTERN") );
+
+    #remove leading/trailing slashes if necessary:
+    ($xpat =~ s|^/|| && $xpat =~ s|/$||) unless ($xpat eq "");
+    ($ipat =~ s|^/|| && $ipat =~ s|/$||) unless ($ipat eq "");
 
     my $have_pattern_specs = ($xpat ne "" | $ipat ne "");
 
@@ -97,7 +107,7 @@ sub factorShSubs_op
         my $macroref = "{=$cg_srname=}";
 
         #if this subroutine is excluded by name...
-        if ( &shsub_excluded($srname, $ipat, $xpat) ) {
+        if ( &sh_name_is_excluded($srname, $ipat, $xpat) ) {
             #... then restore original text in the input:
             $var =~ s/$macroref/$srtxt/s;
 
@@ -128,18 +138,20 @@ EOF
     return $var;
 }
 
-sub shsub_excluded
+sub sh_name_is_excluded
+#return 1 if <name> is excluded, 0 otherwise
+#(local  utility).
 {
-    my ($srname, $ipat, $xpat) = @_;
+    my ($name, $ipat, $xpat) = @_;
 
     #do not excluded if neither include or exclude pattern was specified:
     return 0 if ($ipat eq "" && $xpat eq "");
 
     #exclude if exclude pattern is specified and matches:
-    return 1 if ($xpat ne "" && $srname =~ /$xpat/);
+    return 1 if ($xpat ne "" && $name =~ /$xpat/);
 
     #do not exclude if include pattern was not specified or if it is specified and matches:
-    return 0 if ($ipat eq "" || $srname =~ /$ipat/);
+    return 0 if ($ipat eq "" || $name =~ /$ipat/);
 
     #include pattern was specified, but did not match:
     return 1;

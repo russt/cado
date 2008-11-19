@@ -1,0 +1,76 @@
+#test shell refactoring op:
+#    :factorShVars
+
+sh_txt := << EOF
+v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+_123()
+{
+echo sub _123
+a=${v2}
+}
+a
+b
+c
+_123
+EOF
+
+##### show initial sh txt:
+{
+    %echo BEGIN sh_txt='$sh_txt'
+}
+
+showvar_factoring :=  << EOF
+#display results of a :factorShVars test
+{
+    %echo
+    %echo {----------------
+    %echo $tname test $tnum:i:a        OUT='$sh_txt:factorShVars'
+    %echo $tname test $tnum  CG_SHVAR_LIST='$CG_SHVAR_LIST:showstack'
+    %echo ----------------}
+    %echo
+}
+EOF
+
+#test :factorShVars
+{
+    tname=:factorShVars
+    tnum = 0
+
+    %call showvar_factoring
+
+    CG_SHVAR_PREFIX = CBVAR_
+    %call showvar_factoring
+
+    #test INCLUDE pattern:
+    %undef CG_SHVAR_EXCLUDE_PATTERN
+    CG_SHVAR_INCLUDE_PATTERN = /^(v2|v3)$/
+    %call showvar_factoring
+
+    #test EXCLUDE pattern:
+    %undef CG_SHVAR_INCLUDE_PATTERN
+    CG_SHVAR_EXCLUDE_PATTERN = /^(v2|v3)$/
+    %call showvar_factoring
+
+    #test EXCLUDE and INCLUDE pattern together:
+    CG_SHVAR_INCLUDE_PATTERN = /^(v_1|v2|v3)$/
+    CG_SHVAR_EXCLUDE_PATTERN = /^(v_1|v3)$/
+    %call showvar_factoring
+}

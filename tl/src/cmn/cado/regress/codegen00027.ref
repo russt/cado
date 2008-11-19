@@ -1,0 +1,200 @@
+TESTNAME is codegen00027
+BEGIN sh_txt='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+_123()
+{
+echo sub _123
+a=${v2}
+}
+a
+b
+c
+_123
+'
+
+{----------------
+:factorShVars test 1        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+_123()
+{
+echo sub _123
+a=${v2}
+}
+a
+b
+c
+_123
+'
+:factorShVars test 1  CG_SHVAR_LIST=''
+----------------}
+
+
+{----------------
+:factorShVars test 2        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+_123()
+{
+echo sub _123
+a=${v2}
+}
+a
+b
+c
+_123
+'
+:factorShVars test 2  CG_SHVAR_LIST=''
+----------------}
+
+
+{----------------
+:factorShVars test 3        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+_123()
+{
+echo sub _123
+a=${v2}
+}
+a
+b
+c
+_123
+'
+:factorShVars test 3  CG_SHVAR_LIST=''
+----------------}
+
+
+{----------------
+:factorShVars test 4        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+_123()
+{
+echo sub _123
+a=${v2}
+}
+a
+b
+c
+_123
+'
+:factorShVars test 4  CG_SHVAR_LIST=''
+----------------}
+
+
+{----------------
+:factorShVars test 5        OUT='v_1="v_1 value"
+v2="v2 value"
+V3="V3 value"
+
+a()
+{
+    echo sub a: $v_1
+}
+
+b (  ){
+    echo sub b: $v2
+    }
+
+# c() { echo sub c }
+
+c()
+{
+echo sub c: $V3
+}
+_123()
+{
+echo sub _123
+a=${v2}
+}
+a
+b
+c
+_123
+'
+:factorShVars test 5  CG_SHVAR_LIST=''
+----------------}
+

@@ -1,8 +1,5 @@
-#test shell refactoring ops:
+#test shell refactoring op:
 #    :factorShSubs
-#    :factorShVars
-
-%pragma preserve_multiline_lnewline 0
 
 sh_txt := << EOF
 v_1="v_1 value"
@@ -14,8 +11,8 @@ a()
     echo sub a: $v_1
 }
 
-b (  ){
-    echo sub b: $v2
+B_o_B52s (  ){
+    echo sub B_o_B52s: $v2
     }
 
 # c() { echo sub c }
@@ -30,7 +27,7 @@ echo sub _123
 a=${v2}
 }
 a
-b
+B_o_B52s
 c
 _123
 EOF
@@ -40,15 +37,42 @@ EOF
     %echo BEGIN sh_txt='$sh_txt'
 }
 
+undef_shsub_vars := << EOF
+#undefine any variables created when we evaluate generate shsub defs:
+{
+    undefpat = /${CG_SHSUB_PREFIX}.*/
+    %undef $undefpat
+}
+EOF
+
 showsub_factoring :=  << EOF
 #display results of a :factorShSubs test
 {
-    %echo ----------------
+    %echo
+    %echo {----------------
     OUT=$sh_txt:factorShSubs
     %echo $tname test $tnum:i:a        OUT='$OUT'
-    %echo $tname test $tnum  CG_SHSUB_DEFS='$CG_SHSUB_DEFS'
     %echo $tname test $tnum  CG_SHSUB_LIST='$CG_SHSUB_LIST:showstack'
+    %echo $tname test $tnum  CG_SHSUB_DEFS='$CG_SHSUB_DEFS'
+    %echo ----------------}
     %echo
+}
+EOF
+
+test_generated_shsub := << EOF
+#perform macro substitutions on factored sh script, and compare to original
+{
+    #create a new string using definitions we just created:
+    %call CG_SHSUB_DEFS
+    %evalmacro CG_COMPARE_SPEC OUT
+
+    #test that new string is same as original:
+    result=FAILED
+    %if $sh_txt:eq	result=PASSED
+    %echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+    #undefine any variables we just created:
+    %call undef_shsub_vars
 }
 EOF
 
@@ -59,75 +83,37 @@ EOF
 
     %call showsub_factoring
 
-    #create a new string using definitions we just created:
-    %call CG_SHSUB_DEFS
-    %evalmacro CG_COMPARE_SPEC OUT
+    %echo CG_SHSUB_PREFIX=$CG_SHSUB_PREFIX
+    default_cg_subsh_prefix = $CG_SHSUB_PREFIX
 
-    #test that new string is same as original:
-    result=FAILED
-    %if $sh_txt:eq	result=PASSED
-    %echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+    %call test_generated_shsub
 
     #test prefix spec:
     CG_SHSUB_PREFIX = CBSUB_
     %call showsub_factoring
+    %call test_generated_shsub
+
+    #revert prefix:
+    %undef CG_SHSUB_PREFIX
 
     #test INCLUDE pattern:
     %undef CG_SHSUB_EXCLUDE_PATTERN
-    CG_SHSUB_INCLUDE_PATTERN = /^(a|b)$/
+    CG_SHSUB_INCLUDE_PATTERN = /^(a|B.*)$/
+    %echo INCLUDE is $CG_SHSUB_INCLUDE_PATTERN
     %call showsub_factoring
+    %call test_generated_shsub
 
     #test EXCLUDE pattern:
     %undef CG_SHSUB_INCLUDE_PATTERN
-    CG_SHSUB_EXCLUDE_PATTERN = /^(a|b)$/
+    CG_SHSUB_EXCLUDE_PATTERN = /^(a|B.*)$/
+    %echo EXCLUDE is $CG_SHSUB_EXCLUDE_PATTERN
     %call showsub_factoring
+    %call test_generated_shsub
 
     #test EXCLUDE and INCLUDE pattern together:
-    CG_SHSUB_INCLUDE_PATTERN = /^(a|b|c)$/
+    CG_SHSUB_INCLUDE_PATTERN = /^(a|B.*|c|_\d*)$/
     CG_SHSUB_EXCLUDE_PATTERN = /^(c)$/
+    %echo INCLUDE is $CG_SHSUB_INCLUDE_PATTERN, EXCLUDE is $CG_SHSUB_EXCLUDE_PATTERN
     %call showsub_factoring
+    %call test_generated_shsub
 }
-
-showvar_factoring :=  << EOF
-#display results of a :factorShVars test
-{
-    %echo ----------------
-    %echo $tname test $tnum:i:a        OUT='$sh_txt:factorShVars'
-    %echo $tname test $tnum  CG_SHVAR_LIST='$CG_SHVAR_LIST:showstack'
-    %echo
-}
-EOF
-
-#test :factorShVars
-{
-    tname=:factorShVars
-    tnum = 0
-
-%return SKIPPING $tname tests
-
-    %call showvar_factoring
-
-    CG_SHVAR_PREFIX = CBVAR_
-    %call showvar_factoring
-
-    #test INCLUDE pattern:
-    %undef CG_SHVAR_EXCLUDE_PATTERN
-    CG_SHVAR_INCLUDE_PATTERN = /^(v2|v3)$/
-    %call showvar_factoring
-
-    #test EXCLUDE pattern:
-    %undef CG_SHVAR_INCLUDE_PATTERN
-    CG_SHVAR_EXCLUDE_PATTERN = /^(v2|v3)$/
-    %call showvar_factoring
-
-    #test EXCLUDE and INCLUDE pattern together:
-    CG_SHVAR_INCLUDE_PATTERN = /^(v_1|v2|v3)$/
-    CG_SHVAR_EXCLUDE_PATTERN = /^(v_1|v3)$/
-    %call showvar_factoring
-}
-
-#Q: what if you have an exclude pattern that is later included?
-#A: excludes take precedence over includes - it is excluded.
-
-#Q: what if you have an include pattern that is later excluded?
-#A: excludes take precedence over includes - it is excluded.
