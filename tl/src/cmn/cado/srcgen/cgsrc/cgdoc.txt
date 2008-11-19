@@ -105,20 +105,20 @@
                     ==============
                     SH REFACTORING
                     ==============
-:factorOutShSubs    - replace sh subroutine declarations with macros, and create macro definitions in
+:factorShSubs    - replace sh subroutine declarations with macros, and create macro definitions in
                       CG_SHSUB_DEFS variable, which is cleared with each use.  Store list of
                       subroutines processed in CG_SHSUB_LIST stack variable.  Exclude names
                       matching CG_SHSUB_EXCLUDE_PATTERN if defined, and include only names
                       matching CG_SHSUB_INCLUDE_PATTERN if defined.
 
-:factorOutShVars    - replace sh variable name references with macros, and create list of
+:factorShVars    - replace sh variable name references with macros, and create list of
                       variables processed in CG_SHVAR_LIST stack variable.  Exclude names
                       matching CG_SHVAR_EXCLUDE_PATTERN if defined, and include only names
                       matching CG_SHVAR_INCLUDE_PATTERN if defined.
 
-                    --------------------------
-                    :factorOutShSubs modifiers
-                    --------------------------
+                    -----------------------
+                    :factorShSubs modifiers
+                    -----------------------
 CG_SHSUB_PREFIX     - use this prefix when generating sh subroutine defintions and macro refs.
                       default prefix is "shsub_".
 CG_SHSUB_EXCLUDE_PATTERN
@@ -128,15 +128,15 @@ CG_SHSUB_INCLUDE_PATTERN
                     - include the names of sh subroutines matching this perl regular expression.
                       Note that exclude patterns take precedence over include patterns.
 
-                    -----------------------
-                    :factorOutShSubs output
-                    -----------------------
+                    --------------------
+                    :factorShSubs output
+                    --------------------
 CG_SHSUB_DEFS       - definitions of factored out sh subroutines.
 CG_SHSUB_LIST       - stack of sh subroutine names that were factored out.
 
-                    --------------------------
-                    :factorOutShVars modifiers
-                    --------------------------
+                    -----------------------
+                    :factorShVars modifiers
+                    -----------------------
 CG_SHVAR_PREFIX     - use this prefix when generating sh variable macro refs.
                       default prefix is "shvar_".
 CG_SHVAR_EXCLUDE_PATTERN
@@ -146,9 +146,9 @@ CG_SHVAR_INCLUDE_PATTERN
                     - include the names of sh variables matching this perl regular expression.
                       Note that exclude patterns take precedence over include patterns.
 
-                    -----------------------
-                    :factorOutShVars output
-                    -----------------------
+                    --------------------
+                    :factorShVars output
+                    --------------------
 CG_SHVAR_LIST       - stack of sh variable names that were factored out.
 
                     =============
@@ -350,6 +350,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                                   %foreach ii arange %call loop
                       example 2:  ptr = $arange
                                   %foreach ii $ptr %call loop
+
 
 
 

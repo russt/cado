@@ -1,5 +1,5 @@
 VERSION = 1.71
-VERSION_DATE = 17-Nov-2008
+VERSION_DATE = 18-Nov-2008
 
 {
 CODEGEN_PACKAGE := << EOF
@@ -3624,8 +3624,8 @@ CODEGEN_HEADER := << EOF
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  17-Nov-2008 (russt) [Version 1.71]
-#       Add %pragma clrifndef.
+#  18-Nov-2008 (russt) [Version 1.71]
+#       Add %pragma clrifndef, factorShSubs, factorShVars.
 #
 
 EOF

@@ -1,7 +1,7 @@
 #define some specialized ops for operating on shell scripts.
 {
 SH_OP_STUBS := << EOF_OPS
-sub factorOutShSubs_op
+sub factorShSubs_op
 {
     my ($var, $varname, $linecnt) = @_;
     my $prefix = "shsub_";
@@ -109,9 +109,8 @@ sub factorOutShSubs_op
 
         #output definition:
         $srdeftxt .= << "!";
-###
-### $srname
-###
+
+##sh subroutine $srname()
 $cg_srname := << EOF
 $srtxt
 EOF
@@ -146,7 +145,7 @@ sub shsub_excluded
     return 1;
 }
 
-sub factorOutShVars_op
+sub factorShVars_op
 {
     my ($var, $varname, $linecnt) = @_;
     my $prefix = "shvar_";

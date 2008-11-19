@@ -199,8 +199,8 @@
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  17-Nov-2008 (russt) [Version 1.71]
-#       Add %pragma clrifndef.
+#  18-Nov-2008 (russt) [Version 1.71]
+#       Add %pragma clrifndef, factorShSubs, factorShVars.
 #
 
 use strict;
@@ -211,7 +211,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.71",         #VERSION - the program version number.
-    "17-Nov-2008",  #VERSION_DATE - date this version was released.
+    "18-Nov-2008",  #VERSION_DATE - date this version was released.
 );
 require "path.pl";
 require "os.pl";
@@ -2227,6 +2227,15 @@ sub lookup_def
     printf STDERR "lookup_def:  in='%s' out='%s'\n", $varname, $varval if ($DEBUG);
 
     return $varval;
+}
+
+sub var_defined_non_empty
+#return 1 if a codegen variable is defined and is not empty
+{
+    my ($varname) = @_;
+    my $varval = &lookup_def($varname);
+
+    return ( !&isUndefinedVarnameValue($varname, $varval) && ($varval ne "") );
 }
 
 sub var_defined
@@ -5013,25 +5022,162 @@ sub B_op
     return (-B $fn)? 1 : 0;
 }
 
-sub factorOutShSubs_op
+sub factorShSubs_op
 {
     my ($var, $varname, $linecnt) = @_;
     my $prefix = "shsub_";
+    my $xpat = "";
+    my $ipat = "";
 
-    $prefix = $CG_USER_VARS{'CG_SHSUB_PREFIX'} if (defined($CG_USER_VARS{'CG_SHSUB_PREFIX'}));
-    $CG_USER_VARS{'CG_SHSUB_DEFS'} = "";
-    $CG_USER_VARS{'CG_SHSUB_LIST'} = "";
+    $prefix = $CG_USER_VARS{'CG_SHSUB_PREFIX'}          if ( &var_defined_non_empty("CG_SHSUB_PREFIX") );
+    $xpat =   $CG_USER_VARS{'CG_SHSUB_EXCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHSUB_EXCLUDE_PATTERN") );
+    $ipat =   $CG_USER_VARS{'CG_SHSUB_INCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHSUB_INCLUDE_PATTERN") );
+
+    my $have_pattern_specs = ($xpat ne "" | $ipat ne "");
+
+    #clear output variables:
+    &assign_op("", 'CG_SHSUB_DEFS', $linecnt);
+    &assign_op("", 'CG_SHSUB_LIST', $linecnt);
+
+    #INPUT:
+    # a()
+    # {
+    #     echo sub a: $v_1
+    # }
+    # 
+    # b (  ){
+    #     echo sub b: $v2
+    #     }
+    # 
+    # # c() { echo sub c }
+    # 
+    # c()
+    # {
+    # echo sub c: $V3
+    # }
+    #
+    # _123()
+    # {
+    # echo sub _123
+    # a=${v2}
+    # }
+    #
+    #OUTPUT:
+    # {=shsub_a=}
+    # {=shsub_b=}
+    # #c() { echo sub c }
+    # {=shsub_c=}
+    # {=shsub__123=}
+    #
+    #NOTES:
+    # - brackets are only used in var refs & subroutine defs.
+    # - expression below requires at least one newline before each subrouting declaration.
+    #   this means that we will miss subroutines declared in first line of file.
+    # - note the use of .+? in the expression.  this forces the engine to match the first
+    #{  instance of \n\s*} which terminates the subroutine def.  otherwise, it would do
+    #   a "greedy" match, and match the last instance.
+    # - the /so modifiers treat the multi-line string as a single string,
+    #   and compile the pattern only once.
+
+    my %shsub_defs = ();
+    my %shsub_names = ();
+    my @cg_srnames = ();
+    my $re = '\n(\s*)([a-z_A-Z]\w*)(\s*\(\s*\)[^{]*\{.+?\n\s*\})\s*?\n';
+    #} match bracket
+    my ($cg_srname, $srtxt, $srname) = ("", "", "");
+
+    while ($var =~ /$re/so ) {
+        $srname = $2;
+        $srtxt = "$1$2$3";
+        $cg_srname = "$prefix$srname";
+
+#printf "srtxt='%s'\n", $srtxt;
+
+        my $repl = sprintf("\n{=%s=}\n", $cg_srname);
+
+        #replace the subroutine text with the generated cg macro name:
+        $var =~ s/$re/$repl/so;
+
+        #save the name and text of the subroutine:
+        $shsub_defs{$cg_srname} = $srtxt;
+        $shsub_names{$cg_srname} = $srname;
+
+        #push the cg sr name on to preserve order of input:
+        push @cg_srnames, $cg_srname;
+    }
+
+    #now we loop through the macros names created and restore the original text
+    #for subroutines we are ignoring.
+
+    my $srdeftxt = "";
+    my (@srlist) = ();
+
+    foreach $cg_srname (@cg_srnames) {
+        $srtxt = $shsub_defs{$cg_srname};
+        $srname = $shsub_names{$cg_srname};
+        my $macroref = "{=$cg_srname=}";
+
+        #if this subroutine is excluded by name...
+        if ( &shsub_excluded($srname, $ipat, $xpat) ) {
+            #... then restore original text in the input:
+            $var =~ s/$macroref/$srtxt/s;
+
+            next;   #do not output text or variable if we are excluding
+        }
+
+        #otherwise, append to user variables:  definition text, and subroutine name list:
+        push @srlist, $srname;
+
+        #output definition:
+        $srdeftxt .= << "!";
+
+### sh subroutine $srname()
+$cg_srname := << EOF
+$srtxt
+EOF
+
+!
+
+    }
+
+    my $FS = &lookup_def('CG_STACK_DELIMITER');
+
+    #overwrite results if we had any:
+    &assign_op($srdeftxt, 'CG_SHSUB_DEFS', $linecnt)          if ($srdeftxt ne "");;
+    &assign_op(join($FS, @srlist), 'CG_SHSUB_LIST', $linecnt) if ($#srlist >= 0);
 
     return $var;
 }
 
-sub factorOutShVars_op
+sub shsub_excluded
+{
+    my ($srname, $ipat, $xpat) = @_;
+
+    #do not excluded if neither include or exclude pattern was specified:
+    return 0 if ($ipat eq "" && $xpat eq "");
+
+    #exclude if exclude pattern is specified and matches:
+    return 1 if ($xpat ne "" && $srname =~ /$xpat/);
+
+    #do not exclude if include pattern was not specified or if it is specified and matches:
+    return 0 if ($ipat eq "" || $srname =~ /$ipat/);
+
+    #include pattern was specified, but did not match:
+    return 1;
+}
+
+sub factorShVars_op
 {
     my ($var, $varname, $linecnt) = @_;
     my $prefix = "shvar_";
+    my $xpat = "";
+    my $ipat = "";
 
-    $prefix = $CG_USER_VARS{'CG_SHVAR_PREFIX'} if (defined($CG_USER_VARS{'CG_SHVAR_PREFIX'}));
-    $CG_USER_VARS{'CG_SHVAR_DEFS'} = "";
+    $prefix = $CG_USER_VARS{'CG_SHVAR_PREFIX'}          if ( &var_defined_non_empty("CG_SHVAR_PREFIX") );
+    $xpat =   $CG_USER_VARS{'CG_SHVAR_EXCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHVAR_EXCLUDE_PATTERN") );
+    $ipat =   $CG_USER_VARS{'CG_SHVAR_INCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHVAR_INCLUDE_PATTERN") );
+
+    #clear output variables:
     $CG_USER_VARS{'CG_SHVAR_LIST'} = "";
 
     return $var;

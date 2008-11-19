@@ -1,7 +1,8 @@
 #test shell refactoring ops:
-#    :factorOutShSubs
-#    :factorOutShVars
+#    :factorShSubs
+#    :factorShVars
 
+%pragma preserve_multiline_lnewline 0
 
 sh_txt := << EOF
 v_1="v_1 value"
@@ -23,41 +24,49 @@ c()
 {
 echo sub c: $V3
 }
-
+_123()
+{
+echo sub _123
+a=${v2}
+}
 a
 b
 c
+_123
 EOF
 
+##### show initial sh txt:
+{
+    %echo BEGIN sh_txt='$sh_txt'
+}
+
 showsub_factoring :=  << EOF
-#display results of a :factorOutShSubs test
+#display results of a :factorShSubs test
 {
     %echo ----------------
-    %echo $tname test $tnum:i:a        OUT='$sh_txt:factorOutShSubs'
+    OUT=$sh_txt:factorShSubs
+    %echo $tname test $tnum:i:a        OUT='$OUT'
     %echo $tname test $tnum  CG_SHSUB_DEFS='$CG_SHSUB_DEFS'
     %echo $tname test $tnum  CG_SHSUB_LIST='$CG_SHSUB_LIST:showstack'
     %echo
 }
 EOF
 
-showvar_factoring :=  << EOF
-#display results of a :factorOutShVars test
+#test :factorShSubs
 {
-    %echo ----------------
-    %echo $tname test $tnum:i:a        OUT='$sh_txt:factorOutShVars'
-    %echo $tname test $tnum  CG_SHVAR_DEFS='$CG_SHVAR_DEFS'
-    %echo $tname test $tnum  CG_SHVAR_LIST='$CG_SHVAR_LIST:showstack'
-    %echo
-}
-EOF
-
-
-#test :factorOutShSubs
-{
-    tname=:factorOutShSubs
+    tname=:factorShSubs
     tnum = 0
 
     %call showsub_factoring
+
+    #create a new string using definitions we just created:
+    %call CG_SHSUB_DEFS
+    %evalmacro CG_COMPARE_SPEC OUT
+
+    #test that new string is same as original:
+    result=FAILED
+    %if $sh_txt:eq	result=PASSED
+    %echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
 
     #test prefix spec:
     CG_SHSUB_PREFIX = CBSUB_
@@ -79,10 +88,22 @@ EOF
     %call showsub_factoring
 }
 
-#test :factorOutShVars
+showvar_factoring :=  << EOF
+#display results of a :factorShVars test
 {
-    tname=:factorOutShVars
+    %echo ----------------
+    %echo $tname test $tnum:i:a        OUT='$sh_txt:factorShVars'
+    %echo $tname test $tnum  CG_SHVAR_LIST='$CG_SHVAR_LIST:showstack'
+    %echo
+}
+EOF
+
+#test :factorShVars
+{
+    tname=:factorShVars
     tnum = 0
+
+%return SKIPPING $tname tests
 
     %call showvar_factoring
 
@@ -106,7 +127,7 @@ EOF
 }
 
 #Q: what if you have an exclude pattern that is later included?
-#A: it is excluded.
+#A: excludes take precedence over includes - it is excluded.
 
 #Q: what if you have an include pattern that is later excluded?
-#A: it is excluded.
+#A: excludes take precedence over includes - it is excluded.
