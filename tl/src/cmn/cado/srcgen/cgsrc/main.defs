@@ -2041,6 +2041,15 @@ sub lookup_def
     return $varval;
 }
 
+sub var_defined_non_empty
+#return 1 if a codegen variable is defined and is not empty
+{
+    my ($varname) = @_;
+    my $varval = &lookup_def($varname);
+
+    return ( !&isUndefinedVarnameValue($varname, $varval) && ($varval ne "") );
+}
+
 sub var_defined
 #return 1 if a codegen variable is defined
 {
