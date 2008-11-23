@@ -2,4 +2,4 @@ before:  FOO='{=FOO=}'
 after:  FOO='{=$FOO:sort:newline=}'
 
 #note that the date doesn't care about stdin, so $avar can be anything.
-{=$avar:date:newline=}
+{=$avar:date=}

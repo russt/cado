@@ -2,7 +2,8 @@ TESTNAME is codegen00025
 
 ##### TEST 1 #####
 '${FOO_VAR1:undef}
-${FOO_VAR2:undef}${FOO_VAR3:undef}'
+${FOO_VAR2:undef}
+${FOO_VAR3:undef}'
 
 ##### TEST 2 #####
 '

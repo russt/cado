@@ -1,3 +1,5 @@
+#%pragma preserve_multiline_lnewline 1
+
 #test shell refactoring op:
 #    :factorShSubs
 
@@ -71,6 +73,8 @@ test_generated_shsub := << EOF
     %if $sh_txt:eq	result=PASSED
     %echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
 
+%ifnot $sh_txt:eq %echo >>>>>>>$CG_COMPARE_SPEC<<<<<<<
+
     #undefine any variables we just created:
     %call undef_shsub_vars
 }
@@ -81,20 +85,20 @@ EOF
     tname=:factorShSubs
     tnum = 0
 
-    %call showsub_factoring
-
-    %echo CG_SHSUB_PREFIX=$CG_SHSUB_PREFIX
-    default_cg_subsh_prefix = $CG_SHSUB_PREFIX
-
-    %call test_generated_shsub
-
-    #test prefix spec:
-    CG_SHSUB_PREFIX = CBSUB_
-    %call showsub_factoring
-    %call test_generated_shsub
-
-    #revert prefix:
-    %undef CG_SHSUB_PREFIX
+#    %call showsub_factoring
+#
+#    %echo CG_SHSUB_PREFIX=$CG_SHSUB_PREFIX
+#    default_cg_subsh_prefix = $CG_SHSUB_PREFIX
+#
+#    %call test_generated_shsub
+#
+#    #test prefix spec:
+#    CG_SHSUB_PREFIX = CBSUB_
+#    %call showsub_factoring
+#    %call test_generated_shsub
+#
+#    #revert prefix:
+#    %undef CG_SHSUB_PREFIX
 
     #test INCLUDE pattern:
     %undef CG_SHSUB_EXCLUDE_PATTERN
@@ -103,6 +107,7 @@ EOF
     %call showsub_factoring
     %call test_generated_shsub
 
+%return TESTING
     #test EXCLUDE pattern:
     %undef CG_SHSUB_INCLUDE_PATTERN
     CG_SHSUB_EXCLUDE_PATTERN = /^(a|B.*)$/

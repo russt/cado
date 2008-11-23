@@ -199,8 +199,11 @@
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  19-Nov-2008 (russt) [Version 1.71]
-#       Add %pragma clrifndef, factorShSubs, factorShVars.
+#  21-Nov-2008 (russt) [Version 1.71]
+#       Add %pragma clrifndef, and :factorShSubs, :factorShVars ops.
+#       Allow %undef patterns to be wrapped with /match/ or /^match$/.
+#       Fix bug in template expansion - macros alone on lines and resolving to non-empty strings
+#       were reducing newline, and lines at EOF without EOL were adding newline.
 #
 
 use strict;
@@ -211,7 +214,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.71",         #VERSION - the program version number.
-    "19-Nov-2008",  #VERSION_DATE - date this version was released.
+    "21-Nov-2008",  #VERSION_DATE - date this version was released.
 );
 require "path.pl";
 require "os.pl";
@@ -2596,10 +2599,9 @@ sub expand_template
         #we have a text file - copy and do macro substitutions:
         my $tpline  = "";
         while ($tpline = <$tplfd_ref>) {
-            chomp $tpline;
-
+            my $hadnl = chomp $tpline;
             #expand the template macro.  This macro will print to the outfile:
-            &expand_template_macro($outfile_ref, $tpline);
+            &expand_template_macro($outfile_ref, $tpline, $hadnl);
         }
     }
 
@@ -2614,7 +2616,7 @@ sub expand_template_macro
 #OUTPUT:   prints results to supplied filehandle.
 #RETURNS:  0 if success, otherwise error count
 {
-    my ($outfile_ref, $tpline) = @_;
+    my ($outfile_ref, $tpline, $hadnl) = @_;
 
     #eliminate comments:
     #TODO:  template comments need to be bracketed by {=%# a comment=} or something.
@@ -2628,15 +2630,12 @@ sub expand_template_macro
 
     #if the input line *only* contains a macro def, then save this info
     #so later we will not output an empty line if the macro expands to empty string.
-    my $line_is_macro_only = ($tpline =~ /^{=.*=}$/)? 1 : 0;
-    if ($line_is_macro_only) {
-        my @tmp = split('{=', $tpline);  #}
-        $line_is_macro_only = ($#tmp == 1);  #make sure we only have one macro.
-    }
+    #note use of non-greedy op:  .*?
+    my $line_is_macro_only = ($tpline =~ /^{=.*?=}$/)? 1 : 0;
 
     my @spfexpr = &tpl_strtospf($tpline);
 
-    return &eval_template_expr($outfile_ref, \@spfexpr, $line_is_macro_only);
+    return &eval_template_expr($outfile_ref, \@spfexpr, $line_is_macro_only, $hadnl);
 }
 
 sub eval_template_expr
@@ -2644,7 +2643,7 @@ sub eval_template_expr
 #OUTPUT:   string containing sprintf(fmt, exec(template_macro)*)
 #RETURNS:  0 if success, otherwise error count
 {
-    my ($outfile_ref, $mlist_ref, $line_is_macro_only) = @_;
+    my ($outfile_ref, $mlist_ref, $line_is_macro_only, $hadnl) = @_;
     my ($errcnt) = 0;
     my (@macrolist) = @{$mlist_ref};
     my ($fmt) = shift @macrolist;
@@ -2664,12 +2663,18 @@ sub eval_template_expr
         #TODO:  this is bad - need to use a delimiter that we cannot see in
         #the input.  e.g., what if we add a %sprintf macro?
 
+    my $txt = "";      #tmp var to track of what we write below:
+    my $outtxt = "";   #contents of any macro expansion we write to ouput file.
     my ($ii, $macro);
+
     for ($ii=0; $ii <= $#strlist; ++$ii) {
 
         printf STDERR "eval_template_expr LOOP:  strlist[%d]='%s'\n", $ii, $strlist[$ii] if ($DEBUG);
 
-        print $outfile_ref $strlist[$ii];
+        $txt = $strlist[$ii];
+        print $outfile_ref $txt;
+        $outtxt .=  $txt;  #keep track of what we have printed so far.
+
         next if ($ii == $#strlist);     #no macro for last element
 
         printf STDERR "eval_template_expr LOOP:  macrolist[%d]='%s'\n", $ii, $macrolist[$ii] if ($DEBUG);
@@ -2682,29 +2687,34 @@ sub eval_template_expr
         
         if ($macro =~ /^#/) {
             #ignore comments
-            ;
+            $txt = "";
         } elsif ($macro =~ /^%/) {
             $errcnt += &exec_macro($outfile_ref, $macro);   #member with results of execution
+            $txt = "";    #we assume that whatever operator we called takes care of it's own newline.
         } elsif ($macro =~ /\$/) {
             #we have a variable expression:
             my @spfexpr = &strtospf($macro);
-            print $outfile_ref &eval_spf_expr(@spfexpr);
+            $txt = &eval_spf_expr(@spfexpr);
+            print $outfile_ref $txt;
             #TODO:  check for errors
         } elsif ($macro =~ /^[a-zA-Z_0-9]+$/) {
             #we have a simple variable - look it up and return it:
-            print $outfile_ref &lookup_def($macro);   #replace var with its value
+            $txt = &lookup_def($macro);
+            print $outfile_ref $txt;   #replace var with its value
             #TODO:  check for errors
         } else {
             #we don't know what we have, so just rewrap it in macro brackets:
-            print $outfile_ref "{=" . $macro . "=}";
+            $txt = "{=" . $macro . "=}";
+            print $outfile_ref $txt;
             ++$errcnt;
         }
+
+        $outtxt .=  $txt;  #keep track of what we have output.
     }
 
     #this macro lists represents a single template input line, so output a newline,
-    #unless the macro is alone on the line:
-    printf STDERR "eval_template_expr:  final newline? line_is_macro_only=%d\n", $line_is_macro_only if ($DEBUG);
-    print $outfile_ref "\n" unless ($line_is_macro_only);
+    #unless the macro is alone on the line AND EXPANSION IS EMPTY:
+    print $outfile_ref "\n" unless ( ($line_is_macro_only && $outtxt eq "") || $hadnl == 0 );
 
     return $errcnt;
 }
@@ -5103,19 +5113,20 @@ sub factorShSubs_op
 
     my %shsub_defs = ();
     my %shsub_names = ();
-    my @cg_srnames = ();
-    my $re = '\n(\s*)([a-z_A-Z]\w*)(\s*\(\s*\)[^{]*\{.+?\n\s*\})\s*?\n';
+    my @cg_srnames_initial = ();
+    my $re = '\n([\t ]*)([a-z_A-Z]\w*)(\s*\(\s*\)[^{]*\{.+?\n\s*\})(\s*?)\n';
     #} match bracket
-    my ($cg_srname, $srtxt, $srname) = ("", "", "");
+    my ($cg_srname, $srtxt, $srname, $wsp_trailing) = ("", "", "", "");
 
     while ($var =~ /$re/so ) {
         $srname = $2;
         $srtxt = "$1$2$3";
+        $wsp_trailing = $4;
         $cg_srname = "$prefix$srname";
 
 #printf "srtxt='%s'\n", $srtxt;
 
-        my $repl = sprintf("\n{=%s=}\n", $cg_srname);
+        my $repl = sprintf("\n{=%s=}%s", $cg_srname, $wsp_trailing);
 
         #replace the subroutine text with the generated cg macro name:
         $var =~ s/$re/$repl/so;
@@ -5125,16 +5136,17 @@ sub factorShSubs_op
         $shsub_names{$cg_srname} = $srname;
 
         #push the cg sr name on to preserve order of input:
-        push @cg_srnames, $cg_srname;
+        push @cg_srnames_initial, $cg_srname;
     }
 
     #now we loop through the macros names created and restore the original text
     #for subroutines we are ignoring.
 
     my $srdeftxt = "";
-    my (@srlist) = ();
+    my (@srnames) = ();
+    my (@cg_srnames_final) = ();
 
-    foreach $cg_srname (@cg_srnames) {
+    foreach $cg_srname (@cg_srnames_initial) {
         $srtxt = $shsub_defs{$cg_srname};
         $srname = $shsub_names{$cg_srname};
         my $macroref = "{=$cg_srname=}";
@@ -5142,31 +5154,47 @@ sub factorShSubs_op
         #if this subroutine is excluded by name...
         if ( &sh_name_is_excluded($srname, $ipat, $xpat) ) {
             #... then restore original text in the input:
-            $var =~ s/$macroref/$srtxt/s;
+            $var =~ s/$macroref/\n$srtxt\n/s;
 
             next;   #do not output text or variable if we are excluding
         }
 
         #otherwise, append to user variables:  definition text, and subroutine name list:
-        push @srlist, $srname;
+        push @srnames, $srname;
+        push @cg_srnames_final, $cg_srname;
 
         #output definition:
         $srdeftxt .= << "!";
 
 ##sh subroutine $srname()
+${cg_srname}_ref := $srname
 $cg_srname := << EOF
 $srtxt
 EOF
 
 !
-
     }
 
+    ########
+    #finally, identifiy all references to the subroutines we have factored out,
+    #and replace those references with macros:
+    ########
+    foreach $cg_srname (@cg_srnames_final) {
+        $srname = $shsub_names{$cg_srname};
+        my $cg_srname_ref = "${cg_srname}_ref";
+        my $macroref = "{=$cg_srname_ref=}";
+
+        $var =~ s/(\s+?)$srname(\s+?)/$1${macroref}$2/sg;
+    }
+
+    ######
+    #write results to user vars:
+    ######
     my $FS = &lookup_def('CG_STACK_DELIMITER');
 
     #overwrite results if we had any:
     &assign_op($srdeftxt, 'CG_SHSUB_DEFS', $linecnt)          if ($srdeftxt ne "");;
-    &assign_op(join($FS, @srlist), 'CG_SHSUB_LIST', $linecnt) if ($#srlist >= 0);
+    &assign_op(join($FS, @srnames), 'CG_SHSUB_LIST', $linecnt) if ($#srnames >= 0);
 
     return $var;
 }

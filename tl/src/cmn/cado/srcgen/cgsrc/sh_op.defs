@@ -70,19 +70,20 @@ sub factorShSubs_op
 
     my %shsub_defs = ();
     my %shsub_names = ();
-    my @cg_srnames = ();
-    my $re = '\n(\s*)([a-z_A-Z]\w*)(\s*\(\s*\)[^{]*\{.+?\n\s*\})\s*?\n';
+    my @cg_srnames_initial = ();
+    my $re = '\n([\t ]*)([a-z_A-Z]\w*)(\s*\(\s*\)[^{]*\{.+?\n\s*\})(\s*?)\n';
     #} match bracket
-    my ($cg_srname, $srtxt, $srname) = ("", "", "");
+    my ($cg_srname, $srtxt, $srname, $wsp_trailing) = ("", "", "", "");
 
     while ($var =~ /$re/so ) {
         $srname = $2;
         $srtxt = "$1$2$3";
+        $wsp_trailing = $4;
         $cg_srname = "$prefix$srname";
 
 #printf "srtxt='%s'\n", $srtxt;
 
-        my $repl = sprintf("\n{=%s=}\n", $cg_srname);
+        my $repl = sprintf("\n{=%s=}%s", $cg_srname, $wsp_trailing);
 
         #replace the subroutine text with the generated cg macro name:
         $var =~ s/$re/$repl/so;
@@ -92,16 +93,17 @@ sub factorShSubs_op
         $shsub_names{$cg_srname} = $srname;
 
         #push the cg sr name on to preserve order of input:
-        push @cg_srnames, $cg_srname;
+        push @cg_srnames_initial, $cg_srname;
     }
 
     #now we loop through the macros names created and restore the original text
     #for subroutines we are ignoring.
 
     my $srdeftxt = "";
-    my (@srlist) = ();
+    my (@srnames) = ();
+    my (@cg_srnames_final) = ();
 
-    foreach $cg_srname (@cg_srnames) {
+    foreach $cg_srname (@cg_srnames_initial) {
         $srtxt = $shsub_defs{$cg_srname};
         $srname = $shsub_names{$cg_srname};
         my $macroref = "{=$cg_srname=}";
@@ -109,31 +111,47 @@ sub factorShSubs_op
         #if this subroutine is excluded by name...
         if ( &sh_name_is_excluded($srname, $ipat, $xpat) ) {
             #... then restore original text in the input:
-            $var =~ s/$macroref/$srtxt/s;
+            $var =~ s/$macroref/\n$srtxt\n/s;
 
             next;   #do not output text or variable if we are excluding
         }
 
         #otherwise, append to user variables:  definition text, and subroutine name list:
-        push @srlist, $srname;
+        push @srnames, $srname;
+        push @cg_srnames_final, $cg_srname;
 
         #output definition:
         $srdeftxt .= << "!";
 
 ##sh subroutine $srname()
+${cg_srname}_ref := $srname
 $cg_srname := << EOF
 $srtxt
 EOF
 
 !
-
     }
 
+    ########
+    #finally, identifiy all references to the subroutines we have factored out,
+    #and replace those references with macros:
+    ########
+    foreach $cg_srname (@cg_srnames_final) {
+        $srname = $shsub_names{$cg_srname};
+        my $cg_srname_ref = "${cg_srname}_ref";
+        my $macroref = "{=$cg_srname_ref=}";
+
+        $var =~ s/(\s+?)$srname(\s+?)/$1${macroref}$2/sg;
+    }
+
+    ######
+    #write results to user vars:
+    ######
     my $FS = &lookup_def('CG_STACK_DELIMITER');
 
     #overwrite results if we had any:
     &assign_op($srdeftxt, 'CG_SHSUB_DEFS', $linecnt)          if ($srdeftxt ne "");;
-    &assign_op(join($FS, @srlist), 'CG_SHSUB_LIST', $linecnt) if ($#srlist >= 0);
+    &assign_op(join($FS, @srnames), 'CG_SHSUB_LIST', $linecnt) if ($#srnames >= 0);
 
     return $var;
 }
