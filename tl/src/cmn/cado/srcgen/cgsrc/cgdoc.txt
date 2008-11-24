@@ -200,16 +200,19 @@ CG_SHVAR_LIST       - stack of sh variable names that were factored out.
 %pragma clrifndef [1|0]       - if 1, undefined template macros resolve to empty string instead of ${var:undef}.
                                 (See also:  :clrifndef op).
 %pragma copy    [1|0]         - if 1, do not expand templates when generating documents.
+%pragma update  [1|0]         - set/reset -u (update) option.
+
 %pragma debug   [1|0]         - set/reset -debug option.
 %pragma ddebug  [1|0]         - set/reset -ddebug option.
 %pragma quiet   [1|0]         - set/reset -q(uiet) option.
-%pragma update  [1|0]         - set/reset -u (update) option.
 %pragma verbose [1|0]         - set/reset -v(erbose) option.
 
 %pragma filegen_notices_to_stdout [1|0]
                               - send file generation (x -> y) messages to stdout instead of stderr.
 %pragma preserve_multiline_lnewline [1|0]
                               - if 1, preserve the first newline in a here-now document (normally trimmed).
+%pragma trim_multiline_rnewline [1|0]
+                              - if 1, trim the final newline in a here-now document (normally added).
 
 }
 

@@ -1,0 +1,61 @@
+#
+#carefully construct cases to test template expansion spacing.
+#
+
+set_templates := << EOF
+{
+    oneline := a() { echo a }
+    onelineml := << !
+a ()
+{
+    echo a
+}
+!
+
+    template1 := << !
+{=oneline=}
+{=oneline=}
+!
+
+    template2 := << !
+
+{=oneline=}
+
+{=oneline=}
+!
+
+EOF
+}
+
+runtest := << EOF
+{
+    %evalmacro OUT $T
+    %echo
+    %echo  T='$T' OUT='$OUT'
+}
+EOF
+
+runsuite := << EOF
+{
+    %call set_templates
+
+    %echo #{
+    T=template1
+    %call runtest
+
+    T=template2
+    %call runtest
+    %echo #}
+EOF
+}
+
+%pragma preserve_multiline_lnewline 0
+%echo
+%echo multiline 0
+%call runsuite
+
+%pragma preserve_multiline_lnewline 1
+%echo
+%echo multiline 1
+%call runsuite
+

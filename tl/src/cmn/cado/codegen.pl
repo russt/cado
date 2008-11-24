@@ -199,8 +199,9 @@
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  21-Nov-2008 (russt) [Version 1.71]
+#  24-Nov-2008 (russt) [Version 1.71]
 #       Add %pragma clrifndef, and :factorShSubs, :factorShVars ops.
+#       Add %pragma trim_multiline_rnewline pragma.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
 #       Fix bug in template expansion - macros alone on lines and resolving to non-empty strings
 #       were reducing newline, and lines at EOF without EOL were adding newline.
@@ -214,7 +215,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.71",         #VERSION - the program version number.
-    "21-Nov-2008",  #VERSION_DATE - date this version was released.
+    "24-Nov-2008",  #VERSION_DATE - date this version was released.
 );
 require "path.pl";
 require "os.pl";
@@ -245,6 +246,7 @@ my (
     $LINE_CNT,
     $LINE_CNT_REF,
     $pragma_preserve_multiline_lnewline,
+    $pragma_trim_multiline_rnewline,
     $pragma_copy,
     $pragma_update,
     $pragma_echo_expands,
@@ -281,6 +283,7 @@ my (
     0,              #LINE_CNT - current line of file being interpreted
     undef,          #LINE_CNT_REF - reference to user-level line count var CG_LINE_NUMBER
     0,              #pragma_preserve_multiline_lnewline - preserve left newline in here-now defs.
+    0,              #pragma_trim_multiline_rnewline - trim final newline in here-now defs.
     0,              #pragma_copy - generate files without macro interpolation
     0,              #pragma_update - turn $UPDATE option on or off
     0,              #pragma_echo_expands - template %echo expands macros in argument expression.
@@ -298,6 +301,7 @@ my (
 #these are the user names for pragmas.  internal variable is prefixed with "pragma_".
 my %PRAGMAS = (
     'preserve_multiline_lnewline', 1,
+    'trim_multiline_rnewline', 1,
     'copy', 1,
     'update', 1,
     'echo_expands', 1,
@@ -527,6 +531,7 @@ sub interpret
 
                         if ($line eq $eoi_tok) {
                             #then close up this definition:
+                            chomp $rhs if ($pragma_trim_multiline_rnewline); #trim final newline if requested
                             &add_definition($lhs, $rhs, $linecnt, $is_raw, $is_append, $numop);  #this does variable expansion
                             last;   #DONE
                         } else {
@@ -785,6 +790,7 @@ sub pragma_spec
     #perl to update the  value. RT 6/15/06
     if (0) {
         $pragma_preserve_multiline_lnewline = $pragma_preserve_multiline_lnewline;
+        $pragma_trim_multiline_rnewline = $pragma_trim_multiline_rnewline;
         $pragma_copy = $pragma_copy;
         $pragma_update = $pragma_update;
         $pragma_echo_expands = $pragma_echo_expands;
@@ -3248,22 +3254,36 @@ Variables that modify postfix operations:
             the compare spec for :eq, :ne, :gt, :lt, :ge, :le  operators.
 
 Pragmas modifiy the behavior of the interpreter as follows:
-    \%pragma preserve_multiline_lnewline {0|1}
-            preserve the first newline in a here-now document (normally trimmed).
-    \%pragma copy {0|1}
-            do not expand templates when generating documents.
     \%pragma require perl_file
             read a <perl_file> into the current context.
-    \%pragma debug {0|1}
-            set -debug option.
-    \%pragma ddebug {0|1}
-            set -ddebug option.
-    \%pragma quiet {0|1}
-            set -q(uiet) option.
-    \%pragma verbose {0|1}
-            set -v(erbose) option.
-    \%pragma update {0|1}
+    \%pragma reset_stack_delimiter
+            restore CG_STACK_DELIMITER to default value. 
+
+    \%pragma echo_expands [1|0]
+            if 1, auto-expand macros in %echo template argument list.
+    \%pragma clrifndef [1|0]
+            if 1, undefined template macros resolve to empty string instead of \${var:undef}.
+
+    \%pragma copy [1|0]
+            do not expand templates when generating documents.
+    \%pragma update [1|0]
             set -u(pdate) option.
+
+    \%pragma debug [1|0]
+            set -debug option.
+    \%pragma ddebug [1|0]
+            set -ddebug option.
+    \%pragma quiet [1|0]
+            set -q(uiet) option.
+    \%pragma verbose [1|0]
+            set -v(erbose) option.
+
+    \%pragma filegen_notices_to_stdout [1|0]
+            send file generation (x -> y) messages to stdout instead of stderr.
+    \%pragma preserve_multiline_lnewline [1|0]
+            preserve the first newline in a here-now document (normally trimmed).
+    \%pragma trim_multiline_rnewline [1|0]
+            trim the final newline in a here-now document (normally added).
 
 Class variables:
   Class variables are available during the processing of a file-spec line.
@@ -5116,17 +5136,19 @@ sub factorShSubs_op
     my @cg_srnames_initial = ();
     my $re = '\n([\t ]*)([a-z_A-Z]\w*)(\s*\(\s*\)[^{]*\{.+?\n\s*\})(\s*?)\n';
     #} match bracket
-    my ($cg_srname, $srtxt, $srname, $wsp_trailing) = ("", "", "", "");
+    my ($cg_srname, $srtxt, $srname, $wsp_leading, $wsp_trailing) = ("", "", "", "", "");
 
     while ($var =~ /$re/so ) {
+        $wsp_leading = $1;
         $srname = $2;
-        $srtxt = "$1$2$3";
+        $srtxt = "$2$3";
         $wsp_trailing = $4;
         $cg_srname = "$prefix$srname";
 
 #printf "srtxt='%s'\n", $srtxt;
 
-        my $repl = sprintf("\n{=%s=}%s", $cg_srname, $wsp_trailing);
+#       my $repl = sprintf(">\n{=%s=}%s<", $cg_srname, $wsp_trailing);
+        my $repl = sprintf("\n%s{=%s=}%s\n", $wsp_leading, $cg_srname, $wsp_trailing);
 
         #replace the subroutine text with the generated cg macro name:
         $var =~ s/$re/$repl/so;
@@ -5139,12 +5161,21 @@ sub factorShSubs_op
         push @cg_srnames_initial, $cg_srname;
     }
 
+#printf "INTERMEDIATE VAR=,%s,\n", $var;
+
     #now we loop through the macros names created and restore the original text
     #for subroutines we are ignoring.
 
     my $srdeftxt = "";
     my (@srnames) = ();
     my (@cg_srnames_final) = ();
+
+    #set pragma to trim final newlines in here-now defs we generate for subroutines.
+    #this allows us to substitute macros and restore the spacing of the original text.
+    $srdeftxt .= << "!";
+\%pragma trim_multiline_rnewline 1
+
+!
 
     foreach $cg_srname (@cg_srnames_initial) {
         $srtxt = $shsub_defs{$cg_srname};
@@ -5154,7 +5185,7 @@ sub factorShSubs_op
         #if this subroutine is excluded by name...
         if ( &sh_name_is_excluded($srname, $ipat, $xpat) ) {
             #... then restore original text in the input:
-            $var =~ s/$macroref/\n$srtxt\n/s;
+            $var =~ s/$macroref/$srtxt/s;
 
             next;   #do not output text or variable if we are excluding
         }
@@ -5174,6 +5205,12 @@ EOF
 
 !
     }
+
+    $srdeftxt .= << "!";
+
+#restore normal behavior for here-now defs:
+\%pragma trim_multiline_rnewline 0
+!
 
     ########
     #finally, identifiy all references to the subroutines we have factored out,

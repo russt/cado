@@ -73,17 +73,19 @@ sub factorShSubs_op
     my @cg_srnames_initial = ();
     my $re = '\n([\t ]*)([a-z_A-Z]\w*)(\s*\(\s*\)[^{]*\{.+?\n\s*\})(\s*?)\n';
     #} match bracket
-    my ($cg_srname, $srtxt, $srname, $wsp_trailing) = ("", "", "", "");
+    my ($cg_srname, $srtxt, $srname, $wsp_leading, $wsp_trailing) = ("", "", "", "", "");
 
     while ($var =~ /$re/so ) {
+        $wsp_leading = $1;
         $srname = $2;
-        $srtxt = "$1$2$3";
+        $srtxt = "$2$3";
         $wsp_trailing = $4;
         $cg_srname = "$prefix$srname";
 
 #printf "srtxt='%s'\n", $srtxt;
 
-        my $repl = sprintf("\n{=%s=}%s", $cg_srname, $wsp_trailing);
+#       my $repl = sprintf(">\n{=%s=}%s<", $cg_srname, $wsp_trailing);
+        my $repl = sprintf("\n%s{=%s=}%s\n", $wsp_leading, $cg_srname, $wsp_trailing);
 
         #replace the subroutine text with the generated cg macro name:
         $var =~ s/$re/$repl/so;
@@ -96,12 +98,21 @@ sub factorShSubs_op
         push @cg_srnames_initial, $cg_srname;
     }
 
+#printf "INTERMEDIATE VAR=,%s,\n", $var;
+
     #now we loop through the macros names created and restore the original text
     #for subroutines we are ignoring.
 
     my $srdeftxt = "";
     my (@srnames) = ();
     my (@cg_srnames_final) = ();
+
+    #set pragma to trim final newlines in here-now defs we generate for subroutines.
+    #this allows us to substitute macros and restore the spacing of the original text.
+    $srdeftxt .= << "!";
+\%pragma trim_multiline_rnewline 1
+
+!
 
     foreach $cg_srname (@cg_srnames_initial) {
         $srtxt = $shsub_defs{$cg_srname};
@@ -111,7 +122,7 @@ sub factorShSubs_op
         #if this subroutine is excluded by name...
         if ( &sh_name_is_excluded($srname, $ipat, $xpat) ) {
             #... then restore original text in the input:
-            $var =~ s/$macroref/\n$srtxt\n/s;
+            $var =~ s/$macroref/$srtxt/s;
 
             next;   #do not output text or variable if we are excluding
         }
@@ -131,6 +142,12 @@ EOF
 
 !
     }
+
+    $srdeftxt .= << "!";
+
+#restore normal behavior for here-now defs:
+\%pragma trim_multiline_rnewline 0
+!
 
     ########
     #finally, identifiy all references to the subroutines we have factored out,

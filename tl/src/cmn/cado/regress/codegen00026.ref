@@ -33,22 +33,27 @@ _123
 :factorShSubs test 1        OUT='v_1="v_1 value"
 v2="v2 value"
 V3="V3 value"
+
 {=shsub_a=}
+
 {=shsub_B_o_B52s=}
 
-# c() { echo sub c }
+# c() { echo sub {=shsub_c_ref=} }
+
 {=shsub_c=}
 {=shsub__123=}
-a
-B_o_B52s
-c
-_123
+{=shsub_a_ref=}
+{=shsub_B_o_B52s_ref=}
+{=shsub_c_ref=}
+{=shsub__123_ref=}
 '
 :factorShSubs test 1  CG_SHSUB_LIST='a	B_o_B52s	c	_123'
-:factorShSubs test 1  CG_SHSUB_DEFS='
-##sh subroutine a()
-shsub_a := << EOF
+:factorShSubs test 1  CG_SHSUB_DEFS='%pragma trim_multiline_rnewline 1
 
+
+##sh subroutine a()
+shsub_a_ref := a
+shsub_a := << EOF
 a()
 {
     echo sub a: $v_1
@@ -57,8 +62,8 @@ EOF
 
 
 ##sh subroutine B_o_B52s()
+shsub_B_o_B52s_ref := B_o_B52s
 shsub_B_o_B52s := << EOF
-
 B_o_B52s (  ){
     echo sub B_o_B52s: $v2
     }
@@ -66,8 +71,8 @@ EOF
 
 
 ##sh subroutine c()
+shsub_c_ref := c
 shsub_c := << EOF
-
 c()
 {
 echo sub c: $V3
@@ -76,6 +81,7 @@ EOF
 
 
 ##sh subroutine _123()
+shsub__123_ref := _123
 shsub__123 := << EOF
 _123()
 {
@@ -84,6 +90,9 @@ a=${v2}
 }
 EOF
 
+
+#restore normal behavior for here-now defs:
+%pragma trim_multiline_rnewline 0
 '
 ----------------}
 
@@ -94,22 +103,27 @@ POSTFIX OPERATOR :factorShSubs TEST #2 PASSED
 :factorShSubs test 3        OUT='v_1="v_1 value"
 v2="v2 value"
 V3="V3 value"
+
 {=CBSUB_a=}
+
 {=CBSUB_B_o_B52s=}
 
-# c() { echo sub c }
+# c() { echo sub {=CBSUB_c_ref=} }
+
 {=CBSUB_c=}
 {=CBSUB__123=}
-a
-B_o_B52s
-c
-_123
+{=CBSUB_a_ref=}
+{=CBSUB_B_o_B52s_ref=}
+{=CBSUB_c_ref=}
+{=CBSUB__123_ref=}
 '
 :factorShSubs test 3  CG_SHSUB_LIST='a	B_o_B52s	c	_123'
-:factorShSubs test 3  CG_SHSUB_DEFS='
-##sh subroutine a()
-CBSUB_a := << EOF
+:factorShSubs test 3  CG_SHSUB_DEFS='%pragma trim_multiline_rnewline 1
 
+
+##sh subroutine a()
+CBSUB_a_ref := a
+CBSUB_a := << EOF
 a()
 {
     echo sub a: $v_1
@@ -118,8 +132,8 @@ EOF
 
 
 ##sh subroutine B_o_B52s()
+CBSUB_B_o_B52s_ref := B_o_B52s
 CBSUB_B_o_B52s := << EOF
-
 B_o_B52s (  ){
     echo sub B_o_B52s: $v2
     }
@@ -127,8 +141,8 @@ EOF
 
 
 ##sh subroutine c()
+CBSUB_c_ref := c
 CBSUB_c := << EOF
-
 c()
 {
 echo sub c: $V3
@@ -137,6 +151,7 @@ EOF
 
 
 ##sh subroutine _123()
+CBSUB__123_ref := _123
 CBSUB__123 := << EOF
 _123()
 {
@@ -145,6 +160,9 @@ a=${v2}
 }
 EOF
 
+
+#restore normal behavior for here-now defs:
+%pragma trim_multiline_rnewline 0
 '
 ----------------}
 
@@ -155,7 +173,9 @@ INCLUDE is /^(a|B.*)$/
 :factorShSubs test 5        OUT='v_1="v_1 value"
 v2="v2 value"
 V3="V3 value"
+
 {=shsub_a=}
+
 {=shsub_B_o_B52s=}
 
 # c() { echo sub c }
@@ -169,16 +189,18 @@ _123()
 echo sub _123
 a=${v2}
 }
-a
-B_o_B52s
+{=shsub_a_ref=}
+{=shsub_B_o_B52s_ref=}
 c
 _123
 '
 :factorShSubs test 5  CG_SHSUB_LIST='a	B_o_B52s'
-:factorShSubs test 5  CG_SHSUB_DEFS='
-##sh subroutine a()
-shsub_a := << EOF
+:factorShSubs test 5  CG_SHSUB_DEFS='%pragma trim_multiline_rnewline 1
 
+
+##sh subroutine a()
+shsub_a_ref := a
+shsub_a := << EOF
 a()
 {
     echo sub a: $v_1
@@ -187,13 +209,16 @@ EOF
 
 
 ##sh subroutine B_o_B52s()
+shsub_B_o_B52s_ref := B_o_B52s
 shsub_B_o_B52s := << EOF
-
 B_o_B52s (  ){
     echo sub B_o_B52s: $v2
     }
 EOF
 
+
+#restore normal behavior for here-now defs:
+%pragma trim_multiline_rnewline 0
 '
 ----------------}
 
@@ -214,19 +239,22 @@ B_o_B52s (  ){
     echo sub B_o_B52s: $v2
     }
 
-# c() { echo sub c }
+# c() { echo sub {=shsub_c_ref=} }
+
 {=shsub_c=}
 {=shsub__123=}
 a
 B_o_B52s
-c
-_123
+{=shsub_c_ref=}
+{=shsub__123_ref=}
 '
 :factorShSubs test 7  CG_SHSUB_LIST='c	_123'
-:factorShSubs test 7  CG_SHSUB_DEFS='
-##sh subroutine c()
-shsub_c := << EOF
+:factorShSubs test 7  CG_SHSUB_DEFS='%pragma trim_multiline_rnewline 1
 
+
+##sh subroutine c()
+shsub_c_ref := c
+shsub_c := << EOF
 c()
 {
 echo sub c: $V3
@@ -235,6 +263,7 @@ EOF
 
 
 ##sh subroutine _123()
+shsub__123_ref := _123
 shsub__123 := << EOF
 _123()
 {
@@ -243,6 +272,9 @@ a=${v2}
 }
 EOF
 
+
+#restore normal behavior for here-now defs:
+%pragma trim_multiline_rnewline 0
 '
 ----------------}
 
@@ -253,7 +285,9 @@ INCLUDE is /^(a|B.*|c|_\d*)$/, EXCLUDE is /^(c)$/
 :factorShSubs test 9        OUT='v_1="v_1 value"
 v2="v2 value"
 V3="V3 value"
+
 {=shsub_a=}
+
 {=shsub_B_o_B52s=}
 
 # c() { echo sub c }
@@ -263,16 +297,18 @@ c()
 echo sub c: $V3
 }
 {=shsub__123=}
-a
-B_o_B52s
+{=shsub_a_ref=}
+{=shsub_B_o_B52s_ref=}
 c
-_123
+{=shsub__123_ref=}
 '
 :factorShSubs test 9  CG_SHSUB_LIST='a	B_o_B52s	_123'
-:factorShSubs test 9  CG_SHSUB_DEFS='
-##sh subroutine a()
-shsub_a := << EOF
+:factorShSubs test 9  CG_SHSUB_DEFS='%pragma trim_multiline_rnewline 1
 
+
+##sh subroutine a()
+shsub_a_ref := a
+shsub_a := << EOF
 a()
 {
     echo sub a: $v_1
@@ -281,8 +317,8 @@ EOF
 
 
 ##sh subroutine B_o_B52s()
+shsub_B_o_B52s_ref := B_o_B52s
 shsub_B_o_B52s := << EOF
-
 B_o_B52s (  ){
     echo sub B_o_B52s: $v2
     }
@@ -290,6 +326,7 @@ EOF
 
 
 ##sh subroutine _123()
+shsub__123_ref := _123
 shsub__123 := << EOF
 _123()
 {
@@ -298,6 +335,9 @@ a=${v2}
 }
 EOF
 
+
+#restore normal behavior for here-now defs:
+%pragma trim_multiline_rnewline 0
 '
 ----------------}
 

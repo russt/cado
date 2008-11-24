@@ -1,0 +1,31 @@
+TESTNAME is codegen00028
+
+multiline 0
+#{
+
+T='template1' OUT='a() { echo a }
+a() { echo a }
+'
+
+T='template2' OUT='
+a() { echo a }
+
+a() { echo a }
+'
+#}
+
+multiline 1
+#{
+
+T='template1' OUT='
+a() { echo a }
+a() { echo a }
+'
+
+T='template2' OUT='
+
+a() { echo a }
+
+a() { echo a }
+'
+#}

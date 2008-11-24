@@ -85,20 +85,20 @@ EOF
     tname=:factorShSubs
     tnum = 0
 
-#    %call showsub_factoring
-#
-#    %echo CG_SHSUB_PREFIX=$CG_SHSUB_PREFIX
-#    default_cg_subsh_prefix = $CG_SHSUB_PREFIX
-#
-#    %call test_generated_shsub
-#
-#    #test prefix spec:
-#    CG_SHSUB_PREFIX = CBSUB_
-#    %call showsub_factoring
-#    %call test_generated_shsub
-#
-#    #revert prefix:
-#    %undef CG_SHSUB_PREFIX
+    %call showsub_factoring
+
+    %echo CG_SHSUB_PREFIX=$CG_SHSUB_PREFIX
+    default_cg_subsh_prefix = $CG_SHSUB_PREFIX
+
+    %call test_generated_shsub
+
+    #test prefix spec:
+    CG_SHSUB_PREFIX = CBSUB_
+    %call showsub_factoring
+    %call test_generated_shsub
+
+    #revert prefix:
+    %undef CG_SHSUB_PREFIX
 
     #test INCLUDE pattern:
     %undef CG_SHSUB_EXCLUDE_PATTERN
@@ -107,7 +107,6 @@ EOF
     %call showsub_factoring
     %call test_generated_shsub
 
-%return TESTING
     #test EXCLUDE pattern:
     %undef CG_SHSUB_INCLUDE_PATTERN
     CG_SHSUB_EXCLUDE_PATTERN = /^(a|B.*)$/
