@@ -1,6 +1,107 @@
 #define some specialized ops for operating on shell scripts.
 {
 SH_OP_STUBS := << EOF_OPS
+sub factorShVars_op
+{
+    my ($var, $varname, $linecnt) = @_;
+    my $prefix = "shvar_";
+    my $xpat = "";
+    my $ipat = "";
+
+    if ( &var_defined_non_empty("CG_SHVAR_PREFIX") ) {
+        $prefix = $CG_USER_VARS{'CG_SHVAR_PREFIX'}          
+    } else {
+        #otherwise, initialize prefix to the default so user can retrieve it:
+        &assign_op($prefix, 'CG_SHVAR_PREFIX', $linecnt);
+    }
+
+    $xpat =   $CG_USER_VARS{'CG_SHVAR_EXCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHVAR_EXCLUDE_PATTERN") );
+    $ipat =   $CG_USER_VARS{'CG_SHVAR_INCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHVAR_INCLUDE_PATTERN") );
+
+    #remove leading/trailing slashes if necessary:
+    ($xpat =~ s|^/|| && $xpat =~ s|/$||) unless ($xpat eq "");
+    ($ipat =~ s|^/|| && $ipat =~ s|/$||) unless ($ipat eq "");
+
+    #clear output variables:
+    &assign_op("", 'CG_SHVAR_DEFS', $linecnt);
+    &assign_op("", 'CG_SHVAR_LIST', $linecnt);
+
+    #
+    #Q:  what about when an equals appears in a string?  i.e., "foo=$foo" or 'foo=$foo'
+    #Q:  what an equals appears in an echo or printf statement?
+    #Q:  what if the equals is backslash escaped to the next line?  i.e.:
+    #    foo\
+    #    =xxx
+    #
+
+    #####
+    #LOOP 1 - find variable initializations and save them:
+    #####
+
+    my (@shvars) = ();
+    my ($line, $shvardeftxt) = ("", "");
+
+    #split variable text:
+    my (@var) = split("\n", $var, -1);
+
+    foreach $line (@var) {
+        #this is way too simple, since it doesn't take any context into account.
+        my $re = '([a-z_A-Z]\w*)=';
+
+        #skip comment, lines without var defs:
+        next if ($line =~ /^\s*#/ || $line =~ /^\s*$/);
+
+        next unless ($line =~ /$re/);
+        my $shvname = $1;
+
+        #ignore if we are excluding this variable name:
+        next if ( &sh_name_is_excluded($shvname, $ipat, $xpat) );
+
+        #otherwise, we have a var - add to list:
+        push @shvars, $shvname;
+    }
+
+    my %mark = ();
+    my (@tmp) = ();
+    for (@shvars) {
+        next if ($mark{$_});
+        ++$mark{$_};
+        push @tmp, $_;
+    }
+
+    @shvars = @tmp;
+
+    #####
+    #LOOP 2 - foreach sh var def, substitute in macro name:
+    #####
+
+    my $shvar = "";
+    foreach $shvar (@shvars) {
+        my $cg_shvar = "$prefix$shvar";
+        my $macroref = "{=$cg_shvar=}";
+
+        #do substitutions (TODO: FIX THIS - separate declarations from references:
+        grep($_ =~ s/$shvar/$macroref/g, @var);
+
+        #generate definition:
+        $shvardeftxt .= sprintf("%s := %s\n", $cg_shvar, $shvar);
+    }
+
+    #write variable text instrumented with macros:
+    $var = join("\n", @var);
+
+    ######
+    #write results to user vars:
+    ######
+    my $FS = &lookup_def('CG_STACK_DELIMITER');
+
+    #overwrite results if we had any:
+    &assign_op($shvardeftxt, 'CG_SHVAR_DEFS', $linecnt)          if ($shvardeftxt ne "");;
+    &assign_op(join($FS, @shvars), 'CG_SHVAR_LIST', $linecnt) if ($#shvars >= 0);
+
+    return $var;
+}
+
 sub factorShSubs_op
 {
     my ($var, $varname, $linecnt) = @_;
@@ -21,8 +122,6 @@ sub factorShSubs_op
     #remove leading/trailing slashes if necessary:
     ($xpat =~ s|^/|| && $xpat =~ s|/$||) unless ($xpat eq "");
     ($ipat =~ s|^/|| && $ipat =~ s|/$||) unless ($ipat eq "");
-
-    my $have_pattern_specs = ($xpat ne "" | $ipat ne "");
 
     #clear output variables:
     &assign_op("", 'CG_SHSUB_DEFS', $linecnt);
@@ -224,23 +323,6 @@ sub sh_name_is_excluded
 
     #include pattern was specified, but did not match:
     return 1;
-}
-
-sub factorShVars_op
-{
-    my ($var, $varname, $linecnt) = @_;
-    my $prefix = "shvar_";
-    my $xpat = "";
-    my $ipat = "";
-
-    $prefix = $CG_USER_VARS{'CG_SHVAR_PREFIX'}          if ( &var_defined_non_empty("CG_SHVAR_PREFIX") );
-    $xpat =   $CG_USER_VARS{'CG_SHVAR_EXCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHVAR_EXCLUDE_PATTERN") );
-    $ipat =   $CG_USER_VARS{'CG_SHVAR_INCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHVAR_INCLUDE_PATTERN") );
-
-    #clear output variables:
-    $CG_USER_VARS{'CG_SHVAR_LIST'} = "";
-
-    return $var;
 }
 
 EOF_OPS

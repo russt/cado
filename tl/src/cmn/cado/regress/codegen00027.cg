@@ -4,32 +4,16 @@
 sh_txt := << EOF
 v_1="v_1 value"
 v2="v2 value"
-V3="V3 value"
+V3="$v2 value"
+foo\
+="foo value"
 
-a()
+foo()
 {
-    echo sub a: $v_1
+    echo foo=$foo
 }
 
-b (  ){
-    echo sub b: $v2
-    }
-
-# c() { echo sub c }
-
-c()
-{
-echo sub c: $V3
-}
-_123()
-{
-echo sub _123
-a=${v2}
-}
-a
-b
-c
-_123
+foo
 EOF
 
 ##### show initial sh txt:
@@ -44,6 +28,7 @@ showvar_factoring :=  << EOF
     %echo {----------------
     %echo $tname test $tnum:i:a        OUT='$sh_txt:factorShVars'
     %echo $tname test $tnum  CG_SHVAR_LIST='$CG_SHVAR_LIST:showstack'
+    %echo $tname test $tnum  CG_SHVAR_DEFS='$CG_SHVAR_DEFS'
     %echo ----------------}
     %echo
 }
@@ -61,16 +46,19 @@ EOF
 
     #test INCLUDE pattern:
     %undef CG_SHVAR_EXCLUDE_PATTERN
-    CG_SHVAR_INCLUDE_PATTERN = /^(v2|v3)$/
+    CG_SHVAR_INCLUDE_PATTERN = /^(v2|V3)$/
+    %echo INCLUDE is $CG_SHVAR_INCLUDE_PATTERN
     %call showvar_factoring
 
     #test EXCLUDE pattern:
     %undef CG_SHVAR_INCLUDE_PATTERN
-    CG_SHVAR_EXCLUDE_PATTERN = /^(v2|v3)$/
+    CG_SHVAR_EXCLUDE_PATTERN = /^(v2|V3)$/
+    %echo EXCLUDE is $CG_SHVAR_EXCLUDE_PATTERN
     %call showvar_factoring
 
     #test EXCLUDE and INCLUDE pattern together:
-    CG_SHVAR_INCLUDE_PATTERN = /^(v_1|v2|v3)$/
-    CG_SHVAR_EXCLUDE_PATTERN = /^(v_1|v3)$/
+    CG_SHVAR_INCLUDE_PATTERN = /^(v_1|v2|V3)$/
+    CG_SHVAR_EXCLUDE_PATTERN = /^(v_1|V3)$/
+    %echo INCLUDE is $CG_SHVAR_INCLUDE_PATTERN, EXCLUDE is $CG_SHVAR_EXCLUDE_PATTERN
     %call showvar_factoring
 }
