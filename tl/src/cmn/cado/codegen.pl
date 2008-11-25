@@ -199,13 +199,14 @@
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  24-Nov-2008 (russt) [Version 1.71]
+#  25-Nov-2008 (russt) [Version 1.71]
 #       Add %pragma clrifndef, and :factorShSubs, :factorShVars ops.
 #       Add %pragma trim_multiline_rnewline pragma.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
 #       Fix bug in template expansion - macros alone on lines and resolving to non-empty strings
 #       were reducing newline, and lines at EOF without EOL were adding newline.
 #
+
 
 use strict;
 package codegen;
@@ -215,8 +216,9 @@ my (
     $VERSION_DATE,
 ) = (
     "1.71",         #VERSION - the program version number.
-    "24-Nov-2008",  #VERSION_DATE - date this version was released.
+    "25-Nov-2008",  #VERSION_DATE - date this version was released.
 );
+
 require "path.pl";
 require "os.pl";
 require "pcrc.pl";
@@ -2215,6 +2217,7 @@ sub eval_spf_expr
     return $evalstr;
 }
 
+
 sub lookup_def
 #INPUT:   variable name
 #output:  variable value or the string "${varname:undef}" (if undefined)
@@ -3103,6 +3106,7 @@ sub free_filehandle_count
     return $cnt;
 }
 
+
 ################################ USAGE SUBROUTINES ###############################
 
 sub usage
@@ -3643,6 +3647,7 @@ sub cleanup
 {
 }
 
+
 sub eval_postfix_op
 #implement postfix operations for variables
 #returns input string with operation applied.
@@ -3872,6 +3877,7 @@ sub is_wsp
 
     return $ans;
 }
+
 
 sub rtrim_op
 #process :rtrim postfix op
@@ -4976,6 +4982,7 @@ sub crc_op
     return &crcstr_op($var);
 }
 
+
 sub r_op
 #return non-zero if file is readable.
 {
@@ -5064,6 +5071,7 @@ sub B_op
     return (-B $fn)? 1 : 0;
 }
 
+
 sub factorShSubs_op
 {
     my ($var, $varname, $linecnt) = @_;
@@ -5138,6 +5146,10 @@ sub factorShSubs_op
     #} match bracket
     my ($cg_srname, $srtxt, $srname, $wsp_leading, $wsp_trailing) = ("", "", "", "", "");
 
+    #####
+    #LOOP 1 - parse subroutines declarations and save them:
+    #####
+
     while ($var =~ /$re/so ) {
         $wsp_leading = $1;
         $srname = $2;
@@ -5147,7 +5159,6 @@ sub factorShSubs_op
 
 #printf "srtxt='%s'\n", $srtxt;
 
-#       my $repl = sprintf(">\n{=%s=}%s<", $cg_srname, $wsp_trailing);
         my $repl = sprintf("\n%s{=%s=}%s\n", $wsp_leading, $cg_srname, $wsp_trailing);
 
         #replace the subroutine text with the generated cg macro name:
@@ -5163,20 +5174,14 @@ sub factorShSubs_op
 
 #printf "INTERMEDIATE VAR=,%s,\n", $var;
 
-    #now we loop through the macros names created and restore the original text
-    #for subroutines we are ignoring.
-
-    my $srdeftxt = "";
     my (@srnames) = ();
     my (@cg_srnames_final) = ();
 
-    #set pragma to trim final newlines in here-now defs we generate for subroutines.
-    #this allows us to substitute macros and restore the spacing of the original text.
-    $srdeftxt .= << "!";
-\%pragma trim_multiline_rnewline 1
+    #####
+    #LOOP 2  - restore the original text for subroutines we are ignoring.
+    #####
 
-!
-
+    #####
     foreach $cg_srname (@cg_srnames_initial) {
         $srtxt = $shsub_defs{$cg_srname};
         $srname = $shsub_names{$cg_srname};
@@ -5193,6 +5198,53 @@ sub factorShSubs_op
         #otherwise, append to user variables:  definition text, and subroutine name list:
         push @srnames, $srname;
         push @cg_srnames_final, $cg_srname;
+    }
+
+    #####
+    #LOOP 3 - replace references to factored subroutines with macros:
+    #####
+
+    #split variable text:
+    my (@var) = split("\n", $var, -1);
+
+    foreach $cg_srname (@cg_srnames_final) {
+        $srname = $shsub_names{$cg_srname};
+        my $cg_srname_ref = "${cg_srname}_ref";
+        my $macroref = "{=$cg_srname_ref=}";
+
+        #note option to match at ^ or $.
+        my $re   = '(^|[;:|&\s])' . $srname . '($|[;:|&\s])' ;
+
+        grep( $_ !~ /^\s*#/ && s/$re/$1${macroref}$2/g, @var);
+
+        #also perform substitutions for text of each subroutine:
+        my $cg_srname2 = "";
+        foreach $cg_srname2 (@cg_srnames_final) {
+            my (@srtxt) = split("\n", $shsub_defs{$cg_srname2}, -1);
+            if (grep( $_ !~ /^\s*#/ && s/$re/$1${macroref}$2/g, @srtxt)) {
+                $shsub_defs{$cg_srname2} = join("\n", @srtxt);
+            }
+        }
+    }
+
+    #restore variable text:
+    $var = join("\n", @var);
+
+    #definiton PREFIX:
+    #set pragma to trim final newlines in here-now defs we generate for subroutines.
+    #this allows us to substitute macros and restore the spacing of the original text.
+    my $srdeftxt = << "!";
+\%pragma trim_multiline_rnewline 1
+
+!
+
+    #####
+    #LOOP 4 - write out definitions:
+    #####
+    foreach $cg_srname (@cg_srnames_final) {
+        $srname = $shsub_names{$cg_srname};
+        my $cg_srname_ref = "${cg_srname}_ref";
+        $srtxt = $shsub_defs{$cg_srname};
 
         #output definition:
         $srdeftxt .= << "!";
@@ -5206,23 +5258,13 @@ EOF
 !
     }
 
+    #definiton POST-SCRIPT:
     $srdeftxt .= << "!";
 
 #restore normal behavior for here-now defs:
 \%pragma trim_multiline_rnewline 0
 !
 
-    ########
-    #finally, identifiy all references to the subroutines we have factored out,
-    #and replace those references with macros:
-    ########
-    foreach $cg_srname (@cg_srnames_final) {
-        $srname = $shsub_names{$cg_srname};
-        my $cg_srname_ref = "${cg_srname}_ref";
-        my $macroref = "{=$cg_srname_ref=}";
-
-        $var =~ s/(\s+?)$srname(\s+?)/$1${macroref}$2/sg;
-    }
 
     ######
     #write results to user vars:
@@ -5271,5 +5313,6 @@ sub factorShVars_op
 
     return $var;
 }
+
 
 1;

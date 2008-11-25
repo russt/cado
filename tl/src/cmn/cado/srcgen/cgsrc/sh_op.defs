@@ -132,20 +132,32 @@ sub factorShSubs_op
     #####
     #LOOP 3 - replace references to factored subroutines with macros:
     #####
+
+    #split variable text:
+    my (@var) = split("\n", $var, -1);
+
     foreach $cg_srname (@cg_srnames_final) {
         $srname = $shsub_names{$cg_srname};
         my $cg_srname_ref = "${cg_srname}_ref";
         my $macroref = "{=$cg_srname_ref=}";
 
-        my $re   = '([;:|&\s])' . $srname . '([;:|&\s])' ;
-        $var =~ s/$re/$1${macroref}$2/sg;
+        #note option to match at ^ or $.
+        my $re   = '(^|[;:|&\s])' . $srname . '($|[;:|&\s])' ;
+
+        grep( $_ !~ /^\s*#/ && s/$re/$1${macroref}$2/g, @var);
 
         #also perform substitutions for text of each subroutine:
         my $cg_srname2 = "";
         foreach $cg_srname2 (@cg_srnames_final) {
-            $shsub_defs{$cg_srname2} =~ s/$re/$1${macroref}$2/sg;
+            my (@srtxt) = split("\n", $shsub_defs{$cg_srname2}, -1);
+            if (grep( $_ !~ /^\s*#/ && s/$re/$1${macroref}$2/g, @srtxt)) {
+                $shsub_defs{$cg_srname2} = join("\n", @srtxt);
+            }
         }
     }
+
+    #restore variable text:
+    $var = join("\n", @var);
 
     #definiton PREFIX:
     #set pragma to trim final newlines in here-now defs we generate for subroutines.

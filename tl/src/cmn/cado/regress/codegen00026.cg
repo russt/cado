@@ -10,11 +10,16 @@ V3="V3 value"
 
 a()
 {
+#test comments ignored: a:c;_123&B_o_B52s
     echo sub a: $v_1
 }
 
 B_o_B52s (  ){
     echo sub B_o_B52s: $v2
+    #test refs within subroutine body:
+    echo semicolon:;a;_123
+    echo andand:&&a&&_123
+    # echo andand:&&a&&_123
     }
 
 # c() { echo sub c }
@@ -28,10 +33,14 @@ _123()
 echo sub _123
 a=${v2}
 }
+#a
 a
 B_o_B52s
 c
 _123
+#test some reference patterns:
+    # a;c;_123&B_o_B52s
+a;c;_123&B_o_B52s
 EOF
 
 ##### show initial sh txt:
@@ -67,6 +76,8 @@ test_generated_shsub := << EOF
     #create a new string using definitions we just created:
     %call CG_SHSUB_DEFS
     %evalmacro CG_COMPARE_SPEC OUT
+    #need to do a another eval to expand macros in subroutine text:
+    %evalmacro CG_COMPARE_SPEC CG_COMPARE_SPEC
 
     #test that new string is same as original:
     result=FAILED

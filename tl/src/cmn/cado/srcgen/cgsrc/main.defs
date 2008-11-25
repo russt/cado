@@ -1,5 +1,5 @@
 VERSION = 1.71
-VERSION_DATE = 24-Nov-2008
+VERSION_DATE = 25-Nov-2008
 
 {
 CODEGEN_PACKAGE := << EOF
@@ -3662,7 +3662,7 @@ CODEGEN_HEADER := << EOF
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  24-Nov-2008 (russt) [Version 1.71]
+#  25-Nov-2008 (russt) [Version 1.71]
 #       Add %pragma clrifndef, and :factorShSubs, :factorShVars ops.
 #       Add %pragma trim_multiline_rnewline pragma.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
