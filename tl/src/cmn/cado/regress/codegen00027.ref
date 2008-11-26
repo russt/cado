@@ -1,200 +1,148 @@
 TESTNAME is codegen00027
 BEGIN sh_txt='v_1="v_1 value"
 v2="v2 value"
-V3="V3 value"
+V3="${v2}:  value"
+foo="\
+foo value,\
+$v2,
+${V3:xx}
+"
 
-a()
+foo()
 {
-    echo sub a: $v_1
+    echo v_1='$v_1'
 }
 
-b (  ){
-    echo sub b: $v2
-    }
-
-# c() { echo sub c }
-
-c()
-{
-echo sub c: $V3
-}
-_123()
-{
-echo sub _123
-a=${v2}
-}
-a
-b
-c
-_123
+foo
 '
 
 {----------------
-:factorShVars test 1        OUT='v_1="v_1 value"
-v2="v2 value"
-V3="V3 value"
+:factorShVars test 1        OUT='{=shvar_v_1=}="v_1 value"
+{=shvar_v2=}="v2 value"
+{=shvar_V3=}="${{=shvar_v2=}}:  value"
+{=shvar_foo=}="\
+foo value,\
+${=shvar_v2=},
+${{=shvar_V3=}:xx}
+"
 
-a()
+foo()
 {
-    echo sub a: $v_1
+    echo {=shvar_v_1=}='${=shvar_v_1=}'
 }
 
-b (  ){
-    echo sub b: $v2
-    }
-
-# c() { echo sub c }
-
-c()
-{
-echo sub c: $V3
-}
-_123()
-{
-echo sub _123
-a=${v2}
-}
-a
-b
-c
-_123
+foo
 '
-:factorShVars test 1  CG_SHVAR_LIST=''
+:factorShVars test 1  CG_SHVAR_LIST='v_1	v2	V3	foo'
+:factorShVars test 1  CG_SHVAR_DEFS='shvar_v_1 := v_1
+shvar_v2 := v2
+shvar_V3 := V3
+shvar_foo := foo
+'
 ----------------}
 
+CG_SHVAR_PREFIX=shvar_
 
 {----------------
-:factorShVars test 2        OUT='v_1="v_1 value"
-v2="v2 value"
-V3="V3 value"
+:factorShVars test 2        OUT='{=CBVAR_v_1=}="v_1 value"
+{=CBVAR_v2=}="v2 value"
+{=CBVAR_V3=}="${{=CBVAR_v2=}}:  value"
+{=CBVAR_foo=}="\
+foo value,\
+${=CBVAR_v2=},
+${{=CBVAR_V3=}:xx}
+"
 
-a()
+foo()
 {
-    echo sub a: $v_1
+    echo {=CBVAR_v_1=}='${=CBVAR_v_1=}'
 }
 
-b (  ){
-    echo sub b: $v2
-    }
-
-# c() { echo sub c }
-
-c()
-{
-echo sub c: $V3
-}
-_123()
-{
-echo sub _123
-a=${v2}
-}
-a
-b
-c
-_123
+foo
 '
-:factorShVars test 2  CG_SHVAR_LIST=''
+:factorShVars test 2  CG_SHVAR_LIST='v_1	v2	V3	foo'
+:factorShVars test 2  CG_SHVAR_DEFS='CBVAR_v_1 := v_1
+CBVAR_v2 := v2
+CBVAR_V3 := V3
+CBVAR_foo := foo
+'
 ----------------}
 
-
-{----------------
-:factorShVars test 3        OUT='v_1="v_1 value"
-v2="v2 value"
-V3="V3 value"
-
-a()
-{
-    echo sub a: $v_1
-}
-
-b (  ){
-    echo sub b: $v2
-    }
-
-# c() { echo sub c }
-
-c()
-{
-echo sub c: $V3
-}
-_123()
-{
-echo sub _123
-a=${v2}
-}
-a
-b
-c
-_123
-'
-:factorShVars test 3  CG_SHVAR_LIST=''
-----------------}
-
+POSTFIX OPERATOR :factorShVars TEST #3 PASSED
+INCLUDE is /^(v2|V3)$/
 
 {----------------
 :factorShVars test 4        OUT='v_1="v_1 value"
-v2="v2 value"
-V3="V3 value"
+{=shvar_v2=}="v2 value"
+{=shvar_V3=}="${{=shvar_v2=}}:  value"
+foo="\
+foo value,\
+${=shvar_v2=},
+${{=shvar_V3=}:xx}
+"
 
-a()
+foo()
 {
-    echo sub a: $v_1
+    echo v_1='$v_1'
 }
 
-b (  ){
-    echo sub b: $v2
-    }
-
-# c() { echo sub c }
-
-c()
-{
-echo sub c: $V3
-}
-_123()
-{
-echo sub _123
-a=${v2}
-}
-a
-b
-c
-_123
+foo
 '
-:factorShVars test 4  CG_SHVAR_LIST=''
+:factorShVars test 4  CG_SHVAR_LIST='v2	V3'
+:factorShVars test 4  CG_SHVAR_DEFS='shvar_v2 := v2
+shvar_V3 := V3
+'
 ----------------}
 
+POSTFIX OPERATOR :factorShVars TEST #5 PASSED
+EXCLUDE is /^(v2|V3)$/
 
 {----------------
-:factorShVars test 5        OUT='v_1="v_1 value"
+:factorShVars test 6        OUT='{=shvar_v_1=}="v_1 value"
 v2="v2 value"
-V3="V3 value"
+V3="${v2}:  value"
+{=shvar_foo=}="\
+foo value,\
+$v2,
+${V3:xx}
+"
 
-a()
+foo()
 {
-    echo sub a: $v_1
+    echo {=shvar_v_1=}='${=shvar_v_1=}'
 }
 
-b (  ){
-    echo sub b: $v2
-    }
-
-# c() { echo sub c }
-
-c()
-{
-echo sub c: $V3
-}
-_123()
-{
-echo sub _123
-a=${v2}
-}
-a
-b
-c
-_123
+foo
 '
-:factorShVars test 5  CG_SHVAR_LIST=''
+:factorShVars test 6  CG_SHVAR_LIST='v_1	foo'
+:factorShVars test 6  CG_SHVAR_DEFS='shvar_v_1 := v_1
+shvar_foo := foo
+'
 ----------------}
 
+POSTFIX OPERATOR :factorShVars TEST #7 PASSED
+INCLUDE is /^(v_1|v2|V3)$/, EXCLUDE is /^(v_1|V3)$/
+
+{----------------
+:factorShVars test 8        OUT='v_1="v_1 value"
+{=shvar_v2=}="v2 value"
+V3="${{=shvar_v2=}}:  value"
+foo="\
+foo value,\
+${=shvar_v2=},
+${V3:xx}
+"
+
+foo()
+{
+    echo v_1='$v_1'
+}
+
+foo
+'
+:factorShVars test 8  CG_SHVAR_LIST='v2'
+:factorShVars test 8  CG_SHVAR_DEFS='shvar_v2 := v2
+'
+----------------}
+
+POSTFIX OPERATOR :factorShVars TEST #9 PASSED

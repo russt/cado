@@ -4,13 +4,16 @@
 sh_txt := << EOF
 v_1="v_1 value"
 v2="v2 value"
-V3="$v2 value"
-foo\
-="foo value"
+V3="${v2}:  value"
+foo="\
+foo value,\
+$v2,
+${V3:xx}
+"
 
 foo()
 {
-    echo foo=$foo
+    echo v_1='$v_1'
 }
 
 foo
@@ -26,11 +29,39 @@ showvar_factoring :=  << EOF
 {
     %echo
     %echo {----------------
-    %echo $tname test $tnum:i:a        OUT='$sh_txt:factorShVars'
+    OUT=$sh_txt:factorShVars
+    %echo $tname test $tnum:i:a        OUT='$OUT'
     %echo $tname test $tnum  CG_SHVAR_LIST='$CG_SHVAR_LIST:showstack'
     %echo $tname test $tnum  CG_SHVAR_DEFS='$CG_SHVAR_DEFS'
     %echo ----------------}
     %echo
+}
+EOF
+
+undef_shvar_vars := << EOF
+#undefine any variables created when we evaluate generate shsub defs:
+{
+    undefpat = /${CG_SHVAR_PREFIX}.*/
+    %undef $undefpat
+}
+EOF
+
+test_generated_shvar := << EOF
+#perform macro varstitutions on factored sh script, and compare to original
+{
+    #create a new string using definitions we just created:
+    %call CG_SHVAR_DEFS
+    %evalmacro CG_COMPARE_SPEC OUT
+
+    #test that new string is same as original:
+    result=FAILED
+    %if $sh_txt:eq	result=PASSED
+    %echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+%ifnot $sh_txt:eq %echo >>>>>>>$CG_COMPARE_SPEC<<<<<<<
+
+    #undefine any variables we just created:
+    %call undef_shvar_vars
 }
 EOF
 
@@ -41,24 +72,34 @@ EOF
 
     %call showvar_factoring
 
+    %echo CG_SHVAR_PREFIX=$CG_SHVAR_PREFIX
+    default_cg_varsh_prefix = $CG_SHVAR_PREFIX
+
     CG_SHVAR_PREFIX = CBVAR_
     %call showvar_factoring
+    %call test_generated_shvar
+
+    #revert prefix:
+    %undef CG_SHVAR_PREFIX
 
     #test INCLUDE pattern:
     %undef CG_SHVAR_EXCLUDE_PATTERN
     CG_SHVAR_INCLUDE_PATTERN = /^(v2|V3)$/
     %echo INCLUDE is $CG_SHVAR_INCLUDE_PATTERN
     %call showvar_factoring
+    %call test_generated_shvar
 
     #test EXCLUDE pattern:
     %undef CG_SHVAR_INCLUDE_PATTERN
     CG_SHVAR_EXCLUDE_PATTERN = /^(v2|V3)$/
     %echo EXCLUDE is $CG_SHVAR_EXCLUDE_PATTERN
     %call showvar_factoring
+    %call test_generated_shvar
 
     #test EXCLUDE and INCLUDE pattern together:
     CG_SHVAR_INCLUDE_PATTERN = /^(v_1|v2|V3)$/
     CG_SHVAR_EXCLUDE_PATTERN = /^(v_1|V3)$/
     %echo INCLUDE is $CG_SHVAR_INCLUDE_PATTERN, EXCLUDE is $CG_SHVAR_EXCLUDE_PATTERN
     %call showvar_factoring
+    %call test_generated_shvar
 }
