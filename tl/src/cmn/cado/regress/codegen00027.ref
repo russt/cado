@@ -1,70 +1,118 @@
 TESTNAME is codegen00027
-BEGIN sh_txt='v_1="v_1 value"
+BEGIN sh_txt='# jbiBuild - production build script for jbi product
+#IIS_XX is a var containing IIS_XX=$IIS_XX
+# IIS_XX is also a var containing IIS_XX=$IIS_XX
+v_1="v_1 value"
 v2="v2 value"
-V3="${v2}:  value"
+#test a var prefixed by another:
+v21="v21 value"
+V3="${v2} is not $v21 but it is the same as $v2"
 foo="\
 foo value,\
 $v2,
 ${V3:xx}
 "
 
+if [ "$IIS_XX" != "" ]; then
+    echo IIS_XX=$IIS_XX
+fi
+
+echo product=$product
+
 foo()
 {
     echo v_1='$v_1'
 }
 
+export IIS_XX foo v_1
+unset IIS_XX foo v_1
+
 foo
 '
 
 {----------------
-:factorShVars test 1        OUT='{=shvar_v_1=}="v_1 value"
+:factorShVars test 1        OUT='# jbiBuild - production build script for jbi {=shvar_product=}
+#{=shvar_IIS_XX=} is a var containing {=shvar_IIS_XX=}=${=shvar_IIS_XX=}
+# {=shvar_IIS_XX=} is also a var containing {=shvar_IIS_XX=}=${=shvar_IIS_XX=}
+{=shvar_v_1=}="v_1 value"
 {=shvar_v2=}="v2 value"
-{=shvar_V3=}="${{=shvar_v2=}}:  value"
+#test a var prefixed by another:
+{=shvar_v21=}="v21 value"
+{=shvar_V3=}="${{=shvar_v2=}} is not ${=shvar_v21=} but it is the same as ${=shvar_v2=}"
 {=shvar_foo=}="\
 foo value,\
 ${=shvar_v2=},
 ${{=shvar_V3=}:xx}
 "
 
+if [ "${=shvar_IIS_XX=}" != "" ]; then
+    echo {=shvar_IIS_XX=}=${=shvar_IIS_XX=}
+fi
+
+echo {=shvar_product=}=${=shvar_product=}
+
 foo()
 {
     echo {=shvar_v_1=}='${=shvar_v_1=}'
 }
 
+export {=shvar_IIS_XX=} {=shvar_foo=} {=shvar_v_1=}
+unset {=shvar_IIS_XX=} {=shvar_foo=} {=shvar_v_1=}
+
 foo
 '
-:factorShVars test 1  CG_SHVAR_LIST='v_1	v2	V3	foo'
+:factorShVars test 1  CG_SHVAR_LIST='v_1	v2	v21	V3	foo	IIS_XX	product'
 :factorShVars test 1  CG_SHVAR_DEFS='shvar_v_1 := v_1
+shvar_v21 := v21
 shvar_v2 := v2
-shvar_V3 := V3
+shvar_product := product
 shvar_foo := foo
+shvar_V3 := V3
+shvar_IIS_XX := IIS_XX
 '
 ----------------}
 
 CG_SHVAR_PREFIX=shvar_
 
 {----------------
-:factorShVars test 2        OUT='{=CBVAR_v_1=}="v_1 value"
+:factorShVars test 2        OUT='# jbiBuild - production build script for jbi {=CBVAR_product=}
+#{=CBVAR_IIS_XX=} is a var containing {=CBVAR_IIS_XX=}=${=CBVAR_IIS_XX=}
+# {=CBVAR_IIS_XX=} is also a var containing {=CBVAR_IIS_XX=}=${=CBVAR_IIS_XX=}
+{=CBVAR_v_1=}="v_1 value"
 {=CBVAR_v2=}="v2 value"
-{=CBVAR_V3=}="${{=CBVAR_v2=}}:  value"
+#test a var prefixed by another:
+{=CBVAR_v21=}="v21 value"
+{=CBVAR_V3=}="${{=CBVAR_v2=}} is not ${=CBVAR_v21=} but it is the same as ${=CBVAR_v2=}"
 {=CBVAR_foo=}="\
 foo value,\
 ${=CBVAR_v2=},
 ${{=CBVAR_V3=}:xx}
 "
 
+if [ "${=CBVAR_IIS_XX=}" != "" ]; then
+    echo {=CBVAR_IIS_XX=}=${=CBVAR_IIS_XX=}
+fi
+
+echo {=CBVAR_product=}=${=CBVAR_product=}
+
 foo()
 {
     echo {=CBVAR_v_1=}='${=CBVAR_v_1=}'
 }
 
+export {=CBVAR_IIS_XX=} {=CBVAR_foo=} {=CBVAR_v_1=}
+unset {=CBVAR_IIS_XX=} {=CBVAR_foo=} {=CBVAR_v_1=}
+
 foo
 '
-:factorShVars test 2  CG_SHVAR_LIST='v_1	v2	V3	foo'
+:factorShVars test 2  CG_SHVAR_LIST='v_1	v2	v21	V3	foo	IIS_XX	product'
 :factorShVars test 2  CG_SHVAR_DEFS='CBVAR_v_1 := v_1
+CBVAR_v21 := v21
 CBVAR_v2 := v2
-CBVAR_V3 := V3
+CBVAR_product := product
 CBVAR_foo := foo
+CBVAR_V3 := V3
+CBVAR_IIS_XX := IIS_XX
 '
 ----------------}
 
@@ -72,19 +120,33 @@ POSTFIX OPERATOR :factorShVars TEST #3 PASSED
 INCLUDE is /^(v2|V3)$/
 
 {----------------
-:factorShVars test 4        OUT='v_1="v_1 value"
+:factorShVars test 4        OUT='# jbiBuild - production build script for jbi product
+#IIS_XX is a var containing IIS_XX=$IIS_XX
+# IIS_XX is also a var containing IIS_XX=$IIS_XX
+v_1="v_1 value"
 {=shvar_v2=}="v2 value"
-{=shvar_V3=}="${{=shvar_v2=}}:  value"
+#test a var prefixed by another:
+v21="v21 value"
+{=shvar_V3=}="${{=shvar_v2=}} is not ${=shvar_v2=}1 but it is the same as ${=shvar_v2=}"
 foo="\
 foo value,\
 ${=shvar_v2=},
 ${{=shvar_V3=}:xx}
 "
 
+if [ "$IIS_XX" != "" ]; then
+    echo IIS_XX=$IIS_XX
+fi
+
+echo product=$product
+
 foo()
 {
     echo v_1='$v_1'
 }
+
+export IIS_XX foo v_1
+unset IIS_XX foo v_1
 
 foo
 '
@@ -98,25 +160,42 @@ POSTFIX OPERATOR :factorShVars TEST #5 PASSED
 EXCLUDE is /^(v2|V3)$/
 
 {----------------
-:factorShVars test 6        OUT='{=shvar_v_1=}="v_1 value"
+:factorShVars test 6        OUT='# jbiBuild - production build script for jbi {=shvar_product=}
+#{=shvar_IIS_XX=} is a var containing {=shvar_IIS_XX=}=${=shvar_IIS_XX=}
+# {=shvar_IIS_XX=} is also a var containing {=shvar_IIS_XX=}=${=shvar_IIS_XX=}
+{=shvar_v_1=}="v_1 value"
 v2="v2 value"
-V3="${v2}:  value"
+#test a var prefixed by another:
+{=shvar_v21=}="v21 value"
+V3="${v2} is not ${=shvar_v21=} but it is the same as $v2"
 {=shvar_foo=}="\
 foo value,\
 $v2,
 ${V3:xx}
 "
 
+if [ "${=shvar_IIS_XX=}" != "" ]; then
+    echo {=shvar_IIS_XX=}=${=shvar_IIS_XX=}
+fi
+
+echo {=shvar_product=}=${=shvar_product=}
+
 foo()
 {
     echo {=shvar_v_1=}='${=shvar_v_1=}'
 }
 
+export {=shvar_IIS_XX=} {=shvar_foo=} {=shvar_v_1=}
+unset {=shvar_IIS_XX=} {=shvar_foo=} {=shvar_v_1=}
+
 foo
 '
-:factorShVars test 6  CG_SHVAR_LIST='v_1	foo'
+:factorShVars test 6  CG_SHVAR_LIST='v_1	v21	foo	IIS_XX	product'
 :factorShVars test 6  CG_SHVAR_DEFS='shvar_v_1 := v_1
+shvar_v21 := v21
+shvar_product := product
 shvar_foo := foo
+shvar_IIS_XX := IIS_XX
 '
 ----------------}
 
@@ -124,19 +203,33 @@ POSTFIX OPERATOR :factorShVars TEST #7 PASSED
 INCLUDE is /^(v_1|v2|V3)$/, EXCLUDE is /^(v_1|V3)$/
 
 {----------------
-:factorShVars test 8        OUT='v_1="v_1 value"
+:factorShVars test 8        OUT='# jbiBuild - production build script for jbi product
+#IIS_XX is a var containing IIS_XX=$IIS_XX
+# IIS_XX is also a var containing IIS_XX=$IIS_XX
+v_1="v_1 value"
 {=shvar_v2=}="v2 value"
-V3="${{=shvar_v2=}}:  value"
+#test a var prefixed by another:
+v21="v21 value"
+V3="${{=shvar_v2=}} is not ${=shvar_v2=}1 but it is the same as ${=shvar_v2=}"
 foo="\
 foo value,\
 ${=shvar_v2=},
 ${V3:xx}
 "
 
+if [ "$IIS_XX" != "" ]; then
+    echo IIS_XX=$IIS_XX
+fi
+
+echo product=$product
+
 foo()
 {
     echo v_1='$v_1'
 }
+
+export IIS_XX foo v_1
+unset IIS_XX foo v_1
 
 foo
 '

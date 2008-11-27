@@ -2,19 +2,33 @@
 #    :factorShVars
 
 sh_txt := << EOF
+# jbiBuild - production build script for jbi product
+#IIS_XX is a var containing IIS_XX=$IIS_XX
+# IIS_XX is also a var containing IIS_XX=$IIS_XX
 v_1="v_1 value"
 v2="v2 value"
-V3="${v2}:  value"
+#test a var prefixed by another:
+v21="v21 value"
+V3="${v2} is not $v21 but it is the same as $v2"
 foo="\
 foo value,\
 $v2,
 ${V3:xx}
 "
 
+if [ "$IIS_XX" != "" ]; then
+    echo IIS_XX=$IIS_XX
+fi
+
+echo product=$product
+
 foo()
 {
     echo v_1='$v_1'
 }
+
+export IIS_XX foo v_1
+unset IIS_XX foo v_1
 
 foo
 EOF

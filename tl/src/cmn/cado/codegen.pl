@@ -5119,13 +5119,13 @@ sub factorShVars_op
     #regular expressions defining sh variable defs and refs:
 
     foreach $line (@var) {
-        #this is way too simple, since it doesn't take any context into account.
-        my $re_def = '([a-z_A-Z]\w*)=';
-
         #skip comment, lines without var defs:
         next if ($line =~ /^\s*#/ || $line =~ /^\s*$/);
 
-        next unless ($line =~ /$re_def/);
+        my $re_def = '([a-z_A-Z]\w*)=';
+        my $re_ref = '\$\{?([a-z_A-Z]\w*)';  #}
+
+        next unless ($line =~ /$re_def/ || $line =~ /$re_ref/);
         my $shvname = $1;
 
         #ignore if we are excluding this variable name:
@@ -5135,6 +5135,7 @@ sub factorShVars_op
         push @shvars, $shvname;
     }
 
+    #eliminate duplicates, preserving order:
     my %mark = ();
     my (@tmp) = ();
     for (@shvars) {
@@ -5142,7 +5143,6 @@ sub factorShVars_op
         ++$mark{$_};
         push @tmp, $_;
     }
-
     @shvars = @tmp;
 
     #####
@@ -5150,16 +5150,19 @@ sub factorShVars_op
     #####
 
     my $shvar = "";
-    foreach $shvar (@shvars) {
+    #sort backwards so longest variable names are applied first:
+    foreach $shvar (sort { $b cmp $a } @shvars) {
         my $cg_shvar = "$prefix$shvar";
         my $macroref = "{##$cg_shvar##}";    #use temp delimiters for macro brackets
 
         my $re_def = '(^|\s|[;&|])' . $shvar . '(=)';
-        my $re_ref = '(\$\{?)(' . $shvar . ')';  #}
+        my $re_ref = '(\$\{?)' . $shvar . '';  #}
+        my $re_iden = '(\s|#)' . $shvar . '($|\s|[\-\.,;&|])';
 
         #do substitutions for defs & refs:
         grep($_ =~ s/$re_def/$1${macroref}$2/g, @var);
         grep($_ =~ s/$re_ref/$1${macroref}/g, @var);
+        grep(/^\s*(export\s|unset\s|#)/ && $_ =~ s/$re_iden/$1${macroref}$2/g, @var);
 
         #generate definition:
         $shvardeftxt .= sprintf("%s := %s\n", $cg_shvar, $shvar);
@@ -5317,7 +5320,8 @@ sub factorShSubs_op
     #split variable text:
     my (@var) = split("\n", $var, -1);
 
-    foreach $cg_srname (@cg_srnames_final) {
+    #sort backwards so longest variable names are applied first:
+    foreach $cg_srname (sort { $b cmp $a } @cg_srnames_final) {
         $srname = $shsub_names{$cg_srname};
         my $cg_srname_ref = "${cg_srname}_ref";
         my $macroref = "{=$cg_srname_ref=}";
