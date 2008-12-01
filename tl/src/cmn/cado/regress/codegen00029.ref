@@ -1,0 +1,247 @@
+TESTNAME is codegen00029
+BEGIN csh_txt='# jbiBuild - production build script for jbi product
+#IIS_XX is a var containing IIS_XX=$IIS_XX
+# IIS_XX is also a var containing IIS_XX=$IIS_XX
+set v_1="v_1 value"
+set v2 ="v2 value"
+#test a var prefixed by another:
+set v21 = "v21 value"
+set V3= "${v2} is not $v21 but it is the same as $v2"
+set foo = "\
+foo value,\
+$v2,
+${V3:xx}
+"
+
+echo product=$product
+echo product count=$#product
+echo product isdef=$?product
+
+setenv IIS_XX "a b c"
+unsetenv IIS_XX
+unset IIS_XX
+
+set foo = (xx yy zz)
+echo form1=$?foo
+echo form2=${?foo}
+echo form3=$#foo
+echo form4=${#foo}
+echo form5=$foo[2]
+echo form6=${foo[2]}
+
+'
+
+{----------------
+:factorCshVars test 1        OUT='# jbiBuild - production build script for jbi {=cshvar_product=}
+#{=cshvar_IIS_XX=} is a var containing IIS_XX=${=cshvar_IIS_XX=}
+# {=cshvar_IIS_XX=} is also a var containing IIS_XX=${=cshvar_IIS_XX=}
+set {=cshvar_v_1=}="v_1 value"
+set {=cshvar_v2=} ="v2 value"
+#test a var prefixed by another:
+set {=cshvar_v21=} = "v21 value"
+set {=cshvar_V3=}= "${{=cshvar_v2=}} is not ${=cshvar_v21=} but it is the same as ${=cshvar_v2=}"
+set {=cshvar_foo=} = "\
+foo value,\
+${=cshvar_v2=},
+${{=cshvar_V3=}:xx}
+"
+
+echo product=${=cshvar_product=}
+echo product count=$#{=cshvar_product=}
+echo product isdef=$?{=cshvar_product=}
+
+setenv {=cshvar_IIS_XX=} "a b c"
+unsetenv {=cshvar_IIS_XX=}
+unset {=cshvar_IIS_XX=}
+
+set {=cshvar_foo=} = (xx yy zz)
+echo form1=$?{=cshvar_foo=}
+echo form2=${?{=cshvar_foo=}}
+echo form3=$#{=cshvar_foo=}
+echo form4=${#{=cshvar_foo=}}
+echo form5=${=cshvar_foo=}[2]
+echo form6=${{=cshvar_foo=}[2]}
+
+'
+:factorCshVars test 1  CG_CSHVAR_LIST='v_1	v2	v21	V3	foo	product	IIS_XX'
+:factorCshVars test 1  CG_CSHVAR_DEFS='cshvar_v_1 := v_1
+cshvar_v21 := v21
+cshvar_v2 := v2
+cshvar_product := product
+cshvar_foo := foo
+cshvar_V3 := V3
+cshvar_IIS_XX := IIS_XX
+'
+----------------}
+
+CG_CSHVAR_PREFIX=cshvar_
+
+{----------------
+:factorCshVars test 2        OUT='# jbiBuild - production build script for jbi {=CBVAR_product=}
+#{=CBVAR_IIS_XX=} is a var containing IIS_XX=${=CBVAR_IIS_XX=}
+# {=CBVAR_IIS_XX=} is also a var containing IIS_XX=${=CBVAR_IIS_XX=}
+set {=CBVAR_v_1=}="v_1 value"
+set {=CBVAR_v2=} ="v2 value"
+#test a var prefixed by another:
+set {=CBVAR_v21=} = "v21 value"
+set {=CBVAR_V3=}= "${{=CBVAR_v2=}} is not ${=CBVAR_v21=} but it is the same as ${=CBVAR_v2=}"
+set {=CBVAR_foo=} = "\
+foo value,\
+${=CBVAR_v2=},
+${{=CBVAR_V3=}:xx}
+"
+
+echo product=${=CBVAR_product=}
+echo product count=$#{=CBVAR_product=}
+echo product isdef=$?{=CBVAR_product=}
+
+setenv {=CBVAR_IIS_XX=} "a b c"
+unsetenv {=CBVAR_IIS_XX=}
+unset {=CBVAR_IIS_XX=}
+
+set {=CBVAR_foo=} = (xx yy zz)
+echo form1=$?{=CBVAR_foo=}
+echo form2=${?{=CBVAR_foo=}}
+echo form3=$#{=CBVAR_foo=}
+echo form4=${#{=CBVAR_foo=}}
+echo form5=${=CBVAR_foo=}[2]
+echo form6=${{=CBVAR_foo=}[2]}
+
+'
+:factorCshVars test 2  CG_CSHVAR_LIST='v_1	v2	v21	V3	foo	product	IIS_XX'
+:factorCshVars test 2  CG_CSHVAR_DEFS='CBVAR_v_1 := v_1
+CBVAR_v21 := v21
+CBVAR_v2 := v2
+CBVAR_product := product
+CBVAR_foo := foo
+CBVAR_V3 := V3
+CBVAR_IIS_XX := IIS_XX
+'
+----------------}
+
+POSTFIX OPERATOR :factorCshVars TEST #3 PASSED
+INCLUDE is /^(v2|V3)$/
+
+{----------------
+:factorCshVars test 4        OUT='# jbiBuild - production build script for jbi product
+#IIS_XX is a var containing IIS_XX=$IIS_XX
+# IIS_XX is also a var containing IIS_XX=$IIS_XX
+set v_1="v_1 value"
+set {=cshvar_v2=} ="v2 value"
+#test a var prefixed by another:
+set v21 = "v21 value"
+set {=cshvar_V3=}= "${{=cshvar_v2=}} is not ${=cshvar_v2=}1 but it is the same as ${=cshvar_v2=}"
+set foo = "\
+foo value,\
+${=cshvar_v2=},
+${{=cshvar_V3=}:xx}
+"
+
+echo product=$product
+echo product count=$#product
+echo product isdef=$?product
+
+setenv IIS_XX "a b c"
+unsetenv IIS_XX
+unset IIS_XX
+
+set foo = (xx yy zz)
+echo form1=$?foo
+echo form2=${?foo}
+echo form3=$#foo
+echo form4=${#foo}
+echo form5=$foo[2]
+echo form6=${foo[2]}
+
+'
+:factorCshVars test 4  CG_CSHVAR_LIST='v2	V3'
+:factorCshVars test 4  CG_CSHVAR_DEFS='cshvar_v2 := v2
+cshvar_V3 := V3
+'
+----------------}
+
+POSTFIX OPERATOR :factorCshVars TEST #5 PASSED
+EXCLUDE is /^(v2|V3)$/
+
+{----------------
+:factorCshVars test 6        OUT='# jbiBuild - production build script for jbi {=cshvar_product=}
+#{=cshvar_IIS_XX=} is a var containing IIS_XX=${=cshvar_IIS_XX=}
+# {=cshvar_IIS_XX=} is also a var containing IIS_XX=${=cshvar_IIS_XX=}
+set {=cshvar_v_1=}="v_1 value"
+set v2 ="v2 value"
+#test a var prefixed by another:
+set {=cshvar_v21=} = "v21 value"
+set V3= "${v2} is not ${=cshvar_v21=} but it is the same as $v2"
+set {=cshvar_foo=} = "\
+foo value,\
+$v2,
+${V3:xx}
+"
+
+echo product=${=cshvar_product=}
+echo product count=$#{=cshvar_product=}
+echo product isdef=$?{=cshvar_product=}
+
+setenv {=cshvar_IIS_XX=} "a b c"
+unsetenv {=cshvar_IIS_XX=}
+unset {=cshvar_IIS_XX=}
+
+set {=cshvar_foo=} = (xx yy zz)
+echo form1=$?{=cshvar_foo=}
+echo form2=${?{=cshvar_foo=}}
+echo form3=$#{=cshvar_foo=}
+echo form4=${#{=cshvar_foo=}}
+echo form5=${=cshvar_foo=}[2]
+echo form6=${{=cshvar_foo=}[2]}
+
+'
+:factorCshVars test 6  CG_CSHVAR_LIST='v_1	v21	foo	product	IIS_XX'
+:factorCshVars test 6  CG_CSHVAR_DEFS='cshvar_v_1 := v_1
+cshvar_v21 := v21
+cshvar_product := product
+cshvar_foo := foo
+cshvar_IIS_XX := IIS_XX
+'
+----------------}
+
+POSTFIX OPERATOR :factorCshVars TEST #7 PASSED
+INCLUDE is /^(v_1|v2|V3)$/, EXCLUDE is /^(v_1|V3)$/
+
+{----------------
+:factorCshVars test 8        OUT='# jbiBuild - production build script for jbi product
+#IIS_XX is a var containing IIS_XX=$IIS_XX
+# IIS_XX is also a var containing IIS_XX=$IIS_XX
+set v_1="v_1 value"
+set {=cshvar_v2=} ="v2 value"
+#test a var prefixed by another:
+set v21 = "v21 value"
+set V3= "${{=cshvar_v2=}} is not ${=cshvar_v2=}1 but it is the same as ${=cshvar_v2=}"
+set foo = "\
+foo value,\
+${=cshvar_v2=},
+${V3:xx}
+"
+
+echo product=$product
+echo product count=$#product
+echo product isdef=$?product
+
+setenv IIS_XX "a b c"
+unsetenv IIS_XX
+unset IIS_XX
+
+set foo = (xx yy zz)
+echo form1=$?foo
+echo form2=${?foo}
+echo form3=$#foo
+echo form4=${#foo}
+echo form5=$foo[2]
+echo form6=${foo[2]}
+
+'
+:factorCshVars test 8  CG_CSHVAR_LIST='v2'
+:factorCshVars test 8  CG_CSHVAR_DEFS='cshvar_v2 := v2
+'
+----------------}
+
+POSTFIX OPERATOR :factorCshVars TEST #9 PASSED

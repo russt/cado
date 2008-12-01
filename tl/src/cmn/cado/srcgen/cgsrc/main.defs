@@ -1,5 +1,5 @@
 VERSION = 1.71
-VERSION_DATE = 25-Nov-2008
+VERSION_DATE = 01-Dec-2008
 
 {
 CODEGEN_PACKAGE := << EOF
@@ -3662,11 +3662,11 @@ CODEGEN_HEADER := << EOF
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  25-Nov-2008 (russt) [Version 1.71]
-#       Add %pragma clrifndef, and :factorShSubs, :factorShVars ops.
-#       Add %pragma trim_multiline_rnewline pragma.
+#  01-Dec-2008 (russt) [Version 1.71]
+#       Add pragmas clrifndef and trim_multiline_rnewline.
+#       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
-#       Fix bug in template expansion - macros alone on lines and resolving to non-empty strings
+#       Fix bug in template expansion - macros alone on lines, and resolving to non-empty strings
 #       were reducing newline, and lines at EOF without EOL were adding newline.
 #
 

@@ -199,11 +199,11 @@
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  25-Nov-2008 (russt) [Version 1.71]
-#       Add %pragma clrifndef, and :factorShSubs, :factorShVars ops.
-#       Add %pragma trim_multiline_rnewline pragma.
+#  01-Dec-2008 (russt) [Version 1.71]
+#       Add pragmas clrifndef and trim_multiline_rnewline.
+#       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
-#       Fix bug in template expansion - macros alone on lines and resolving to non-empty strings
+#       Fix bug in template expansion - macros alone on lines, and resolving to non-empty strings
 #       were reducing newline, and lines at EOF without EOL were adding newline.
 #
 
@@ -216,7 +216,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.71",         #VERSION - the program version number.
-    "25-Nov-2008",  #VERSION_DATE - date this version was released.
+    "01-Dec-2008",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -5072,6 +5072,121 @@ sub B_op
 }
 
 
+sub factorCshVars_op
+{
+    my ($var, $varname, $linecnt) = @_;
+    my $prefix = "cshvar_";
+    my $xpat = "";
+    my $ipat = "";
+
+
+    if ( &var_defined_non_empty("CG_CSHVAR_PREFIX") ) {
+        $prefix = $CG_USER_VARS{'CG_CSHVAR_PREFIX'}          
+    } else {
+        #otherwise, initialize prefix to the default so user can retrieve it:
+        &assign_op($prefix, 'CG_CSHVAR_PREFIX', $linecnt);
+    }
+
+    $xpat =   $CG_USER_VARS{'CG_CSHVAR_EXCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_CSHVAR_EXCLUDE_PATTERN") );
+    $ipat =   $CG_USER_VARS{'CG_CSHVAR_INCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_CSHVAR_INCLUDE_PATTERN") );
+
+    #remove leading/trailing slashes if necessary:
+    ($xpat =~ s|^/|| && $xpat =~ s|/$||) unless ($xpat eq "");
+    ($ipat =~ s|^/|| && $ipat =~ s|/$||) unless ($ipat eq "");
+
+    #clear output variables:
+    &assign_op("", 'CG_CSHVAR_DEFS', $linecnt);
+    &assign_op("", 'CG_CSHVAR_LIST', $linecnt);
+
+    #####
+    #LOOP 1 - find variable initializations and save them:
+    #####
+
+    my (@cshvars) = ();
+    my ($line, $cshvardeftxt) = ("", "");
+
+    #split variable text:
+    my (@var) = split("\n", $var, -1);
+
+    #variable reference forms for csh:
+    #    set foo = (xx yy zz)
+    #    echo form1=$?foo
+    #    echo form2=${?foo}
+    #    echo form3=$#foo
+    #    echo form4=${#foo}
+    #    echo form5=$foo[2]
+    #    echo form6=${foo[2]}
+    
+    foreach $line (@var) {
+        #skip comment, lines without var defs:
+        next if ($line =~ /^\s*#/ || $line =~ /^\s*$/);
+
+        my $set_def = 'set\s+([a-z_A-Z]\w*)\s*=';
+        my $env_def = 'setenv\s+([a-z_A-Z]\w*)(\s|$)';
+        my $re_ref = '\$\{?[#?]?([a-z_A-Z]\w*)';
+
+        next unless ($line =~ /$set_def/ || $line =~ /$env_def/ || $line =~ /$re_ref/);
+        my $cshvname = $1;
+
+        #ignore if we are excluding this variable name:
+        next if ( &sh_name_is_excluded($cshvname, $ipat, $xpat) );
+
+        #otherwise, we have a var - add to list:
+        push @cshvars, $cshvname;
+    }
+
+    #eliminate duplicates, preserving order:
+    my %mark = ();
+    my (@tmp) = ();
+    for (@cshvars) {
+        next if ($mark{$_});
+        ++$mark{$_};
+        push @tmp, $_;
+    }
+    @cshvars = @tmp;
+
+    #####
+    #LOOP 2 - foreach csh var def, substitute in macro name:
+    #####
+
+    my $cshvar = "";
+    #sort backwards so longest variable names are applied first:
+    foreach $cshvar (sort { $b cmp $a } @cshvars) {
+        my $cg_cshvar = "$prefix$cshvar";
+        my $macroref = "{##$cg_cshvar##}";    #use temp delimiters for macro brackets
+
+        my $re_def = '(set\s+)' . $cshvar . '(\s*=)';
+        my $re_ref = '(\$\{?[#?]?)' . $cshvar;
+        my $re_iden = '(\s|#)' . $cshvar . '($|\s|[\-\.,;&|])';
+
+        #do substitutions for defs & refs:
+        grep($_ =~ s/$re_def/$1${macroref}$2/g, @var);
+        grep($_ =~ s/$re_ref/$1${macroref}/g, @var);
+        grep(/^\s*(setenv\s|unsetenv\s|unset\s|#)/ && $_ =~ s/$re_iden/$1${macroref}$2/g, @var);
+
+        #generate definition:
+        $cshvardeftxt .= sprintf("%s := %s\n", $cg_cshvar, $cshvar);
+    }
+
+    #substitute in correct macro brackets:
+    grep($_ =~ s/{##/{=/g, @var);
+    grep($_ =~ s/##}/=}/g, @var);
+
+    #write variable text instrumented with macros:
+    $var = join("\n", @var);
+
+    ######
+    #write results to user vars:
+    ######
+    my $FS = &lookup_def('CG_STACK_DELIMITER');
+
+    #overwrite results if we had any:
+    &assign_op($cshvardeftxt, 'CG_CSHVAR_DEFS', $linecnt)          if ($cshvardeftxt ne "");;
+    &assign_op(join($FS, @cshvars), 'CG_CSHVAR_LIST', $linecnt) if ($#cshvars >= 0);
+
+    return $var;
+}
+
 sub factorShVars_op
 {
     my ($var, $varname, $linecnt) = @_;
@@ -5123,7 +5238,7 @@ sub factorShVars_op
         next if ($line =~ /^\s*#/ || $line =~ /^\s*$/);
 
         my $re_def = '([a-z_A-Z]\w*)=';
-        my $re_ref = '\$\{?([a-z_A-Z]\w*)';  #}
+        my $re_ref = '\$\{?([a-z_A-Z]\w*)';
 
         next unless ($line =~ /$re_def/ || $line =~ /$re_ref/);
         my $shvname = $1;
@@ -5156,7 +5271,7 @@ sub factorShVars_op
         my $macroref = "{##$cg_shvar##}";    #use temp delimiters for macro brackets
 
         my $re_def = '(^|\s|[;&|])' . $shvar . '(=)';
-        my $re_ref = '(\$\{?)' . $shvar . '';  #}
+        my $re_ref = '(\$\{?)' . $shvar;
         my $re_iden = '(\s|#)' . $shvar . '($|\s|[\-\.,;&|])';
 
         #do substitutions for defs & refs:

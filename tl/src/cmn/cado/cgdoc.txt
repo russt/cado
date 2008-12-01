@@ -1,7 +1,7 @@
 
                     =========================
                      Codegen Quick Reference
-                    Version 1.71, 25-Nov-2008
+                    Version 1.71, 01-Dec-2008
                     =========================
 
 {
@@ -102,19 +102,24 @@
 :stackminus         - subtract the members of CG_STACK_SPEC from current stack (as in set subtaction).
 :showstack          - display stack as list $CG_STACK_DELIMITER separating elements.
 
-                    ==============
-                    SH REFACTORING
-                    ==============
-:factorShSubs    - replace sh subroutine declarations with macros, and create macro definitions in
+                    ==================
+                    SH/CSH REFACTORING
+                    ==================
+:factorShSubs       - replace sh subroutine declarations with macros, and create macro definitions in
                       CG_SHSUB_DEFS variable, which is cleared with each use.  Store list of
                       subroutines processed in CG_SHSUB_LIST stack variable.  Exclude names
                       matching CG_SHSUB_EXCLUDE_PATTERN if defined, and include only names
                       matching CG_SHSUB_INCLUDE_PATTERN if defined.
 
-:factorShVars    - replace sh variable name references with macros, and create list of
+:factorShVars       - replace sh variable name references with macros, and create list of
                       variables processed in CG_SHVAR_LIST stack variable.  Exclude names
                       matching CG_SHVAR_EXCLUDE_PATTERN if defined, and include only names
                       matching CG_SHVAR_INCLUDE_PATTERN if defined.
+
+:factorCshVars      - replace csh variable name references with macros, and create list of
+                      variables processed in CG_CSHVAR_LIST stack variable.  Exclude names
+                      matching CG_CSHVAR_EXCLUDE_PATTERN if defined, and include only names
+                      matching CG_CSHVAR_INCLUDE_PATTERN if defined.
 
                     -----------------------
                     :factorShSubs modifiers
@@ -151,6 +156,22 @@ CG_SHVAR_INCLUDE_PATTERN
                     --------------------
 CG_SHVAR_LIST       - stack of sh variable names that were factored out.
 
+                    ------------------------
+                    :factorCshVars modifiers
+                    ------------------------
+CG_CSHVAR_PREFIX    - use this prefix when generating csh variable macro refs.
+                      default prefix is "cshvar_".
+CG_CSHVAR_EXCLUDE_PATTERN
+                    - exclude the names of csh variables matching this perl regular expression.
+                      Note that exclude patterns take precedence over include patterns.
+CG_CSHVAR_INCLUDE_PATTERN
+                    - include the names of csh variables matching this perl regular expression.
+                      Note that exclude patterns take precedence over include patterns.
+
+                    ---------------------
+                    :factorCshVars output
+                    ---------------------
+CG_CSHVAR_LIST      - stack of csh variable names that were factored out.
                     =============
                     FILE TEST OPS
                     =============
@@ -353,6 +374,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                                   %foreach ii arange %call loop
                       example 2:  ptr = $arange
                                   %foreach ii $ptr %call loop
+
 
 
 
