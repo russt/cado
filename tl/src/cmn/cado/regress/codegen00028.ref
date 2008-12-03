@@ -39,3 +39,14 @@ foo()
 {
     echo sub foo
 }'
+#####
+tests with embedded %s sequences:
+#####
+
+BEFORE '{=FOO1=}=`echo ${=FOO2=} | perl -n -e '$xx=$_; printf "%s.%s-1", substr($xx,0,8), substr($xx,8,6);'`'
+AFTER 'FOO1_VALUE=`echo $FOO2_VALUE | perl -n -e '$xx=$_; printf "%s.%s-1", substr($xx,0,8), substr($xx,8,6);'`'
+BEFORE 'printf("%%{=FOO1=}=%s%d%s=xx{=FOO2=}\n", ${=FOO1=}, 22,${=FOO2=});'
+AFTER 'printf("%%FOO1_VALUE=%s%d%s=xxFOO2_VALUE\n", $FOO1_VALUE, 22,$FOO2_VALUE);'
+
+BEFORE 'printf("%%$FOO1=%s%d%s=xx$FOO2\n", $FOO1, 22,$FOO2);'
+AFTER 'printf("%%FOO1_VALUE=%s%d%s=xxFOO2_VALUE\n", FOO1_VALUE, 22,FOO2_VALUE);'

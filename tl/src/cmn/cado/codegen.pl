@@ -200,6 +200,7 @@
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
 #  02-Dec-2008 (russt) [Version 1.71]
+#       Correct copyright and version headers.
 #       Add pragmas clrifndef and trim_multiline_rnewline.
 #       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
@@ -2663,6 +2664,7 @@ sub eval_template_expr
 
     #if no macros...
     if ($#macrolist < 0) {
+        $fmt =~ s/#%#s#/%s/g;  #revert to original %s sequences if any
         print $outfile_ref sprintf($fmt) . ($hadnl ? "\n" : ""); 
         return 0;
     }
@@ -2683,8 +2685,12 @@ sub eval_template_expr
         printf STDERR "eval_template_expr LOOP:  strlist[%d]='%s'\n", $ii, $strlist[$ii] if ($DEBUG);
 
         $txt = $strlist[$ii];
-        print $outfile_ref $txt;
-        $outtxt .=  $txt;  #keep track of what we have printed so far.
+
+        my $origtxt = $txt;
+        $origtxt =~ s/#%#s#/%s/g;  #revert to original %s sequences if any
+
+        print $outfile_ref $origtxt;
+        $outtxt .=  $origtxt;  #keep track of what we have printed so far.
 
         next if ($ii == $#strlist);     #no macro for last element
 
@@ -2778,7 +2784,10 @@ sub tpl_strtospf
 
     #otherwise, create the format string and varible list.
 
-    #first, replace {= and =} with $; (standard non-printing perl list separator):
+    #first, replace any "%s" sequences in input with #%#s#, since later we will split on %s:
+    $str =~ s/%s/#%#s#/g;
+
+    #next, replace {= and =} with $; (standard non-printing perl list separator):
     $str =~ s/{=/$;/g;
     $str =~ s/=}/$;/g;
 

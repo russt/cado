@@ -60,7 +60,7 @@ EOF
 %call runsuite
 
 #####
-#more %evalmacro tests
+#test bug where evalmacro was adding extra newline:
 #####
 
 %pragma trim_multiline_rnewline 1
@@ -79,3 +79,29 @@ EOF
 %echo BEFORE '$foo'
 %evalmacro foo foo
 %echo AFTER '$foo'
+
+%echo #####
+%echo tests with embedded %s sequences:
+%echo #####
+
+FOO1=FOO1_VALUE
+FOO2= FOO2_VALUE
+
+foostr := {=FOO1=}=`echo ${=FOO2=} | perl -n -e '$xx=$_; printf "%s.%s-1", substr($xx,0,8), substr($xx,8,6);'`
+
+%echo
+%echo BEFORE '$foostr'
+%evalmacro foostr foostr
+%echo AFTER '$foostr'
+
+foostr := printf("%%{=FOO1=}=%s%d%s=xx{=FOO2=}\n", ${=FOO1=}, 22,${=FOO2=});
+%echo BEFORE '$foostr'
+%evalmacro foostr foostr
+%echo AFTER '$foostr'
+
+#what about just a normal definition?
+%echo
+foostr := printf("%%$FOO1=%s%d%s=xx$FOO2\n", $FOO1, 22,$FOO2);
+%echo BEFORE '$foostr'
+foostr = printf("%%$FOO1=%s%d%s=xx$FOO2\n", $FOO1, 22,$FOO2);
+%echo AFTER '$foostr'
