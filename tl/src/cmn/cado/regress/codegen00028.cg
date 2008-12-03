@@ -59,3 +59,23 @@ EOF
 %echo multiline 1
 %call runsuite
 
+#####
+#more %evalmacro tests
+#####
+
+%pragma trim_multiline_rnewline 1
+
+foo_ref := foo
+
+foo := << EOF
+foo()
+{
+    echo sub {=foo_ref=}
+}
+EOF
+
+%pragma trim_multiline_rnewline 0
+
+%echo BEFORE '$foo'
+%evalmacro foo foo
+%echo AFTER '$foo'

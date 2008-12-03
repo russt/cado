@@ -66,18 +66,18 @@ V3="V3 value"
 
 ##sh subroutine a()
 shsub_a_ref := a
-shsub_a := << EOF
+shsub_a := << shsub_EOF
 a()
 {
 #test comments ignored: a:c;_123&B_o_B52s
     echo sub {=shsub_a_ref=}: $v_1
 }
-EOF
+shsub_EOF
 
 
 ##sh subroutine B_o_B52s()
 shsub_B_o_B52s_ref := B_o_B52s
-shsub_B_o_B52s := << EOF
+shsub_B_o_B52s := << shsub_EOF
 {=shsub_B_o_B52s_ref=} (  ){
     echo sub {=shsub_B_o_B52s_ref=}: $v2
     #test refs within subroutine body:
@@ -85,32 +85,43 @@ shsub_B_o_B52s := << EOF
     echo andand:&&{=shsub_a_ref=}&&{=shsub__123_ref=}
     # echo andand:&&a&&_123
     }
-EOF
+shsub_EOF
 
 
 ##sh subroutine c()
 shsub_c_ref := c
-shsub_c := << EOF
+shsub_c := << shsub_EOF
 c()
 {
 echo sub {=shsub_c_ref=}: $V3
 }
-EOF
+shsub_EOF
 
 
 ##sh subroutine _123()
 shsub__123_ref := _123
-shsub__123 := << EOF
+shsub__123 := << shsub_EOF
 _123()
 {
 echo sub {=shsub__123_ref=}
 a=${v2}
 }
-EOF
+shsub_EOF
 
 
 #restore normal behavior for here-now defs:
 %pragma trim_multiline_rnewline 0
+
+#call this routine to expand any cross-refs or variable macros within the sr defs:
+shsub_EVAL_SR_DEFS := << shsub_EOF
+{
+    %evalmacro shsub_a shsub_a
+    %evalmacro shsub_B_o_B52s shsub_B_o_B52s
+    %evalmacro shsub_c shsub_c
+    %evalmacro shsub__123 shsub__123
+}
+shsub_EOF
+
 '
 ----------------}
 
@@ -145,18 +156,18 @@ V3="V3 value"
 
 ##sh subroutine a()
 CBSUB_a_ref := a
-CBSUB_a := << EOF
+CBSUB_a := << CBSUB_EOF
 a()
 {
 #test comments ignored: a:c;_123&B_o_B52s
     echo sub {=CBSUB_a_ref=}: $v_1
 }
-EOF
+CBSUB_EOF
 
 
 ##sh subroutine B_o_B52s()
 CBSUB_B_o_B52s_ref := B_o_B52s
-CBSUB_B_o_B52s := << EOF
+CBSUB_B_o_B52s := << CBSUB_EOF
 {=CBSUB_B_o_B52s_ref=} (  ){
     echo sub {=CBSUB_B_o_B52s_ref=}: $v2
     #test refs within subroutine body:
@@ -164,32 +175,43 @@ CBSUB_B_o_B52s := << EOF
     echo andand:&&{=CBSUB_a_ref=}&&{=CBSUB__123_ref=}
     # echo andand:&&a&&_123
     }
-EOF
+CBSUB_EOF
 
 
 ##sh subroutine c()
 CBSUB_c_ref := c
-CBSUB_c := << EOF
+CBSUB_c := << CBSUB_EOF
 c()
 {
 echo sub {=CBSUB_c_ref=}: $V3
 }
-EOF
+CBSUB_EOF
 
 
 ##sh subroutine _123()
 CBSUB__123_ref := _123
-CBSUB__123 := << EOF
+CBSUB__123 := << CBSUB_EOF
 _123()
 {
 echo sub {=CBSUB__123_ref=}
 a=${v2}
 }
-EOF
+CBSUB_EOF
 
 
 #restore normal behavior for here-now defs:
 %pragma trim_multiline_rnewline 0
+
+#call this routine to expand any cross-refs or variable macros within the sr defs:
+CBSUB_EVAL_SR_DEFS := << CBSUB_EOF
+{
+    %evalmacro CBSUB_a CBSUB_a
+    %evalmacro CBSUB_B_o_B52s CBSUB_B_o_B52s
+    %evalmacro CBSUB_c CBSUB_c
+    %evalmacro CBSUB__123 CBSUB__123
+}
+CBSUB_EOF
+
 '
 ----------------}
 
@@ -231,18 +253,18 @@ _123
 
 ##sh subroutine a()
 shsub_a_ref := a
-shsub_a := << EOF
+shsub_a := << shsub_EOF
 a()
 {
 #test comments ignored: a:c;_123&B_o_B52s
     echo sub {=shsub_a_ref=}: $v_1
 }
-EOF
+shsub_EOF
 
 
 ##sh subroutine B_o_B52s()
 shsub_B_o_B52s_ref := B_o_B52s
-shsub_B_o_B52s := << EOF
+shsub_B_o_B52s := << shsub_EOF
 {=shsub_B_o_B52s_ref=} (  ){
     echo sub {=shsub_B_o_B52s_ref=}: $v2
     #test refs within subroutine body:
@@ -250,11 +272,20 @@ shsub_B_o_B52s := << EOF
     echo andand:&&{=shsub_a_ref=}&&_123
     # echo andand:&&a&&_123
     }
-EOF
+shsub_EOF
 
 
 #restore normal behavior for here-now defs:
 %pragma trim_multiline_rnewline 0
+
+#call this routine to expand any cross-refs or variable macros within the sr defs:
+shsub_EVAL_SR_DEFS := << shsub_EOF
+{
+    %evalmacro shsub_a shsub_a
+    %evalmacro shsub_B_o_B52s shsub_B_o_B52s
+}
+shsub_EOF
+
 '
 ----------------}
 
@@ -299,27 +330,36 @@ a;{=shsub_c_ref=};{=shsub__123_ref=}&B_o_B52s
 
 ##sh subroutine c()
 shsub_c_ref := c
-shsub_c := << EOF
+shsub_c := << shsub_EOF
 c()
 {
 echo sub {=shsub_c_ref=}: $V3
 }
-EOF
+shsub_EOF
 
 
 ##sh subroutine _123()
 shsub__123_ref := _123
-shsub__123 := << EOF
+shsub__123 := << shsub_EOF
 _123()
 {
 echo sub {=shsub__123_ref=}
 a=${v2}
 }
-EOF
+shsub_EOF
 
 
 #restore normal behavior for here-now defs:
 %pragma trim_multiline_rnewline 0
+
+#call this routine to expand any cross-refs or variable macros within the sr defs:
+shsub_EVAL_SR_DEFS := << shsub_EOF
+{
+    %evalmacro shsub_c shsub_c
+    %evalmacro shsub__123 shsub__123
+}
+shsub_EOF
+
 '
 ----------------}
 
@@ -357,18 +397,18 @@ c
 
 ##sh subroutine a()
 shsub_a_ref := a
-shsub_a := << EOF
+shsub_a := << shsub_EOF
 a()
 {
 #test comments ignored: a:c;_123&B_o_B52s
     echo sub {=shsub_a_ref=}: $v_1
 }
-EOF
+shsub_EOF
 
 
 ##sh subroutine B_o_B52s()
 shsub_B_o_B52s_ref := B_o_B52s
-shsub_B_o_B52s := << EOF
+shsub_B_o_B52s := << shsub_EOF
 {=shsub_B_o_B52s_ref=} (  ){
     echo sub {=shsub_B_o_B52s_ref=}: $v2
     #test refs within subroutine body:
@@ -376,22 +416,32 @@ shsub_B_o_B52s := << EOF
     echo andand:&&{=shsub_a_ref=}&&{=shsub__123_ref=}
     # echo andand:&&a&&_123
     }
-EOF
+shsub_EOF
 
 
 ##sh subroutine _123()
 shsub__123_ref := _123
-shsub__123 := << EOF
+shsub__123 := << shsub_EOF
 _123()
 {
 echo sub {=shsub__123_ref=}
 a=${v2}
 }
-EOF
+shsub_EOF
 
 
 #restore normal behavior for here-now defs:
 %pragma trim_multiline_rnewline 0
+
+#call this routine to expand any cross-refs or variable macros within the sr defs:
+shsub_EVAL_SR_DEFS := << shsub_EOF
+{
+    %evalmacro shsub_a shsub_a
+    %evalmacro shsub_B_o_B52s shsub_B_o_B52s
+    %evalmacro shsub__123 shsub__123
+}
+shsub_EOF
+
 '
 ----------------}
 

@@ -75,9 +75,12 @@ test_generated_shsub := << EOF
 {
     #create a new string using definitions we just created:
     %call CG_SHSUB_DEFS
+
+    #call generated function to expand any macros contained within the subroutine defs:
+    expand_srdefs = ${CG_SHSUB_PREFIX}EVAL_SR_DEFS
+    %call $expand_srdefs
+
     %evalmacro CG_COMPARE_SPEC OUT
-    #need to do a another eval to expand macros in subroutine text:
-    %evalmacro CG_COMPARE_SPEC CG_COMPARE_SPEC
 
     #test that new string is same as original:
     result=FAILED

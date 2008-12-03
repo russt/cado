@@ -399,6 +399,8 @@ sub factorShSubs_op
     #####
     #LOOP 4 - write out definitions:
     #####
+
+    my $sr_expand_txt = "";
     foreach $cg_srname (@cg_srnames_final) {
         $srname = $shsub_names{$cg_srname};
         my $cg_srname_ref = "${cg_srname}_ref";
@@ -409,18 +411,30 @@ sub factorShSubs_op
 
 ##sh subroutine $srname()
 ${cg_srname}_ref := $srname
-$cg_srname := << EOF
+$cg_srname := << ${prefix}EOF
 $srtxt
-EOF
+${prefix}EOF
 
 !
+        #push line to expand this macro:
+        $sr_expand_txt .= "    \%evalmacro $cg_srname $cg_srname\n";
     }
+
+    chomp $sr_expand_txt;
 
     #definiton POST-SCRIPT:
     $srdeftxt .= << "!";
 
 #restore normal behavior for here-now defs:
 \%pragma trim_multiline_rnewline 0
+
+#call this routine to expand any cross-refs or variable macros within the sr defs:
+${prefix}EVAL_SR_DEFS := << ${prefix}EOF
+{
+$sr_expand_txt
+}
+${prefix}EOF
+
 !
 
 

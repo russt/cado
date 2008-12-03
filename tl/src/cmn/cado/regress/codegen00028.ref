@@ -29,3 +29,13 @@ a() { echo a }
 a() { echo a }
 '
 #}
+BEFORE '
+foo()
+{
+    echo sub {=foo_ref=}
+}'
+AFTER '
+foo()
+{
+    echo sub foo
+}'

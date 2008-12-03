@@ -199,11 +199,11 @@
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  01-Dec-2008 (russt) [Version 1.71]
+#  02-Dec-2008 (russt) [Version 1.71]
 #       Add pragmas clrifndef and trim_multiline_rnewline.
 #       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
-#       Fix bug in template expansion - macros alone on lines, and resolving to non-empty strings
+#       Fix bug in template expansion - macros alone on lines, and resolving to non-empty strings,
 #       were reducing newline, and lines at EOF without EOL were adding newline.
 #
 
@@ -216,7 +216,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.71",         #VERSION - the program version number.
-    "01-Dec-2008",  #VERSION_DATE - date this version was released.
+    "02-Dec-2008",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -905,7 +905,7 @@ sub evalmacro_spec
 
     my $macro_var = $CG_USER_VARS{$macro_var_ref};
 
-#printf STDERR "evalmacro_spec: output_var='%s' macro_var='%s'\n", $output_var, $macro_var;
+    printf STDERR "evalmacro_spec: output_var='%s' macro_var='%s'\n", $output_var, $macro_var if ($DEBUG);
 
     my $tmp = &expand_string_template($macro_var);
 
@@ -914,6 +914,8 @@ sub evalmacro_spec
     } else {
         $CG_USER_VARS{$output_var} = $tmp;
     }
+
+    printf STDERR "evalmacro_spec: AFTER expand_string_template: var='%s value='%s'\n", $output_var, $CG_USER_VARS{$output_var} if ($DEBUG);
 
     return 1;
 }
@@ -2558,7 +2560,7 @@ sub expand_string_template
         return $inputStr;    #return input string
     }
 
-#printf STDERR "%s [%s]: inputStr=\n%s\noutputStr=\n%s\n", $p, $token, $inputStr, $outputStr;
+    printf STDERR "%s: inputStr=\n'%s'\noutputStr=\n'%s'\n", $token, $inputStr, $outputStr if ($DEBUG);
 
     unlink $tmpfile_fullpath, $tmpfileB_fullpath;
 
@@ -2633,7 +2635,7 @@ sub expand_template_macro
 
     #this is an optimization - avoid macro processing if no macros:
     if ($tpline !~ /{=.*=}/) {
-        print $outfile_ref "$tpline\n";
+        print $outfile_ref $tpline . ($hadnl ? "\n" : ""); 
         return 0;
     }
 
@@ -2661,7 +2663,7 @@ sub eval_template_expr
 
     #if no macros...
     if ($#macrolist < 0) {
-        print $outfile_ref sprintf($fmt) . "\n";
+        print $outfile_ref sprintf($fmt) . ($hadnl ? "\n" : ""); 
         return 0;
     }
 
@@ -3617,7 +3619,7 @@ sub get_cg_tmpfile_name
     my $tmpfile_fullpath = &path::mkpathname($cg_tmpdir, $tmpfile);
 
     printf STDERR "get_cg_tmpfile_name: cg_tmpdir='%s' (-d '\$cg_tmpdir/tmp')=%d tmpfile'%s' tmpfile_fullpath='%s'\n",
-        $cg_tmpdir, (-d &path::mkpathname($cg_tmpdir, "tmp")), $tmpfile, $tmpfile_fullpath if ($DEBUG);
+        $cg_tmpdir, (-d &path::mkpathname($cg_tmpdir, "tmp"))?1:0, $tmpfile, $tmpfile_fullpath if ($DEBUG);
 
     return $tmpfile_fullpath;
 }
@@ -5470,6 +5472,8 @@ sub factorShSubs_op
     #####
     #LOOP 4 - write out definitions:
     #####
+
+    my $sr_expand_txt = "";
     foreach $cg_srname (@cg_srnames_final) {
         $srname = $shsub_names{$cg_srname};
         my $cg_srname_ref = "${cg_srname}_ref";
@@ -5480,18 +5484,30 @@ sub factorShSubs_op
 
 ##sh subroutine $srname()
 ${cg_srname}_ref := $srname
-$cg_srname := << EOF
+$cg_srname := << ${prefix}EOF
 $srtxt
-EOF
+${prefix}EOF
 
 !
+        #push line to expand this macro:
+        $sr_expand_txt .= "    \%evalmacro $cg_srname $cg_srname\n";
     }
+
+    chomp $sr_expand_txt;
 
     #definiton POST-SCRIPT:
     $srdeftxt .= << "!";
 
 #restore normal behavior for here-now defs:
 \%pragma trim_multiline_rnewline 0
+
+#call this routine to expand any cross-refs or variable macros within the sr defs:
+${prefix}EVAL_SR_DEFS := << ${prefix}EOF
+{
+$sr_expand_txt
+}
+${prefix}EOF
+
 !
 
 
