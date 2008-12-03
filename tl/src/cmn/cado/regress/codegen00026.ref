@@ -113,6 +113,7 @@ shsub_EOF
 %pragma trim_multiline_rnewline 0
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
+expand_srdefs = shsub_EVAL_SR_DEFS
 shsub_EVAL_SR_DEFS := << shsub_EOF
 {
     %evalmacro shsub_a shsub_a
@@ -203,6 +204,7 @@ CBSUB_EOF
 %pragma trim_multiline_rnewline 0
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
+expand_srdefs = CBSUB_EVAL_SR_DEFS
 CBSUB_EVAL_SR_DEFS := << CBSUB_EOF
 {
     %evalmacro CBSUB_a CBSUB_a
@@ -279,6 +281,7 @@ shsub_EOF
 %pragma trim_multiline_rnewline 0
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
+expand_srdefs = shsub_EVAL_SR_DEFS
 shsub_EVAL_SR_DEFS := << shsub_EOF
 {
     %evalmacro shsub_a shsub_a
@@ -353,6 +356,7 @@ shsub_EOF
 %pragma trim_multiline_rnewline 0
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
+expand_srdefs = shsub_EVAL_SR_DEFS
 shsub_EVAL_SR_DEFS := << shsub_EOF
 {
     %evalmacro shsub_c shsub_c
@@ -434,6 +438,7 @@ shsub_EOF
 %pragma trim_multiline_rnewline 0
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
+expand_srdefs = shsub_EVAL_SR_DEFS
 shsub_EVAL_SR_DEFS := << shsub_EOF
 {
     %evalmacro shsub_a shsub_a

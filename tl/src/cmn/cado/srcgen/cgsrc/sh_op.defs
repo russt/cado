@@ -429,6 +429,7 @@ ${prefix}EOF
 \%pragma trim_multiline_rnewline 0
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
+expand_srdefs = ${prefix}EVAL_SR_DEFS
 ${prefix}EVAL_SR_DEFS := << ${prefix}EOF
 {
 $sr_expand_txt

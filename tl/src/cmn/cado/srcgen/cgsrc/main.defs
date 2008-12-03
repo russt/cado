@@ -1,5 +1,6 @@
 VERSION = 1.71
 VERSION_DATE = 02-Dec-2008
+COPYRIGHT_RANGE = 2003-2008
 
 {
 CODEGEN_PACKAGE := << EOF
@@ -3486,9 +3487,9 @@ CODEGEN_HEADER := << EOF
 #
 
 #
-# @(#)codegen.pl - ver 1.1 - 01/04/2006
+# @(#)codegen.pl - ver {=VERSION=} - {=VERSION_DATE=}
 #
-# Copyright 2003-2007 Sun Microsystems, Inc. All Rights Reserved.
+# Copyright {=COPYRIGHT_RANGE=} Sun Microsystems, Inc. All Rights Reserved.
 #
 # END_HEADER - DO NOT EDIT
 #
@@ -3665,6 +3666,7 @@ CODEGEN_HEADER := << EOF
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
 #  02-Dec-2008 (russt) [Version 1.71]
+#       Correct copyright and version headers.
 #       Add pragmas clrifndef and trim_multiline_rnewline.
 #       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
@@ -3673,4 +3675,5 @@ CODEGEN_HEADER := << EOF
 #
 
 EOF
+%evalmacro CODEGEN_HEADER CODEGEN_HEADER
 }

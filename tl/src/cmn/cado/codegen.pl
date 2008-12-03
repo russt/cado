@@ -21,9 +21,9 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.1 - 01/04/2006
+# @(#)codegen.pl - ver 1.71 - 02-Dec-2008
 #
-# Copyright 2003-2007 Sun Microsystems, Inc. All Rights Reserved.
+# Copyright 2003-2008 Sun Microsystems, Inc. All Rights Reserved.
 #
 # END_HEADER - DO NOT EDIT
 #
@@ -5502,6 +5502,7 @@ ${prefix}EOF
 \%pragma trim_multiline_rnewline 0
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
+expand_srdefs = ${prefix}EVAL_SR_DEFS
 ${prefix}EVAL_SR_DEFS := << ${prefix}EOF
 {
 $sr_expand_txt

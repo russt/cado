@@ -77,7 +77,6 @@ test_generated_shsub := << EOF
     %call CG_SHSUB_DEFS
 
     #call generated function to expand any macros contained within the subroutine defs:
-    expand_srdefs = ${CG_SHSUB_PREFIX}EVAL_SR_DEFS
     %call $expand_srdefs
 
     %evalmacro CG_COMPARE_SPEC OUT
