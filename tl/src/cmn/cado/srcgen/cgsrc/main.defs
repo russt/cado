@@ -1,5 +1,5 @@
 VERSION = 1.71
-VERSION_DATE = 03-Dec-2008
+VERSION_DATE = 09-Dec-2008
 COPYRIGHT_RANGE = 2003-2008
 
 {
@@ -3675,10 +3675,12 @@ CODEGEN_HEADER := << EOF
 #       Correct copyright and version headers.
 #       Add pragmas clrifndef and trim_multiline_rnewline.
 #       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
+#       Add :eolsqeeze op, and missing doc for trim ops.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
 #       Fix bug in template expansion - macros alone on lines, and resolving to non-empty strings,
 #       were reducing newline, and lines at EOF without EOL were adding newline.
 #       Fix bug in template expansion of lines containing "%s" sequences.
+#       Add doc for %halt, %return, and %if* statements.
 #
 
 EOF

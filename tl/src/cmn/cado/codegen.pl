@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.71 - 02-Dec-2008
+# @(#)codegen.pl - ver 1.71 - 09-Dec-2008
 #
 # Copyright 2003-2008 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -199,13 +199,16 @@
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  02-Dec-2008 (russt) [Version 1.71]
+#  03-Dec-2008 (russt) [Version 1.71]
 #       Correct copyright and version headers.
 #       Add pragmas clrifndef and trim_multiline_rnewline.
 #       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
+#       Add :eolsqeeze op, and missing doc for trim ops.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
 #       Fix bug in template expansion - macros alone on lines, and resolving to non-empty strings,
 #       were reducing newline, and lines at EOF without EOL were adding newline.
+#       Fix bug in template expansion of lines containing "%s" sequences.
+#       Add doc for %halt, %return, and %if* statements.
 #
 
 
@@ -217,7 +220,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.71",         #VERSION - the program version number.
-    "02-Dec-2008",  #VERSION_DATE - date this version was released.
+    "09-Dec-2008",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -2672,9 +2675,7 @@ sub eval_template_expr
     #use strlist to control the output.  We must have one macro after each
     #strlist element, e.g. str0, macro0, str1, macro1, etc.
 
-    my (@strlist) = split('%s', $fmt, -1);  #WARNING:  we want null fields (why -1).!
-        #TODO:  this is bad - need to use a delimiter that we cannot see in
-        #the input.  e.g., what if we add a %sprintf macro?
+    my (@strlist) = split('%s', $fmt, -1);  #note:  -1 gets us all fields, including null.
 
     my $txt = "";      #tmp var to track of what we write below:
     my $outtxt = "";   #contents of any macro expansion we write to ouput file.
@@ -4388,10 +4389,20 @@ sub closefile_op
 }
 
 sub eoltrim_op
-#process :eoltrim postfix op
+#trim whitespace preceeding newlines
 {
     my ($var) = @_;
-    $var =~ s/\s+\n/\n/g;
+    $var =~ s/[ \t]+\n/\n/g;
+    return $var;
+}
+
+sub eolsqueeze_op
+#compress multiple empty lines into a single empty line.
+{
+    my ($var) = @_;
+
+    $var =~ s/\n\n\n+/\n\n/g;
+
     return $var;
 }
 
@@ -4422,7 +4433,7 @@ sub space_op
 }
 
 sub rnewline_op
-#process :rnewline postfix op
+#append trailing (right) newline iff non-empty string.
 {
     my ($var) = @_;
     #add one newline to end of string iff it is a non-empty string:
@@ -4432,6 +4443,7 @@ sub rnewline_op
 
 sub lnewline_op
 #process :lnewline postfix op
+#insert leading (left) newline iff non-empty string.
 {
     my ($var) = @_;
     $var = "\n$var" unless ($var eq "");
@@ -4439,7 +4451,7 @@ sub lnewline_op
 }
 
 sub newline_op
-#process :newline postfix op
+#append trailing newline unconditionally.
 {
     my ($var) = @_;
     $var = "$var\n";

@@ -1,0 +1,54 @@
+TESTNAME is codegen00030
+==== EOLTRIM BEFORE:
+a    .
+b    .
+.
+c    .
+.
+d    .
+====
+==== EOLTRIM AFTER:
+a.
+b.
+.
+c.
+.
+d.
+==== ONELINE AFTER:
+'a b c d'
+==== ONECOL BEFORE:
+a,    b    .
+c,    d    .
+====
+==== ONECOL AFTER:
+a,.
+b.
+c,.
+d
+==== EOLSQUEEZE BEFORE:
+1.
+.
+3.
+.
+.
+6.
+.
+.
+.
+10.
+11.
+.
+.
+.
+.
+====
+==== EOLSQUEEZE AFTER:
+1.
+.
+3.
+.
+6.
+.
+10.
+11.
+.

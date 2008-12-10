@@ -498,10 +498,20 @@ sub closefile_op
 }
 
 sub eoltrim_op
-#process :eoltrim postfix op
+#trim whitespace preceeding newlines
 {
     my ($var) = @_;
-    $var =~ s/\s+\n/\n/g;
+    $var =~ s/[ \t]+\n/\n/g;
+    return $var;
+}
+
+sub eolsqueeze_op
+#compress multiple empty lines into a single empty line.
+{
+    my ($var) = @_;
+
+    $var =~ s/\n\n\n+/\n\n/g;
+
     return $var;
 }
 
@@ -532,7 +542,7 @@ sub space_op
 }
 
 sub rnewline_op
-#process :rnewline postfix op
+#append trailing (right) newline iff non-empty string.
 {
     my ($var) = @_;
     #add one newline to end of string iff it is a non-empty string:
@@ -542,6 +552,7 @@ sub rnewline_op
 
 sub lnewline_op
 #process :lnewline postfix op
+#insert leading (left) newline iff non-empty string.
 {
     my ($var) = @_;
     $var = "\n$var" unless ($var eq "");
@@ -549,7 +560,7 @@ sub lnewline_op
 }
 
 sub newline_op
-#process :newline postfix op
+#append trailing newline unconditionally.
 {
     my ($var) = @_;
     $var = "$var\n";

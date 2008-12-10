@@ -33,20 +33,6 @@
 :div<n>             - divide variable by <n> (integer division).
 :rem<n>             - modulo <n> of varible, i.e., $foo:rem2 <=> ($foo % 2)
 
-                    =====================
-                    SPECIALIZED OPERATORS
-                    =====================
-:crc                - return crcfile, and if that fails, crcstr.
-:crcfile            - return the crc of the file named by the string.
-:crcstr             - return the crc of the contents of a string
-:freq               - get the frequency of each line.
-:method2rec         - convert a java method signature to a tab separated record
-:studyclass         - generate CG_CLASS variables, just as if we generated a real class file
-:stripRcsKeywords   - strip all RCS keywords from the string
-:antvar             - convert to an ant variable reference:
-:onecol             - 
-:oneline            - replace \s*EOL\s* sequences with a single space, and trim result:
-
                     =============
                     XML OPERATORS
                     =============
@@ -64,11 +50,16 @@
 :cap                - this op capitalizes the first letter of a string.
 :uncap              - uncapitalize the first letter of a string.
 
-:lnewline           - 
-:rnewline           - 
-:newline            - 
+:onecol             - split lines on whitespace, resulting in a single column of data.
+:oneline            - replace \s*EOL\s* sequences with a single space, and trim result.
+                      (mashes multi-line input to one line).
+
+:lnewline           - insert leading (left) newline iff non-empty string.
+:rnewline           - append trailing (right) newline iff non-empty string.
+:newline            - append trailing newline unconditionally.
 :fixeol             - force at most one newline at the end of the string
-:eoltrim            - 
+:eoltrim            - trim whitespace preceeding newlines
+:eolsqueeze         - compress multiple empty lines into a single empty line.
 
 :ltrim              - trim leading whitespace (tabs, spaces, and newlines)
 :rtrim              - trim trailing whitespace
@@ -87,6 +78,18 @@
 
 :toupper            - capitalize letters in a string
 :tolower            - uncapitalize letters in a string
+
+                    =====================
+                    SPECIALIZED OPERATORS
+                    =====================
+:crc                - return crcfile, and if that fails, crcstr.
+:crcfile            - return the crc of the file named by the string.
+:crcstr             - return the crc of the contents of a string
+:freq               - get the frequency of each line.
+:method2rec         - convert a java method signature to a tab separated record
+:studyclass         - generate CG_CLASS variables, just as if we generated a real class file
+:stripRcsKeywords   - strip all RCS keywords from the string
+:antvar             - convert to an ant variable reference:
 
 
                     ==============================================
@@ -249,20 +252,21 @@ $CG_ARGV
 $CG_ROOT            - The root of the output directory.  all files are generated relative to $CG_ROOT
 $CG_TEMPLATE_PATH   - All includes are processed relative to directories listed in $CG_TEMPLATE_PATH,
 
-$CG_EXIT_STATUS
+$CG_EXIT_STATUS     - The shell exit status returned when the program exits.  An explicit %halt
+                      statement will override this value.
 
-$CG_MODE            - generate files with this mode.  Default is 0664.
-$CG_SHELL_CWD       - the current working directory for shell commands.  If the directory exists,
+$CG_MODE            - Generate files with this mode.  Default is 0664.
+$CG_SHELL_CWD       - The current working directory for shell commands.  If the directory exists,
                       all explicit and implied %shell commands will cd to this directory before executing
                       the remainder of the command string.  Commands will be executed in the interpreter's
                       current working directory if CG_SHELL_CWD is undefined.  Same semantics apply to
                       shell postfix operators, e.g., "$somevar:pwd" will show the calculated working dir
                       using the above semantics.
 $CG_SHELL_COMMAND_ARGS
-                    - arguments to pass to external commands specified as postfix operators.
+                    - Arguments to pass to external commands specified as postfix operators.
 
 $CG_STACK_DELIMITER - Input delimiter character for creating stacks with %push.  Default is "\t".
-$CG_SPLIT_PATTERN   - split pattern for creating stack variables.  default pattern is:  /[\t,]/
+$CG_SPLIT_PATTERN   - Split pattern for creating stack variables.  default pattern is:  /[\t,]/
 
 $CG_MATCH_SPEC
 $CG_SUBSTITUTE_SPEC
@@ -359,23 +363,41 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                     ============
                     CONDITIONALS
                     ============
-%ifdef              - 
-%ifndef             - 
-%if                 - 
-%ifnot              - 
+%ifdef  <name|ref> <statement>
+                    - execute <statement> only if $name or $ref:valueof is defined.
+%ifndef <name|ref> <statement>
+                    - execute <statement> only if $name or $ref:valueof is NOT defined.
+
+%if    <expr> <statement>
+                    - execute <statement> only if <expr> evaluates to non-zero or non-null.
+%ifnot <expr> <statement>
+                    - execute <statement> only if <expr> evaluates to zero or null (emtpy string).
 
                     =======
                     LOOPING
                     =======
-%whiledef           - true if we see an %whiledef statement
-%while              - true if we see an %while statement
+%whiledef <name|ref> <statement>
+                    - execute <statement> only while $name or $ref:valueof is defined.
+%while <expr> <statement>
+                    - execute <statement> only while <expr> evaluates to non-zero or non-null.
+
 %foreach            - %foreach iterator_var {range_var|range_var_ptr} statement
                       example 1:  arange = 01..05
                                   %foreach ii arange %call loop
                       example 2:  ptr = $arange
                                   %foreach ii $ptr %call loop
 
+                    ===========
+                    ERRORS/EXIT
+                    ===========
+%return msg        - display optional <msg> on STDERR, and return immediately to the enclosing script.
+                     if the current script is the top-level script, then return to shell.
+                     See also $CG_EXIT_STATUS reserved variable.
+%exit   msg        - DEPRECATED.  alias for %return.
 
+%halt   [status]   - exit program with numeric <status>, or zero if <status> is not provided.
+                     See also $CG_EXIT_STATUS reserved variable.
+%abort  [status]   - alias for %halt
 
 
 

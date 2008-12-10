@@ -49,3 +49,17 @@ EOF
     %echo ##### TEST $tnum:i:a #####
     %cat $CG_ROOT/${TESTNAME}_C.out
 }
+
+{
+    %echo ##### TEST $tnum:i:a #####
+    %pragma clrifndef 0
+    %if    $foo$blah %echo TRUE:  '$foo$blah'
+    %ifnot $foo$blah %echo FALSE: '$foo$blah'
+
+    %echo ##### TEST $tnum:i:a #####
+    %undef foo
+    %undef blah
+    %pragma clrifndef 1
+    %if    $foo$blah %echo TRUE:  '$foo$blah'
+    %ifnot $foo$blah %echo FALSE: '$foo$blah'
+}

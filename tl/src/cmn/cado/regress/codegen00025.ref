@@ -12,3 +12,7 @@ ${FOO_VAR3:undef}'
 ##### TEST 3 #####
 '
 '
+##### TEST 4 #####
+TRUE:  '${foo:undef}${blah:undef}'
+##### TEST 5 #####
+FALSE: ''
