@@ -61,6 +61,7 @@ echo	/$outfile
 %echo -----
 %shell rm -f $CG_ROOT/$outfile
 
+{
 #####
 tname=%pragma_require
 tnum = 0
@@ -68,7 +69,6 @@ tnum = 0
 %echo TEST $tname
 #####
 
-{
 #create a new :foo postfix op:
 foo_op := << EOF
 #note package defaults to current package, which is already codegen.
@@ -103,8 +103,10 @@ echo	/foo_op.pl
 
 #require good foo_op:
 %echo
-%echo %pragma require foo_op.pl
-%pragma require foo_op.pl
+#test expand of %pragma rhs expression:
+foo_op = foo_op.pl
+%echo %pragma require $foo_op
+%pragma require $foo_op
 %echo
 
 #now, can we use it?
@@ -124,6 +126,12 @@ result=FAILED
 #check that var is really defined:
 result=FAILED
 %ifdef myvar01	result=PASSED
+%echo $tname TEST #$tnum:incr:assign $result
+
+#verify value of require pragma is now "foo_op.pl"
+CG_COMPARE_SPEC = $foo_op
+result=FAILED
+%if $require:pragmavalue:eq	result=PASSED
 %echo $tname TEST #$tnum:incr:assign $result
 }
 

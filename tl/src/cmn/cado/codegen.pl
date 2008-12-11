@@ -199,17 +199,18 @@
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  03-Dec-2008 (russt) [Version 1.71]
+#  10-Dec-2008 (russt) [Version 1.71]
 #       Correct copyright and version headers.
 #       Add pragmas clrifndef and trim_multiline_rnewline.
 #       Add :pragmavalue op.  No longer truncate postfix op processing at :undef.
+#       The %pragma statement was not expanding the rhs pragma expression.
 #       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
-#       Add :eolsqeeze op, and missing doc for trim ops.
+#       Add :eolsqeeze op.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
 #       Fix bug in template expansion - macros alone on lines, and resolving to non-empty strings,
 #       were reducing newline, and lines at EOF without EOL were adding newline.
 #       Fix bug in template expansion of lines containing "%s" sequences.
-#       Add doc for %halt, %return, and %if* statements.
+#       Add doc for %halt, %return, %if*, and missing doc for trim ops statements.
 #
 
 
@@ -796,6 +797,9 @@ sub pragma_spec
              $p, $lhs, $infile, $linecnt unless ($QUIET);
         return 1;  #recognized and processed a %pragma
     }
+
+    #otherwise, continue and expand any variable expressions in rhs:
+    $rhs = &expand_macros($rhs);
 
     printf STDERR "%s:  %%pragma:  line='%s' lhs='%s' rhs='%s'\n", $p, $line, $lhs, $rhs if ($DDEBUG);
 

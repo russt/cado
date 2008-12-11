@@ -25,11 +25,12 @@ TEST %pragma_require
 %pragma_require TEST #2 PASSED
 %pragma_require TEST #2:  myvar01=
 %pragma_require TEST #3 PASSED
-%pragma require badA_op.pl
 %pragma_require TEST #4 PASSED
-%pragma require bad_syntax.pl
+%pragma require badA_op.pl
 %pragma_require TEST #5 PASSED
+%pragma require bad_syntax.pl
 %pragma_require TEST #6 PASSED
+%pragma_require TEST #7 PASSED
 
 OPTION pragma tests
 %pragma debug TEST #1 debug ON

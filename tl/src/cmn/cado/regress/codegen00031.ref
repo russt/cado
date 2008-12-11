@@ -24,3 +24,6 @@ quiet=0
 verbose=0
 filegen_notices_to_stdout=0
 clrifndef=0
+
+set test: quiet=1
+reset test: quiet=0

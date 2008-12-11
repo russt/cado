@@ -38,3 +38,14 @@ EOF
 %echo verbose=$verbose:pv
 %echo filegen_notices_to_stdout=$filegen_notices_to_stdout:pv
 %echo clrifndef=$clrifndef:pv
+
+#test that %pragmas now expand rhs:
+set = 1
+reset = 0
+
+%echo 
+%pragma quiet $set
+%echo set test: quiet=$quiet:pv
+
+%pragma quiet $reset
+%echo reset test: quiet=$quiet:pv
