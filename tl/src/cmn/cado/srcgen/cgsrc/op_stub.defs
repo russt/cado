@@ -355,6 +355,63 @@ sub stackminus_op
     return join($;, @new);
 }
 
+sub pv_op
+#alias for pragmavalue_op.
+{
+    return &pragmavalue_op(@_);
+}
+
+sub pragmavalue_op
+#retrieve the value of the pragma named by the contents of a variable, or of
+#the variable name if the contents are undefined.
+{
+    my ($var, $varname, $linecnt) = @_;
+    #use varname if contents is undefined:
+    my $pragma_name = (&isUndefinedVarnameValue($varname,$var) ? $varname : $var);
+
+#printf STDERR "pragmavalue_op A: varname='%s' var='%s' pragma_name='%s'\n", $varname, $var, $pragma_name;
+#printf STDERR "%s='%s'\n", "pragma_preserve_multiline_lnewline", $pragma_preserve_multiline_lnewline;
+#printf STDERR "%s='%s'\n", "pragma_trim_multiline_rnewline", $pragma_trim_multiline_rnewline;
+#printf STDERR "%s='%s'\n", "pragma_copy", $pragma_copy;
+#printf STDERR "%s='%s'\n", "pragma_update", $pragma_update;
+#printf STDERR "%s='%s'\n", "pragma_echo_expands", $pragma_echo_expands;
+#printf STDERR "%s='%s'\n", "pragma_require", $pragma_require;
+#printf STDERR "%s='%s'\n", "pragma_debug", $pragma_debug;
+#printf STDERR "%s='%s'\n", "pragma_ddebug", $pragma_ddebug;
+#printf STDERR "%s='%s'\n", "pragma_quiet", $pragma_quiet;
+#printf STDERR "%s='%s'\n", "pragma_verbose", $pragma_verbose;
+#printf STDERR "%s='%s'\n", "pragma_filegen_notices_to_stdout", $pragma_filegen_notices_to_stdout;
+#printf STDERR "%s='%s'\n", "pragma_clrifndef", $pragma_clrifndef;
+
+
+    if ( !defined($PRAGMAS{$pragma_name}) ) {
+        printf STDERR "%s: WARNING: '%s' is not a recognized pragma in :pragmavalue expression, line %d\n",
+             $p, $pragma_name, $linecnt, join(", ", sort keys %PRAGMAS) unless ($QUIET);
+        return "";
+    }
+
+    #####
+    #look up value of pragma:
+    #####
+
+    if ($pragma_name eq 'reset_stack_delimiter') {
+        #special case - no real value so just return what we would set it to:
+        return "\t";
+    }
+
+    my $pragma_var = "pragma_" . $pragma_name;    #this is the variable we set internally.
+
+    no strict "refs";
+    my $pragma_ref = \${$pragma_var};
+    use strict "refs";
+
+    my $pragma_val = $$pragma_ref;
+
+#printf STDERR "pragmavalue_op: pragma_var='%s' pragma_val='%s'\n", $pragma_var, defined($pragma_val)? $pragma_val : "undef";
+
+    return $pragma_val;
+}
+
 sub openfile_op
 #process :openfile postfix op
 #open a file if it is open. return error string or empty if no error.
@@ -912,10 +969,13 @@ sub env_op
 {
     my ($var, $varname, $linecnt) = @_;
 
-    if (defined($ENV{$var})) {
-        $var = $ENV{$var};
+    #use varname if contents is undefined:
+    my $env_name = (&isUndefinedVarnameValue($varname,$var) ? $varname : $var);
+
+    if (defined($ENV{$env_name})) {
+        $var = $ENV{$env_name};
     } else {
-        printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $var, "env" unless ($QUIET);
+        printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $env_name, "env" unless ($QUIET);
         $var = "";
     }
 

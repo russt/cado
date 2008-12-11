@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.71 - 09-Dec-2008
+# @(#)codegen.pl - ver 1.71 - 10-Dec-2008
 #
 # Copyright 2003-2008 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -202,6 +202,7 @@
 #  03-Dec-2008 (russt) [Version 1.71]
 #       Correct copyright and version headers.
 #       Add pragmas clrifndef and trim_multiline_rnewline.
+#       Add :pragmavalue op.  No longer truncate postfix op processing at :undef.
 #       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
 #       Add :eolsqeeze op, and missing doc for trim ops.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
@@ -220,7 +221,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.71",         #VERSION - the program version number.
-    "09-Dec-2008",  #VERSION_DATE - date this version was released.
+    "10-Dec-2008",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -251,18 +252,6 @@ my (
     $CG_TMPFILE_CNT,
     $LINE_CNT,
     $LINE_CNT_REF,
-    $pragma_preserve_multiline_lnewline,
-    $pragma_trim_multiline_rnewline,
-    $pragma_copy,
-    $pragma_update,
-    $pragma_echo_expands,
-    $pragma_require,
-    $pragma_debug,
-    $pragma_ddebug,
-    $pragma_quiet,
-    $pragma_verbose,
-    $pragma_filegen_notices_to_stdout,
-    $pragma_clrifndef,
     $STRIPTOSHARPBANG,
     $LOOKINPATH,
 ) = (
@@ -288,6 +277,26 @@ my (
     0,              #CG_TMPFILE_CNT - counter to create unique filename for %interpret specs
     0,              #LINE_CNT - current line of file being interpreted
     undef,          #LINE_CNT_REF - reference to user-level line count var CG_LINE_NUMBER
+    0,              #STRIPTOSHARPBANG -  true if we have a -x option
+    0,              #LOOKINPATH - true if we have a -S option
+);
+
+#these are global variables that we share within the eval context of postfix ops, for example.
+#not that "my" variables are not entered in the symbol table and therefore cannot be looked up by name.
+our (
+    $pragma_preserve_multiline_lnewline,
+    $pragma_trim_multiline_rnewline,
+    $pragma_copy,
+    $pragma_update,
+    $pragma_echo_expands,
+    $pragma_require,
+    $pragma_debug,
+    $pragma_ddebug,
+    $pragma_quiet,
+    $pragma_verbose,
+    $pragma_filegen_notices_to_stdout,
+    $pragma_clrifndef,
+) = (
     0,              #pragma_preserve_multiline_lnewline - preserve left newline in here-now defs.
     0,              #pragma_trim_multiline_rnewline - trim final newline in here-now defs.
     0,              #pragma_copy - generate files without macro interpolation
@@ -300,8 +309,6 @@ my (
     0,              #pragma_verbose - set VERBOSE option
     0,              #pragma_filegen_notices_to_stdout - send file generation (x -> y) messages to stdout, not stderr.
     0,              #pragma_clrifndef - initialize undefined variables to empty string during macro expansion.
-    0,              #STRIPTOSHARPBANG -  true if we have a -x option
-    0,              #LOOKINPATH - true if we have a -S option
 );
 
 #these are the user names for pragmas.  internal variable is prefixed with "pragma_".
@@ -744,6 +751,9 @@ sub pragma_spec
 #returns true if we have an %pragma spec, which looks like this:
 #    %pragma var value
 #<var> must be a legitimate perl variable.
+#
+#WARNING:  you may need to modify :pragmavalue if you add a new pragma here.
+#
 {
     my ($line, $linecnt, $infile) = @_;
     return 0 unless ($line =~ /^\s*%pragma/);
@@ -763,13 +773,23 @@ sub pragma_spec
         return 1;  #recognized and processed a %pragma
     }
 
-    #these pragmas require no value:
+    #######
+    #create a named reference to this pragma:
+    #######
+    my $pragma_var = "pragma_" . $lhs;    #this is the variable we set internally.
+    no strict "refs";
+    my $pragma_ref = \${$pragma_var};
+    use strict "refs";
+
+    ########
+    #process the special case pragmas:
+    ########
+
+    #reset_stack_delimiter require no value:
     if ($lhs eq 'reset_stack_delimiter') {
         $CG_USER_VARS{'CG_STACK_DELIMITER'} = "\t" ;
         return 1;  #recognized and processed a %pragma
     }
-
-    my $pragma_var = "pragma_" . $lhs;    #this is the variable we set internally.
 
     if ( !defined($rhs) ) {
         printf STDERR "%s: WARNING: %%pragma '%s': no value specified, file %s, line %d. Statement ignored.\n",
@@ -779,35 +799,23 @@ sub pragma_spec
 
     printf STDERR "%s:  %%pragma:  line='%s' lhs='%s' rhs='%s'\n", $p, $line, $lhs, $rhs if ($DDEBUG);
 
-    ########
-    #process the pragma.  pragma_require is a special case:
-    ########
     if ( $pragma_var eq "pragma_require" ) {
+        #save current value of pragma, which is this case is the name of the include file.
+        $$pragma_ref = $rhs;
+
         #this routine will read in the perl file specified by the user:
         &pragma_require($rhs, $linecnt, $infile);
         return 1;  #recognized and processed a %pragma
     }
 
-    my $cmd = sprintf("package %s; \$%s = \"%s\";", __PACKAGE__, $pragma_var, $rhs);
-    my $result = eval($cmd);
-    printf STDERR "%s:  %%pragma:  cmd='%s' result='%s'\n", $p, $cmd, $result if ($DDEBUG);
+    ########
+    #process the simple boolean pragmas:
+    ########
 
-    #DUE TO a bug in some versions of perl, here we reference each pragma var to force
-    #perl to update the  value. RT 6/15/06
-    if (0) {
-        $pragma_preserve_multiline_lnewline = $pragma_preserve_multiline_lnewline;
-        $pragma_trim_multiline_rnewline = $pragma_trim_multiline_rnewline;
-        $pragma_copy = $pragma_copy;
-        $pragma_update = $pragma_update;
-        $pragma_echo_expands = $pragma_echo_expands;
-        $pragma_filegen_notices_to_stdout = $pragma_filegen_notices_to_stdout;
-        $pragma_clrifndef = $pragma_clrifndef;
-    }
+    #set the pragma through the reference we created earlier:
+    $$pragma_ref = $rhs;
 
-    ####
-    #for simple pragmas that effect options, check value and set corresponding option:
-    ####
-
+    #for pragmas that effect options, check value and set corresponding option:
     my $err = 1;
     if ($pragma_var eq "pragma_debug") {
         $DEBUG   = $pragma_debug,   $err=0 if ($pragma_debug =~ /0|1/);
@@ -2209,8 +2217,12 @@ sub eval_spf_expr
                 for (@ops) {
                     $op = $_;
                     $varvalue = &eval_postfix_op($op, $varvalue, $varname, $LINE_CNT);
-                    #if we had an undef op, skip the rest:
-                    last if ($op eq "undef");
+
+                    #we used to exit early if we had an undef op.
+                    #I'm reversing this decision because if a subsequent op can
+                    #operate on the undef value (see :pragmavalue op) then we need
+                    #to allow it to.  RT 12/10/08
+                    #last if ($op eq "undef");
                 }
             }
             $varlist[$ii] = $varvalue;
@@ -4246,6 +4258,63 @@ sub stackminus_op
     return join($;, @new);
 }
 
+sub pv_op
+#alias for pragmavalue_op.
+{
+    return &pragmavalue_op(@_);
+}
+
+sub pragmavalue_op
+#retrieve the value of the pragma named by the contents of a variable, or of
+#the variable name if the contents are undefined.
+{
+    my ($var, $varname, $linecnt) = @_;
+    #use varname if contents is undefined:
+    my $pragma_name = (&isUndefinedVarnameValue($varname,$var) ? $varname : $var);
+
+#printf STDERR "pragmavalue_op A: varname='%s' var='%s' pragma_name='%s'\n", $varname, $var, $pragma_name;
+#printf STDERR "%s='%s'\n", "pragma_preserve_multiline_lnewline", $pragma_preserve_multiline_lnewline;
+#printf STDERR "%s='%s'\n", "pragma_trim_multiline_rnewline", $pragma_trim_multiline_rnewline;
+#printf STDERR "%s='%s'\n", "pragma_copy", $pragma_copy;
+#printf STDERR "%s='%s'\n", "pragma_update", $pragma_update;
+#printf STDERR "%s='%s'\n", "pragma_echo_expands", $pragma_echo_expands;
+#printf STDERR "%s='%s'\n", "pragma_require", $pragma_require;
+#printf STDERR "%s='%s'\n", "pragma_debug", $pragma_debug;
+#printf STDERR "%s='%s'\n", "pragma_ddebug", $pragma_ddebug;
+#printf STDERR "%s='%s'\n", "pragma_quiet", $pragma_quiet;
+#printf STDERR "%s='%s'\n", "pragma_verbose", $pragma_verbose;
+#printf STDERR "%s='%s'\n", "pragma_filegen_notices_to_stdout", $pragma_filegen_notices_to_stdout;
+#printf STDERR "%s='%s'\n", "pragma_clrifndef", $pragma_clrifndef;
+
+
+    if ( !defined($PRAGMAS{$pragma_name}) ) {
+        printf STDERR "%s: WARNING: '%s' is not a recognized pragma in :pragmavalue expression, line %d\n",
+             $p, $pragma_name, $linecnt, join(", ", sort keys %PRAGMAS) unless ($QUIET);
+        return "";
+    }
+
+    #####
+    #look up value of pragma:
+    #####
+
+    if ($pragma_name eq 'reset_stack_delimiter') {
+        #special case - no real value so just return what we would set it to:
+        return "\t";
+    }
+
+    my $pragma_var = "pragma_" . $pragma_name;    #this is the variable we set internally.
+
+    no strict "refs";
+    my $pragma_ref = \${$pragma_var};
+    use strict "refs";
+
+    my $pragma_val = $$pragma_ref;
+
+#printf STDERR "pragmavalue_op: pragma_var='%s' pragma_val='%s'\n", $pragma_var, defined($pragma_val)? $pragma_val : "undef";
+
+    return $pragma_val;
+}
+
 sub openfile_op
 #process :openfile postfix op
 #open a file if it is open. return error string or empty if no error.
@@ -4803,10 +4872,13 @@ sub env_op
 {
     my ($var, $varname, $linecnt) = @_;
 
-    if (defined($ENV{$var})) {
-        $var = $ENV{$var};
+    #use varname if contents is undefined:
+    my $env_name = (&isUndefinedVarnameValue($varname,$var) ? $varname : $var);
+
+    if (defined($ENV{$env_name})) {
+        $var = $ENV{$env_name};
     } else {
-        printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $var, "env" unless ($QUIET);
+        printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $env_name, "env" unless ($QUIET);
         $var = "";
     }
 

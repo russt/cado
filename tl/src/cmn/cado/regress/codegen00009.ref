@@ -30,7 +30,7 @@ FOOVAR is ><
 4a. '
 line1
    leading space
-trailing space   
+trailing space
 line2
 
 
@@ -44,9 +44,9 @@ three'
 6a. 'public static	String[]	foulUpAString2Times(int blah, boolean [] beboop, String lala)	StupidException, ReallyStupidException, QuiteReasonableException'
 6b. '	String	totally_trivial_method(((())))	'
 6c. 'public synchronized	String[] []	foomethod()	'
-7a. $fooptr:valueof=foo1_value' 
-7b. $fooptr:valueof:valueof=foo2_value' 
-7c. $fooptr:valueof=${fooptr:undef}' 
+7a. $fooptr:valueof=foo1_value'
+7b. $fooptr:valueof:valueof=foo2_value'
+7c. $fooptr:valueof=${fooptr:undef}'
 8a. $fooptr = foo1_value => fooptr='foo1' foo1='foo1_value'
 8b. EXPECT WARNING: variable reference '${blah:undef}' on left-hand side of assignement is INVALID - ignored.
 8c: the value of var_base_01 is XXX (should be XXX)
@@ -56,14 +56,20 @@ three'
 9b. $fooptr:valueof:nameof = fooptr  (EXPECT: fooptr)
 9b. $fooptr:nameof:valueof = foo1  (EXPECT: foo1)
 9b. $fooptr:nameof:valueof:valueof = foo1_value  (EXPECT: foo1_value)
-IGNORE 10a. $HOME:nameof:env = /home/russt
-10b. $UNDEFINED_VAR_234:nameof:env = 
+
+TEST :env operator
+:env TEST #10a. PASSED
+:env TEST #10b. PASSED
+:env TEST #10c. $UNDEFINED_VAR_234:env = 
+:env TEST #10d. $UNDEFINED_VAR_234:undef:env = 
+:env TEST #10e. $UNDEFINED_VAR_234:nameof:env = 
 
 TEST :fixeol operator
 :fixeol TEST #11 PASSED
 :fixeol TEST #12 PASSED
 
 TEST :crc operator
+echo -> ../bld/cgtstroot/codegen00009.dir/variable.txt
 :crc TEST #13 PASSED
 :crc TEST #14 PASSED
 :crc TEST #15 PASSED
@@ -81,23 +87,25 @@ TEST :cap/:uncap operator
 
 :tounix/:todos operator
 ------- orig
-0000000   o   n   e  \n   t   w   o  \n   t   h   r   e   e  \n
+0000000    o   n   e  \n   t   w   o  \n   t   h   r   e   e  \n        
 0000016
 ------- tounix:
-0000000   o   n   e  \n   t   w   o  \n   t   h   r   e   e  \n
+0000000    o   n   e  \n   t   w   o  \n   t   h   r   e   e  \n        
 0000016
 ------- todos:
-0000000   o   n   e  \r  \n   t   w   o  \r  \n   t   h   r   e   e  \r
-0000020  \n
+0000000    o   n   e  \r  \n   t   w   o  \r  \n   t   h   r   e   e  \r
+0000020   \n                                                            
 0000021
 ------- todos:tounix:
-0000000   o   n   e  \n   t   w   o  \n   t   h   r   e   e  \n
+0000000    o   n   e  \n   t   w   o  \n   t   h   r   e   e  \n        
 0000016
 -------
 :tounix/:todos TEST #25 PASSED
 :tounix/:todos TEST #26 PASSED
 TEST CG_SHELL_CWD with postfix operator
 
+echo -> ../bld/cgtstroot/codegen00009.dir/ls_test/aa
+echo -> ../bld/cgtstroot/codegen00009.dir/ls_test/bb
 aa
 bb
 CG_SHELL_CWD TEST #1 PASSED

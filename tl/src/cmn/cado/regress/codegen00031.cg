@@ -1,0 +1,40 @@
+#test :pragmavalue op
+
+test1 := << EOF
+{
+    %echo pragma quiet:pragmavalue is $quiet:pragmavalue
+
+    %undef quiet
+    %echo pragma quiet is $quiet:pv,$quiet:nameof:pv
+
+    quiet=xx
+    %echo pragma quiet:undef is $quiet:undef:pv
+
+    foo=quiet
+    %echo pragma using foo=$foo is $foo:pv
+}
+EOF
+
+%pragma quiet 1
+%echo
+%echo run quiet tests with quiet $quiet:pv
+%call test1
+
+%pragma quiet 0
+%echo
+%echo run quiet tests with quiet $quiet:pv
+%call test1
+
+%echo 
+%echo preserve_multiline_lnewline=$preserve_multiline_lnewline:pv
+%echo trim_multiline_rnewline=$trim_multiline_rnewline:pv
+%echo copy=$copy:pv
+%echo update=$update:pv
+%echo echo_expands=$echo_expands:pv
+%echo require=$require:pv
+%echo debug=$debug:pv
+%echo ddebug=$ddebug:pv
+%echo quiet=$quiet:pv
+%echo verbose=$verbose:pv
+%echo filegen_notices_to_stdout=$filegen_notices_to_stdout:pv
+%echo clrifndef=$clrifndef:pv

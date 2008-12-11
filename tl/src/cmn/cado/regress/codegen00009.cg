@@ -170,14 +170,39 @@ foo1=foo1_value
 %echo 9b. ${ds}fooptr:nameof:valueof = $fooptr:nameof:valueof  (EXPECT: foo1)
 %echo 9b. ${ds}fooptr:nameof:valueof:valueof = $fooptr:nameof:valueof:valueof  (EXPECT: foo1_value)
 
-#test 10:  env postfix operator:
-%echo 10a. ${ds}HOME:nameof:env = $HOME:nameof:env
-%echo 10b. ${ds}UNDEFINED_VAR_234:nameof:env = $UNDEFINED_VAR_234:nameof:env
+{
+#####
+#test :env operator
+#####
+tname=:env
+tnum = 10
+%echo
+%echo TEST $tname operator
+#####
+
+#for these tests, we assume that $HOME is defined in the environment:
+%undef HOME
+CG_COMPARE_SPEC = $HOME:env
+
+result=FAILED
+%if $HOME:undef:env:eq	result=PASSED
+%echo $tname TEST #${tnum}a. $result
+
+result=FAILED
+%if $HOME:nameof:env:eq	result=PASSED
+%echo $tname TEST #${tnum}b. $result
+
+#for these tests, we assume there is not env var named "UNDEFINED_VAR_234"
+%echo $tname TEST #${tnum}c. ${ds}UNDEFINED_VAR_234:env = $UNDEFINED_VAR_234:env:a
+%echo $tname TEST #${tnum}d. ${ds}UNDEFINED_VAR_234:undef:env = $UNDEFINED_VAR_234:undef:env
+%echo $tname TEST #${tnum}e. ${ds}UNDEFINED_VAR_234:nameof:env = $UNDEFINED_VAR_234:nameof:env
+}
 
 #####
 #test fixeol operator
 #####
 tname=:fixeol
+#first test increments:
 tnum = 10
 %echo
 %echo TEST $tname operator
@@ -208,6 +233,8 @@ tname=:crc
 %echo
 %echo TEST $tname operator
 #####
+
+%pragma filegen_notices_to_stdout 1
 
 CG_ROOT = $TSTTMPDIR
 

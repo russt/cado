@@ -1,7 +1,7 @@
 
                     =========================
                      Codegen Quick Reference
-                    Version 1.71, 09-Dec-2008
+                    Version 1.71, 10-Dec-2008
                     =========================
 
 {
@@ -16,7 +16,11 @@
 :zero               - set a variable to zero.
 :clr                - set a variable to empty string.
 :clrifndef          - clear variable if it is undefined (see also:  %pragma clrifndef)
-:env                - lookup in environment, e.g.  $HOME = $HOME:nameof:env
+:env                - return value of an environment variable, or empty string if not defined.
+                      Example: $HOME = $HOME:nameof:env
+                      will set $HOME to the vaule of the environment $HOME.
+                      Note that $HOME:undef:env <==> $HOME:nameof:env, i.e., if variable is
+                      undefined then its name will be used.
 
                     =======
                     NUMERIC
@@ -114,15 +118,21 @@
                       matching CG_SHSUB_EXCLUDE_PATTERN if defined, and include only names
                       matching CG_SHSUB_INCLUDE_PATTERN if defined.
 
-:factorShVars       - replace sh variable name references with macros, and create list of
-                      variables processed in CG_SHVAR_LIST stack variable.  Exclude names
-                      matching CG_SHVAR_EXCLUDE_PATTERN if defined, and include only names
-                      matching CG_SHVAR_INCLUDE_PATTERN if defined.
+:factorShVars       - replace sh variable names and values with references with macros,
+                      and create list of variables processed in CG_SHVAR_LIST stack variable.
+                      Exclude names matching CG_SHVAR_EXCLUDE_PATTERN if defined, and include
+                      only names matching CG_SHVAR_INCLUDE_PATTERN if defined.
+
+                      Values are named after the variable, for example:
+                          shvar_foo_val01, shvar_foo_val02, ... shvar_foo_val<nn>
+                      where <nn> is the final initilization value seen for varible $foo.
 
 :factorCshVars      - replace csh variable name references with macros, and create list of
                       variables processed in CG_CSHVAR_LIST stack variable.  Exclude names
                       matching CG_CSHVAR_EXCLUDE_PATTERN if defined, and include only names
                       matching CG_CSHVAR_INCLUDE_PATTERN if defined.
+
+                      Values are named after the variable, as in :factorShVars.
 
                     -----------------------
                     :factorShSubs modifiers
@@ -175,6 +185,7 @@ CG_CSHVAR_INCLUDE_PATTERN
                     :factorCshVars output
                     ---------------------
 CG_CSHVAR_LIST      - stack of csh variable names that were factored out.
+
                     =============
                     FILE TEST OPS
                     =============
@@ -213,7 +224,20 @@ CG_CSHVAR_LIST      - stack of csh variable names that were factored out.
 :currentline        - return the current input line of a file, or undef varname if file is closed
 :currentlinenumber  - (1..nlines), 0 => file closed
 
+                    ================
+                    PRAGMA OPERATORS
+                    ================
+:pv                 - alias for :pragmavalue.
+:pragmavalue        - return the value of the named pragma, or empty string if no such pragma.
+                      For example:
+                          %pragma quiet 1
+                          %echo pragma quiet=$quiet:nameof:pragmavalue
+                      will display "pragma quiet=1"
+                      Note that $quiet:pragmavalue is shorthand for $quiet:nameof:pragmavalue
+                      iff $quiet:valueof is undefined.
+
 }
+
 {                   =======
                     PRAGMAS
                     =======
@@ -268,12 +292,13 @@ $CG_SHELL_COMMAND_ARGS
 $CG_STACK_DELIMITER - Input delimiter character for creating stacks with %push.  Default is "\t".
 $CG_SPLIT_PATTERN   - Split pattern for creating stack variables.  default pattern is:  /[\t,]/
 
-$CG_MATCH_SPEC
-$CG_SUBSTITUTE_SPEC
-$CG_COMPARE_SPEC
+$CG_MATCH_SPEC      - Specify pattern for :match operator.
+$CG_SUBSTITUTE_SPEC - Specify substitute/replace pattern for :substiture operator.
+$CG_COMPARE_SPEC    - Specify second value comparison operators.  See COMPARISON & MATCHING operators.
 
+$CG_INDENT_STRING   - indent string for :indent operator.  default is four spaces.
 $CG_NEWLINE_BEFORE_CLASS_BRACE
-$CG_INDENT_STRING
+                    - set this using :newline if you want a newline before java class braces.
 
                     ======================
                     SET BY THE INTERPRETER
@@ -323,9 +348,9 @@ lhs x= rhs          - lhs = $lhs x $rhs  (string replication)
 $varexpr = rhs      - expand $varexpr, which must result in a variable name, and then assign the rhs to
                       the named variable.  Also valid for :=, .=, ... (all other assignment operators).
 
-                    ==================
-                    STACK MANIPULATION
-                    ==================
+                    ==============================================
+                    STACK MANIPULATION.  See also: STACK VARIABLES
+                    ==============================================
 %push               - push one or more elements on stack.  Usage:  %push mystack [values...]
 %upush              - push elements on stack uniquely
 %pop                - pop last-in value:  %pop xx mystack
@@ -334,7 +359,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                     ==========
                     PROCESSING
                     ==========
-%pragma             - %pragma var value
+%pragma             - %pragma var value.  See PRAGMAS for list of pragmas.
 
 %evalmacro          - if output var is prefixed by '>>', then we append the variable.
 %evaltemplate       - %evaltemplate spec
@@ -398,6 +423,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %halt   [status]   - exit program with numeric <status>, or zero if <status> is not provided.
                      See also $CG_EXIT_STATUS reserved variable.
 %abort  [status]   - alias for %halt
+
 
 
 
