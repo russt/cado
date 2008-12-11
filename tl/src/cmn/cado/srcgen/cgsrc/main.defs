@@ -1,5 +1,5 @@
 VERSION = 1.71
-VERSION_DATE = 10-Dec-2008
+VERSION_DATE = 11-Dec-2008
 COPYRIGHT_RANGE = 2003-2008
 
 {
@@ -3685,7 +3685,7 @@ CODEGEN_HEADER := << EOF
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  10-Dec-2008 (russt) [Version 1.71]
+#  11-Dec-2008 (russt) [Version 1.71]
 #       Correct copyright and version headers.
 #       Add pragmas clrifndef and trim_multiline_rnewline.
 #       Add :pragmavalue op.  No longer truncate postfix op processing at :undef.

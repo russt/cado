@@ -123,6 +123,11 @@ sub factorShVars_op
     my $xpat = "";
     my $ipat = "";
 
+    #output intermediate variables:
+    my $shvardeftxt = "";
+    my (@shvars) = ();
+    my (@cgshvars) = ();
+    my (@shvarvals) = ();
 
     if ( &var_defined_non_empty("CG_SHVAR_PREFIX") ) {
         $prefix = $CG_USER_VARS{'CG_SHVAR_PREFIX'}          
@@ -141,6 +146,7 @@ sub factorShVars_op
     #clear output variables:
     &assign_op("", 'CG_SHVAR_DEFS', $linecnt);
     &assign_op("", 'CG_SHVAR_LIST', $linecnt);
+    &assign_op("", 'CG_SHVARVAL_LIST', $linecnt);
 
     #
     #Q:  what about when an equals appears in a string?  i.e., "foo=$foo" or 'foo=$foo'
@@ -154,8 +160,7 @@ sub factorShVars_op
     #LOOP 1 - find variable initializations and save them:
     #####
 
-    my (@shvars) = ();
-    my ($line, $shvardeftxt) = ("", "");
+    my $line = "";
 
     #split variable text:
     my (@var) = split("\n", $var, -1);
@@ -180,14 +185,20 @@ sub factorShVars_op
     }
 
     #eliminate duplicates, preserving order:
-    my %mark = ();
+    my %VARVALS = ();
     my (@tmp) = ();
     for (@shvars) {
-        next if ($mark{$_});
-        ++$mark{$_};
+        next if (defined($VARVALS{$_}));
+        $VARVALS{$_} = 0;   #later used to generate macro names for values assigned to this var.
         push @tmp, $_;
     }
     @shvars = @tmp;
+
+    #create output array for CG_SHVAR_LIST
+    @cgshvars = @shvars;
+    grep($_ =~ s/^/${prefix}/, @cgshvars);
+
+#printf STDERR "cgshvars=(%s)\n", join(",", @cgshvars);
 
     #####
     #LOOP 2 - foreach sh var def, substitute in macro name:
@@ -208,16 +219,60 @@ sub factorShVars_op
         grep($_ =~ s/$re_ref/$1${macroref}/g, @var);
         grep(/^\s*(export\s|unset\s|#)/ && $_ =~ s/$re_iden/$1${macroref}$2/g, @var);
 
-        #generate definition:
-        $shvardeftxt .= sprintf("%s := %s\n", $cg_shvar, $shvar);
+        #generate variable definition:
+        $shvardeftxt .= sprintf("\n%s := %s\n", $cg_shvar, $shvar);
+
+        #for each definitional instance, create value variables:
+        my ($varvaltxt, $lref, $cg_varval, $varval_macro);
+        for (@var) {
+            $lref = \$_;
+            next unless ($$lref =~ /(${macroref})=(.*)$/);
+            $varvaltxt = $2;
+            $varvaltxt  =~ s/{##/{=/g;
+            $varvaltxt  =~ s/##}/=}/g;
+#printf "line='%s' 1='%s' 2='%s' varvaltxt='%s'\n", $$lref, $1, $2, $varvaltxt;
+
+            $cg_varval = sprintf("%s_val%02d", $cg_shvar, ++$VARVALS{$shvar});
+            push(@shvarvals, $cg_varval);
+            $varval_macro = "{##$cg_varval##}";
+
+            #this only does first substitution - does not work on multi-statement lines
+            #or assignments with continuation lines:
+            $$lref =~ s/(${macroref})=(.*$)/$1=${varval_macro}/;
+
+            #add var-value definition:
+            $shvardeftxt .= sprintf("%s := %s\n", $cg_varval, $varvaltxt);
+        }
     }
 
     #substitute in correct macro brackets:
     grep($_ =~ s/{##/{=/g, @var);
     grep($_ =~ s/##}/=}/g, @var);
 
+    ######
     #write variable text instrumented with macros:
+    ######
     $var = join("\n", @var);
+
+    ####
+    #add eval routine to var-value defs (user can call this to expand variable references within value strings):
+    ####
+
+    @tmp = @shvarvals;
+    grep($_ =~ s/(.*)/%evalmacro $1 $1/, @tmp);
+    my $varval_expand_txt .= join("\n    ", @tmp);   #indent 4 spaces
+
+    $shvardeftxt .= << "!";
+
+#call this routine to expand any variable macros within the value defs:
+expand_varvaldefs = ${prefix}EVAL_VARVAL_DEFS
+${prefix}EVAL_VARVAL_DEFS := << ${prefix}EOF
+{
+    $varval_expand_txt
+}
+${prefix}EOF
+
+!
 
     ######
     #write results to user vars:
@@ -226,7 +281,8 @@ sub factorShVars_op
 
     #overwrite results if we had any:
     &assign_op($shvardeftxt, 'CG_SHVAR_DEFS', $linecnt)          if ($shvardeftxt ne "");;
-    &assign_op(join($FS, @shvars), 'CG_SHVAR_LIST', $linecnt) if ($#shvars >= 0);
+    &assign_op(join($FS, @cgshvars), 'CG_SHVAR_LIST', $linecnt)     if ($#cgshvars >= 0);
+    &assign_op(join($FS, @shvarvals), 'CG_SHVARVAL_LIST', $linecnt) if ($#shvarvals >= 0);
 
     return $var;
 }

@@ -1,7 +1,7 @@
 
                     =========================
                      Codegen Quick Reference
-                    Version 1.71, 10-Dec-2008
+                    Version 1.71, 11-Dec-2008
                     =========================
 
 {
@@ -123,9 +123,8 @@
                       Exclude names matching CG_SHVAR_EXCLUDE_PATTERN if defined, and include
                       only names matching CG_SHVAR_INCLUDE_PATTERN if defined.
 
-                      Values are named after the variable, for example:
+                      Values assigned to variables are named after the variable, for example:
                           shvar_foo_val01, shvar_foo_val02, ... shvar_foo_val<nn>
-                      where <nn> is the final initilization value seen for varible $foo.
 
 :factorCshVars      - replace csh variable name references with macros, and create list of
                       variables processed in CG_CSHVAR_LIST stack variable.  Exclude names
@@ -150,7 +149,19 @@ CG_SHSUB_INCLUDE_PATTERN
                     :factorShSubs output
                     --------------------
 CG_SHSUB_DEFS       - definitions of factored out sh subroutines.
-CG_SHSUB_LIST       - stack of sh subroutine names that were factored out.
+CG_SHSUB_LIST       - stack of generated variable names for subroutine names factored out.
+                      Example:  shsub_foo, shsub_foo2, ...
+
+$expand_srdefs, ${CG_SHSUB_PREFIX}EVAL_SR_DEFS
+                    - generate code to evaluate any variable name macros contained with the
+                      subroutine definitions.   Example:
+                          $shtxt = $shtxt:factorShVars:factorShSubs
+                          ...
+                          %call $expand_varvaldefs
+                          %call $expand_srdefs
+                      will evaluate any macros contained in the subroutine definitions with the current
+                      variable definitions, including any desired variable name changes.  See also
+                      the description of $expand_varvaldefs below.
 
                     -----------------------
                     :factorShVars modifiers
@@ -167,7 +178,19 @@ CG_SHVAR_INCLUDE_PATTERN
                     --------------------
                     :factorShVars output
                     --------------------
-CG_SHVAR_LIST       - stack of sh variable names that were factored out.
+CG_SHVAR_LIST       - stack of generated variable names for variables factored out.
+                      Example:  shvar_foo, shvar_foo2, ...
+CG_SHVARVAL_LIST    - stack of generated variable-value names for variables factored out.
+                      Example:  shvar_foo_val01, shvar_foo2_val01, shvar_foo2_val02, etc.
+
+$expand_varvaldefs, ${CG_SHVAR_PREFIX}EVAL_VARVAL_DEFS
+                    - generate code to evaluate any variable name macros contained with the
+                      value definitions.   Example:
+                          $shtxt = $shtxt:factorShVars
+                          ...
+                          %call $expand_varvaldefs
+                      will evaluate any macros contained in the value definitions with the current
+                      variable definitions, including any desired variable name changes.
 
                     ------------------------
                     :factorCshVars modifiers
@@ -184,7 +207,8 @@ CG_CSHVAR_INCLUDE_PATTERN
                     ---------------------
                     :factorCshVars output
                     ---------------------
-CG_CSHVAR_LIST      - stack of csh variable names that were factored out.
+CG_CSHVAR_LIST      - stack of generated variable names for variables factored out.
+CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables factored out.
 
                     =============
                     FILE TEST OPS
@@ -423,6 +447,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %halt   [status]   - exit program with numeric <status>, or zero if <status> is not provided.
                      See also $CG_EXIT_STATUS reserved variable.
 %abort  [status]   - alias for %halt
+
 
 
 

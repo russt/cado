@@ -1,6 +1,9 @@
 #test shell refactoring op:
 #    :factorShVars
 
+#make list displays a bit more readable:
+CG_STACK_DELIMITER = ,
+
 sh_txt := << EOF
 # jbiBuild - production build script for jbi product
 #IIS_XX is a var containing IIS_XX=$IIS_XX
@@ -10,11 +13,7 @@ v2="v2 value"
 #test a var prefixed by another:
 v21="v21 value"
 V3="${v2} is not $v21 but it is the same as $v2"
-foo="\
-foo value,\
-$v2,
-${V3:xx}
-"
+foo="foo value, $v2, ${V3:xx}"
 
 if [ "$IIS_XX" != "" ]; then
     echo IIS_XX=$IIS_XX
@@ -44,9 +43,10 @@ showvar_factoring :=  << EOF
     %echo
     %echo {----------------
     OUT=$sh_txt:factorShVars
-    %echo $tname test $tnum:i:a        OUT='$OUT'
-    %echo $tname test $tnum  CG_SHVAR_LIST='$CG_SHVAR_LIST:showstack'
-    %echo $tname test $tnum  CG_SHVAR_DEFS='$CG_SHVAR_DEFS'
+    %echo $tname test $tnum:i:a        OUT='$OUT:lnewline'
+    %echo $tname test $tnum  CG_SHVAR_LIST=($CG_SHVAR_LIST:showstack)
+    %echo $tname test $tnum  CG_SHVARVAL_LIST=($CG_SHVARVAL_LIST:showstack)
+    %echo $tname test $tnum  CG_SHVAR_DEFS='$CG_SHVAR_DEFS:lnewline'
     %echo ----------------}
     %echo
 }
@@ -61,10 +61,14 @@ undef_shvar_vars := << EOF
 EOF
 
 test_generated_shvar := << EOF
-#perform macro varstitutions on factored sh script, and compare to original
+#perform macro var substitutions on factored sh script, and compare to original
 {
     #create a new string using definitions we just created:
     %call CG_SHVAR_DEFS
+    #evaluate any var-macro refs in value defs:
+    %call $expand_varvaldefs
+
+    #evaluate factored shell script in the context of var & value definitions:
     %evalmacro CG_COMPARE_SPEC OUT
 
     #test that new string is same as original:
