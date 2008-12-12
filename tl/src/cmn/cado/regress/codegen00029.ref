@@ -63,7 +63,7 @@ echo form5=${=cshvar_foo=}[2]
 echo form6=${{=cshvar_foo=}[2]}
 
 '
-:factorCshVars test 1  CG_CSHVAR_LIST='v_1	v2	v21	V3	foo	product	IIS_XX'
+:factorCshVars test 1  CG_CSHVAR_LIST='cshvar_v_1	cshvar_v2	cshvar_v21	cshvar_V3	cshvar_foo	cshvar_product	cshvar_IIS_XX'
 :factorCshVars test 1  CG_CSHVAR_DEFS='cshvar_v_1 := v_1
 cshvar_v21 := v21
 cshvar_v2 := v2
@@ -108,7 +108,7 @@ echo form5=${=CBVAR_foo=}[2]
 echo form6=${{=CBVAR_foo=}[2]}
 
 '
-:factorCshVars test 2  CG_CSHVAR_LIST='v_1	v2	v21	V3	foo	product	IIS_XX'
+:factorCshVars test 2  CG_CSHVAR_LIST='CBVAR_v_1	CBVAR_v2	CBVAR_v21	CBVAR_V3	CBVAR_foo	CBVAR_product	CBVAR_IIS_XX'
 :factorCshVars test 2  CG_CSHVAR_DEFS='CBVAR_v_1 := v_1
 CBVAR_v21 := v21
 CBVAR_v2 := v2
@@ -154,7 +154,7 @@ echo form5=$foo[2]
 echo form6=${foo[2]}
 
 '
-:factorCshVars test 4  CG_CSHVAR_LIST='v2	V3'
+:factorCshVars test 4  CG_CSHVAR_LIST='cshvar_v2	cshvar_V3'
 :factorCshVars test 4  CG_CSHVAR_DEFS='cshvar_v2 := v2
 cshvar_V3 := V3
 '
@@ -195,7 +195,7 @@ echo form5=${=cshvar_foo=}[2]
 echo form6=${{=cshvar_foo=}[2]}
 
 '
-:factorCshVars test 6  CG_CSHVAR_LIST='v_1	v21	foo	product	IIS_XX'
+:factorCshVars test 6  CG_CSHVAR_LIST='cshvar_v_1	cshvar_v21	cshvar_foo	cshvar_product	cshvar_IIS_XX'
 :factorCshVars test 6  CG_CSHVAR_DEFS='cshvar_v_1 := v_1
 cshvar_v21 := v21
 cshvar_product := product
@@ -239,7 +239,7 @@ echo form5=$foo[2]
 echo form6=${foo[2]}
 
 '
-:factorCshVars test 8  CG_CSHVAR_LIST='v2'
+:factorCshVars test 8  CG_CSHVAR_LIST='cshvar_v2'
 :factorCshVars test 8  CG_CSHVAR_DEFS='cshvar_v2 := v2
 '
 ----------------}

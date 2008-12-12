@@ -5178,6 +5178,11 @@ sub factorCshVars_op
     my $xpat = "";
     my $ipat = "";
 
+    #output intermediate variables:
+    my $cshvardeftxt = "";
+    my (@cshvars) = ();
+    my (@cgcshvars) = ();
+    my (@cshvarvals) = ();
 
     if ( &var_defined_non_empty("CG_CSHVAR_PREFIX") ) {
         $prefix = $CG_USER_VARS{'CG_CSHVAR_PREFIX'}          
@@ -5196,13 +5201,13 @@ sub factorCshVars_op
     #clear output variables:
     &assign_op("", 'CG_CSHVAR_DEFS', $linecnt);
     &assign_op("", 'CG_CSHVAR_LIST', $linecnt);
+    &assign_op("", 'CG_CSHVARVAL_LIST', $linecnt);
 
     #####
     #LOOP 1 - find variable initializations and save them:
     #####
 
-    my (@cshvars) = ();
-    my ($line, $cshvardeftxt) = ("", "");
+    my $line = "";
 
     #split variable text:
     my (@var) = split("\n", $var, -1);
@@ -5235,14 +5240,20 @@ sub factorCshVars_op
     }
 
     #eliminate duplicates, preserving order:
-    my %mark = ();
+    my %VARVALS = ();
     my (@tmp) = ();
     for (@cshvars) {
-        next if ($mark{$_});
-        ++$mark{$_};
+        next if (defined($VARVALS{$_}));
+        $VARVALS{$_} = 0;   #later used to generate macro names for values assigned to this var.
         push @tmp, $_;
     }
     @cshvars = @tmp;
+
+    #create output array for CG_CSHVAR_LIST
+    @cgcshvars = @cshvars;
+    grep($_ =~ s/^/${prefix}/, @cgcshvars);
+
+#printf STDERR "cgcshvars=(%s)\n", join(",", @cgcshvars);
 
     #####
     #LOOP 2 - foreach csh var def, substitute in macro name:
@@ -5281,7 +5292,8 @@ sub factorCshVars_op
 
     #overwrite results if we had any:
     &assign_op($cshvardeftxt, 'CG_CSHVAR_DEFS', $linecnt)          if ($cshvardeftxt ne "");;
-    &assign_op(join($FS, @cshvars), 'CG_CSHVAR_LIST', $linecnt) if ($#cshvars >= 0);
+    &assign_op(join($FS, @cgcshvars), 'CG_CSHVAR_LIST', $linecnt)     if ($#cgcshvars >= 0);
+    &assign_op(join($FS, @cshvarvals), 'CG_CSHVARVAL_LIST', $linecnt) if ($#cshvarvals >= 0);
 
     return $var;
 }
