@@ -1,7 +1,7 @@
 #test shell refactoring op:
 #    :factorCshVars
 
-csh_txt := << EOF
+csh_txt_orig := << EOF
 # jbiBuild - production build script for jbi product
 #IIS_XX is a var containing IIS_XX=$IIS_XX
 # IIS_XX is also a var containing IIS_XX=$IIS_XX
@@ -12,8 +12,8 @@ set v21 = "v21 value"
 set V3= "${v2} is not $v21 but it is the same as $v2"
 set foo = "\
 foo value,\
-$v2,
-${V3:xx}
+$v2,\
+${V3:xx}\
 "
 
 echo product=$product
@@ -34,24 +34,16 @@ echo form6=${foo[2]}
 
 EOF
 
+#operator will automatically eliminate continuation lines, so compare
+#against our original txt without continuations:
+SQUEEZE_CONTINUED_LINE_SUBST = s/\\\n//sg
+CG_SUBSTITUTE_SPEC = $SQUEEZE_CONTINUED_LINE_SUBST
+csh_txt = $csh_txt_orig:substitute
+
 ##### show initial sh txt:
 {
     %echo BEGIN csh_txt='$csh_txt'
 }
-
-showvar_factoring :=  << EOF
-#display results of a :factorCshVars test
-{
-    %echo
-    %echo {----------------
-    OUT=$csh_txt:factorCshVars
-    %echo $tname test $tnum:i:a        OUT='$OUT'
-    %echo $tname test $tnum  CG_CSHVAR_LIST='$CG_CSHVAR_LIST:showstack'
-    %echo $tname test $tnum  CG_CSHVAR_DEFS='$CG_CSHVAR_DEFS'
-    %echo ----------------}
-    %echo
-}
-EOF
 
 undef_cshvar_vars := << EOF
 #undefine any variables created when we evaluate generate shsub defs:
@@ -61,11 +53,30 @@ undef_cshvar_vars := << EOF
 }
 EOF
 
+showvar_factoring :=  << EOF
+#display results of a :factorCshVars test
+{
+    %echo
+    %echo {----------------
+    OUT=$csh_txt:factorCshVars
+    %echo $tname test $tnum:i:a        OUT='$OUT:lnewline'
+    %echo $tname test $tnum  CG_CSHVAR_LIST='$CG_CSHVAR_LIST:showstack'
+    %echo $tname test $tnum  CG_CSHVAR_DEFS='$CG_CSHVAR_DEFS'
+    %echo ----------------}
+    %echo
+}
+EOF
+
 test_generated_cshvar := << EOF
 #perform macro varstitutions on factored sh script, and compare to original
 {
-    #create a new string using definitions we just created:
+    #import definitions we just created:
     %call CG_CSHVAR_DEFS
+
+    #evaluate any var-macro refs in value defs:
+    %call $expand_varvaldefs
+
+    #now evaluate factoring of original script:
     %evalmacro CG_COMPARE_SPEC OUT
 
     #test that new string is same as original:

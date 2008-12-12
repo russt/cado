@@ -4,7 +4,7 @@
 #make list displays a bit more readable:
 CG_STACK_DELIMITER = ,
 
-sh_txt := << EOF
+sh_txt_orig := << EOF
 # jbiBuild - production build script for jbi product
 #IIS_XX is a var containing IIS_XX=$IIS_XX
 # IIS_XX is also a var containing IIS_XX=$IIS_XX
@@ -13,7 +13,11 @@ v2="v2 value"
 #test a var prefixed by another:
 v21="v21 value"
 V3="${v2} is not $v21 but it is the same as $v2"
-foo="foo value, $v2, ${V3:xx}"
+foo="\
+foo value,\
+$v2,\
+${V3:xx}\
+"
 
 if [ "$IIS_XX" != "" ]; then
     echo IIS_XX=$IIS_XX
@@ -31,6 +35,12 @@ unset IIS_XX foo v_1
 
 foo
 EOF
+
+#operator will automatically eliminate continuation lines, so compare
+#against our original txt without continuations:
+SQUEEZE_CONTINUED_LINE_SUBST = s/\\\n//sg
+CG_SUBSTITUTE_SPEC = $SQUEEZE_CONTINUED_LINE_SUBST
+sh_txt = $sh_txt_orig:substitute
 
 ##### show initial sh txt:
 {

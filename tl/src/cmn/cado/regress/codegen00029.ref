@@ -7,11 +7,7 @@ set v2 ="v2 value"
 #test a var prefixed by another:
 set v21 = "v21 value"
 set V3= "${v2} is not $v21 but it is the same as $v2"
-set foo = "\
-foo value,\
-$v2,
-${V3:xx}
-"
+set foo = "foo value,$v2,${V3:xx}"
 
 echo product=$product
 echo product count=$#product
@@ -32,29 +28,26 @@ echo form6=${foo[2]}
 '
 
 {----------------
-:factorCshVars test 1        OUT='# jbiBuild - production build script for jbi {=cshvar_product=}
+:factorCshVars test 1        OUT='
+# jbiBuild - production build script for jbi {=cshvar_product=}
 #{=cshvar_IIS_XX=} is a var containing IIS_XX=${=cshvar_IIS_XX=}
 # {=cshvar_IIS_XX=} is also a var containing IIS_XX=${=cshvar_IIS_XX=}
-set {=cshvar_v_1=}="v_1 value"
-set {=cshvar_v2=} ="v2 value"
+set {=cshvar_v_1=}={=cshvar_v_1_val01=}
+set {=cshvar_v2=} ={=cshvar_v2_val01=}
 #test a var prefixed by another:
-set {=cshvar_v21=} = "v21 value"
-set {=cshvar_V3=}= "${{=cshvar_v2=}} is not ${=cshvar_v21=} but it is the same as ${=cshvar_v2=}"
-set {=cshvar_foo=} = "\
-foo value,\
-${=cshvar_v2=},
-${{=cshvar_V3=}:xx}
-"
+set {=cshvar_v21=} = {=cshvar_v21_val01=}
+set {=cshvar_V3=}= {=cshvar_V3_val01=}
+set {=cshvar_foo=} = {=cshvar_foo_val01=}
 
 echo product=${=cshvar_product=}
 echo product count=$#{=cshvar_product=}
 echo product isdef=$?{=cshvar_product=}
 
-setenv {=cshvar_IIS_XX=} "a b c"
+setenv {=cshvar_IIS_XX=} {=cshvar_IIS_XX_val01=}
 unsetenv {=cshvar_IIS_XX=}
 unset {=cshvar_IIS_XX=}
 
-set {=cshvar_foo=} = (xx yy zz)
+set {=cshvar_foo=} = {=cshvar_foo_val02=}
 echo form1=$?{=cshvar_foo=}
 echo form2=${?{=cshvar_foo=}}
 echo form3=$#{=cshvar_foo=}
@@ -64,42 +57,68 @@ echo form6=${{=cshvar_foo=}[2]}
 
 '
 :factorCshVars test 1  CG_CSHVAR_LIST='cshvar_v_1	cshvar_v2	cshvar_v21	cshvar_V3	cshvar_foo	cshvar_product	cshvar_IIS_XX'
-:factorCshVars test 1  CG_CSHVAR_DEFS='cshvar_v_1 := v_1
+:factorCshVars test 1  CG_CSHVAR_DEFS='
+cshvar_v_1 := v_1
+cshvar_v_1_val01 := "v_1 value"
+
 cshvar_v21 := v21
+cshvar_v21_val01 := "v21 value"
+
 cshvar_v2 := v2
+cshvar_v2_val01 := "v2 value"
+
 cshvar_product := product
+
 cshvar_foo := foo
+cshvar_foo_val01 := "foo value,${=cshvar_v2=},${V3:xx}"
+cshvar_foo_val02 := (xx yy zz)
+
 cshvar_V3 := V3
+cshvar_V3_val01 := "${{=cshvar_v2=}} is not ${=cshvar_v21=} but it is the same as ${=cshvar_v2=}"
+
 cshvar_IIS_XX := IIS_XX
+cshvar_IIS_XX_val01 := "a b c"
+
+#call this routine to expand any variable macros within the value defs:
+expand_varvaldefs = cshvar_EVAL_VARVAL_DEFS
+cshvar_EVAL_VARVAL_DEFS := << cshvar_EOF
+{
+    %evalmacro cshvar_v_1_val01 cshvar_v_1_val01
+    %evalmacro cshvar_v21_val01 cshvar_v21_val01
+    %evalmacro cshvar_v2_val01 cshvar_v2_val01
+    %evalmacro cshvar_foo_val01 cshvar_foo_val01
+    %evalmacro cshvar_foo_val02 cshvar_foo_val02
+    %evalmacro cshvar_V3_val01 cshvar_V3_val01
+    %evalmacro cshvar_IIS_XX_val01 cshvar_IIS_XX_val01
+}
+cshvar_EOF
+
 '
 ----------------}
 
 CG_CSHVAR_PREFIX=cshvar_
 
 {----------------
-:factorCshVars test 2        OUT='# jbiBuild - production build script for jbi {=CBVAR_product=}
+:factorCshVars test 2        OUT='
+# jbiBuild - production build script for jbi {=CBVAR_product=}
 #{=CBVAR_IIS_XX=} is a var containing IIS_XX=${=CBVAR_IIS_XX=}
 # {=CBVAR_IIS_XX=} is also a var containing IIS_XX=${=CBVAR_IIS_XX=}
-set {=CBVAR_v_1=}="v_1 value"
-set {=CBVAR_v2=} ="v2 value"
+set {=CBVAR_v_1=}={=CBVAR_v_1_val01=}
+set {=CBVAR_v2=} ={=CBVAR_v2_val01=}
 #test a var prefixed by another:
-set {=CBVAR_v21=} = "v21 value"
-set {=CBVAR_V3=}= "${{=CBVAR_v2=}} is not ${=CBVAR_v21=} but it is the same as ${=CBVAR_v2=}"
-set {=CBVAR_foo=} = "\
-foo value,\
-${=CBVAR_v2=},
-${{=CBVAR_V3=}:xx}
-"
+set {=CBVAR_v21=} = {=CBVAR_v21_val01=}
+set {=CBVAR_V3=}= {=CBVAR_V3_val01=}
+set {=CBVAR_foo=} = {=CBVAR_foo_val01=}
 
 echo product=${=CBVAR_product=}
 echo product count=$#{=CBVAR_product=}
 echo product isdef=$?{=CBVAR_product=}
 
-setenv {=CBVAR_IIS_XX=} "a b c"
+setenv {=CBVAR_IIS_XX=} {=CBVAR_IIS_XX_val01=}
 unsetenv {=CBVAR_IIS_XX=}
 unset {=CBVAR_IIS_XX=}
 
-set {=CBVAR_foo=} = (xx yy zz)
+set {=CBVAR_foo=} = {=CBVAR_foo_val02=}
 echo form1=$?{=CBVAR_foo=}
 echo form2=${?{=CBVAR_foo=}}
 echo form3=$#{=CBVAR_foo=}
@@ -109,13 +128,42 @@ echo form6=${{=CBVAR_foo=}[2]}
 
 '
 :factorCshVars test 2  CG_CSHVAR_LIST='CBVAR_v_1	CBVAR_v2	CBVAR_v21	CBVAR_V3	CBVAR_foo	CBVAR_product	CBVAR_IIS_XX'
-:factorCshVars test 2  CG_CSHVAR_DEFS='CBVAR_v_1 := v_1
+:factorCshVars test 2  CG_CSHVAR_DEFS='
+CBVAR_v_1 := v_1
+CBVAR_v_1_val01 := "v_1 value"
+
 CBVAR_v21 := v21
+CBVAR_v21_val01 := "v21 value"
+
 CBVAR_v2 := v2
+CBVAR_v2_val01 := "v2 value"
+
 CBVAR_product := product
+
 CBVAR_foo := foo
+CBVAR_foo_val01 := "foo value,${=CBVAR_v2=},${V3:xx}"
+CBVAR_foo_val02 := (xx yy zz)
+
 CBVAR_V3 := V3
+CBVAR_V3_val01 := "${{=CBVAR_v2=}} is not ${=CBVAR_v21=} but it is the same as ${=CBVAR_v2=}"
+
 CBVAR_IIS_XX := IIS_XX
+CBVAR_IIS_XX_val01 := "a b c"
+
+#call this routine to expand any variable macros within the value defs:
+expand_varvaldefs = CBVAR_EVAL_VARVAL_DEFS
+CBVAR_EVAL_VARVAL_DEFS := << CBVAR_EOF
+{
+    %evalmacro CBVAR_v_1_val01 CBVAR_v_1_val01
+    %evalmacro CBVAR_v21_val01 CBVAR_v21_val01
+    %evalmacro CBVAR_v2_val01 CBVAR_v2_val01
+    %evalmacro CBVAR_foo_val01 CBVAR_foo_val01
+    %evalmacro CBVAR_foo_val02 CBVAR_foo_val02
+    %evalmacro CBVAR_V3_val01 CBVAR_V3_val01
+    %evalmacro CBVAR_IIS_XX_val01 CBVAR_IIS_XX_val01
+}
+CBVAR_EOF
+
 '
 ----------------}
 
@@ -123,19 +171,16 @@ POSTFIX OPERATOR :factorCshVars TEST #3 PASSED
 INCLUDE is /^(v2|V3)$/
 
 {----------------
-:factorCshVars test 4        OUT='# jbiBuild - production build script for jbi product
+:factorCshVars test 4        OUT='
+# jbiBuild - production build script for jbi product
 #IIS_XX is a var containing IIS_XX=$IIS_XX
 # IIS_XX is also a var containing IIS_XX=$IIS_XX
 set v_1="v_1 value"
-set {=cshvar_v2=} ="v2 value"
+set {=cshvar_v2=} ={=cshvar_v2_val01=}
 #test a var prefixed by another:
 set v21 = "v21 value"
-set {=cshvar_V3=}= "${{=cshvar_v2=}} is not ${=cshvar_v2=}1 but it is the same as ${=cshvar_v2=}"
-set foo = "\
-foo value,\
-${=cshvar_v2=},
-${{=cshvar_V3=}:xx}
-"
+set {=cshvar_V3=}= {=cshvar_V3_val01=}
+set foo = "foo value,${=cshvar_v2=},${{=cshvar_V3=}:xx}"
 
 echo product=$product
 echo product count=$#product
@@ -155,8 +200,22 @@ echo form6=${foo[2]}
 
 '
 :factorCshVars test 4  CG_CSHVAR_LIST='cshvar_v2	cshvar_V3'
-:factorCshVars test 4  CG_CSHVAR_DEFS='cshvar_v2 := v2
+:factorCshVars test 4  CG_CSHVAR_DEFS='
+cshvar_v2 := v2
+cshvar_v2_val01 := "v2 value"
+
 cshvar_V3 := V3
+cshvar_V3_val01 := "${{=cshvar_v2=}} is not ${=cshvar_v2=}1 but it is the same as ${=cshvar_v2=}"
+
+#call this routine to expand any variable macros within the value defs:
+expand_varvaldefs = cshvar_EVAL_VARVAL_DEFS
+cshvar_EVAL_VARVAL_DEFS := << cshvar_EOF
+{
+    %evalmacro cshvar_v2_val01 cshvar_v2_val01
+    %evalmacro cshvar_V3_val01 cshvar_V3_val01
+}
+cshvar_EOF
+
 '
 ----------------}
 
@@ -164,29 +223,26 @@ POSTFIX OPERATOR :factorCshVars TEST #5 PASSED
 EXCLUDE is /^(v2|V3)$/
 
 {----------------
-:factorCshVars test 6        OUT='# jbiBuild - production build script for jbi {=cshvar_product=}
+:factorCshVars test 6        OUT='
+# jbiBuild - production build script for jbi {=cshvar_product=}
 #{=cshvar_IIS_XX=} is a var containing IIS_XX=${=cshvar_IIS_XX=}
 # {=cshvar_IIS_XX=} is also a var containing IIS_XX=${=cshvar_IIS_XX=}
-set {=cshvar_v_1=}="v_1 value"
+set {=cshvar_v_1=}={=cshvar_v_1_val01=}
 set v2 ="v2 value"
 #test a var prefixed by another:
-set {=cshvar_v21=} = "v21 value"
+set {=cshvar_v21=} = {=cshvar_v21_val01=}
 set V3= "${v2} is not ${=cshvar_v21=} but it is the same as $v2"
-set {=cshvar_foo=} = "\
-foo value,\
-$v2,
-${V3:xx}
-"
+set {=cshvar_foo=} = {=cshvar_foo_val01=}
 
 echo product=${=cshvar_product=}
 echo product count=$#{=cshvar_product=}
 echo product isdef=$?{=cshvar_product=}
 
-setenv {=cshvar_IIS_XX=} "a b c"
+setenv {=cshvar_IIS_XX=} {=cshvar_IIS_XX_val01=}
 unsetenv {=cshvar_IIS_XX=}
 unset {=cshvar_IIS_XX=}
 
-set {=cshvar_foo=} = (xx yy zz)
+set {=cshvar_foo=} = {=cshvar_foo_val02=}
 echo form1=$?{=cshvar_foo=}
 echo form2=${?{=cshvar_foo=}}
 echo form3=$#{=cshvar_foo=}
@@ -196,11 +252,34 @@ echo form6=${{=cshvar_foo=}[2]}
 
 '
 :factorCshVars test 6  CG_CSHVAR_LIST='cshvar_v_1	cshvar_v21	cshvar_foo	cshvar_product	cshvar_IIS_XX'
-:factorCshVars test 6  CG_CSHVAR_DEFS='cshvar_v_1 := v_1
+:factorCshVars test 6  CG_CSHVAR_DEFS='
+cshvar_v_1 := v_1
+cshvar_v_1_val01 := "v_1 value"
+
 cshvar_v21 := v21
+cshvar_v21_val01 := "v21 value"
+
 cshvar_product := product
+
 cshvar_foo := foo
+cshvar_foo_val01 := "foo value,$v2,${V3:xx}"
+cshvar_foo_val02 := (xx yy zz)
+
 cshvar_IIS_XX := IIS_XX
+cshvar_IIS_XX_val01 := "a b c"
+
+#call this routine to expand any variable macros within the value defs:
+expand_varvaldefs = cshvar_EVAL_VARVAL_DEFS
+cshvar_EVAL_VARVAL_DEFS := << cshvar_EOF
+{
+    %evalmacro cshvar_v_1_val01 cshvar_v_1_val01
+    %evalmacro cshvar_v21_val01 cshvar_v21_val01
+    %evalmacro cshvar_foo_val01 cshvar_foo_val01
+    %evalmacro cshvar_foo_val02 cshvar_foo_val02
+    %evalmacro cshvar_IIS_XX_val01 cshvar_IIS_XX_val01
+}
+cshvar_EOF
+
 '
 ----------------}
 
@@ -208,19 +287,16 @@ POSTFIX OPERATOR :factorCshVars TEST #7 PASSED
 INCLUDE is /^(v_1|v2|V3)$/, EXCLUDE is /^(v_1|V3)$/
 
 {----------------
-:factorCshVars test 8        OUT='# jbiBuild - production build script for jbi product
+:factorCshVars test 8        OUT='
+# jbiBuild - production build script for jbi product
 #IIS_XX is a var containing IIS_XX=$IIS_XX
 # IIS_XX is also a var containing IIS_XX=$IIS_XX
 set v_1="v_1 value"
-set {=cshvar_v2=} ="v2 value"
+set {=cshvar_v2=} ={=cshvar_v2_val01=}
 #test a var prefixed by another:
 set v21 = "v21 value"
 set V3= "${{=cshvar_v2=}} is not ${=cshvar_v2=}1 but it is the same as ${=cshvar_v2=}"
-set foo = "\
-foo value,\
-${=cshvar_v2=},
-${V3:xx}
-"
+set foo = "foo value,${=cshvar_v2=},${V3:xx}"
 
 echo product=$product
 echo product count=$#product
@@ -240,7 +316,18 @@ echo form6=${foo[2]}
 
 '
 :factorCshVars test 8  CG_CSHVAR_LIST='cshvar_v2'
-:factorCshVars test 8  CG_CSHVAR_DEFS='cshvar_v2 := v2
+:factorCshVars test 8  CG_CSHVAR_DEFS='
+cshvar_v2 := v2
+cshvar_v2_val01 := "v2 value"
+
+#call this routine to expand any variable macros within the value defs:
+expand_varvaldefs = cshvar_EVAL_VARVAL_DEFS
+cshvar_EVAL_VARVAL_DEFS := << cshvar_EOF
+{
+    %evalmacro cshvar_v2_val01 cshvar_v2_val01
+}
+cshvar_EOF
+
 '
 ----------------}
 
