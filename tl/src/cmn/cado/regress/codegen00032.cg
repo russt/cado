@@ -1,0 +1,45 @@
+#test %return statement and options
+
+tnum = 00
+test$tnum:i:a := %return
+test$tnum:i:a := %return -e
+test$tnum:i:a := %return -s
+test$tnum:i:a := %return -s -e
+test$tnum:i:a := %return -s 0
+test$tnum:i:a := %return -s 1
+test$tnum:i:a := %return -e -s 0
+test$tnum:i:a := %return -s 1 -e
+
+test$tnum:i:a := %return $msg
+test$tnum:i:a := %return -e $msg
+test$tnum:i:a := %return -s $msg
+test$tnum:i:a := %return -s 0 $msg
+test$tnum:i:a := %return -s 1 $msg
+test$tnum:i:a := %return -e -s 0 $msg
+test$tnum:i:a := %return -s 1 -e $msg
+
+runtest := << EOF
+{
+    CG_EXIT_STATUS = 0
+    testname = test$ii
+    %echo running suite $suite test $testname=($testname:valueof)
+    %call $testname
+    %echo .   status=$CG_EXIT_STATUS
+}
+EOF
+
+#run each test:
+suite = 0
+
+%echo ----
+suite = $suite:i:a
+msg =
+ii = 00
+%whiledef test$ii:i:a %call runtest
+
+%echo ----
+suite = $suite:i:a
+msg = a message
+ii = 00
+%whiledef test$ii:i:a %call runtest
+

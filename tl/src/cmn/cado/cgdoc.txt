@@ -1,7 +1,7 @@
 
                     =========================
                      Codegen Quick Reference
-                    Version 1.71, 12-Dec-2008
+                    Version 1.71, 16-Dec-2008
                     =========================
 
 {
@@ -301,7 +301,8 @@ $CG_ROOT            - The root of the output directory.  all files are generated
 $CG_TEMPLATE_PATH   - All includes are processed relative to directories listed in $CG_TEMPLATE_PATH,
 
 $CG_EXIT_STATUS     - The shell exit status returned when the program exits.  An explicit %halt
-                      statement will override this value.
+                      statement will override this value.  WARNING:  defining CG_EXIT_STATUS
+                      will override internally generated codegen errors.
 
 $CG_MODE            - Generate files with this mode.  Default is 0664.
 $CG_SHELL_CWD       - The current working directory for shell commands.  If the directory exists,
@@ -439,14 +440,21 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                     ===========
                     ERRORS/EXIT
                     ===========
-%return msg        - display optional <msg> on STDERR, and return immediately to the enclosing script.
-                     if the current script is the top-level script, then return to shell.
-                     See also $CG_EXIT_STATUS reserved variable.
-%exit   msg        - DEPRECATED.  alias for %return.
+%return [-e] [-s status] [msg]
+                    - display optional <msg> on STDERR, and return immediately to the enclosing script.
+                      if the current script is the top-level script, then return to shell.
+                      Options:
+                        -e      redirects message to stderr
+                        -s num  set CG_EXIT_STATUS to <num>
 
-%halt   [status]   - exit program with numeric <status>, or zero if <status> is not provided.
-                     See also $CG_EXIT_STATUS reserved variable.
-%abort  [status]   - alias for %halt
+                      See also: $CG_EXIT_STATUS reserved variable
+
+%exit   msg         - DEPRECATED.  alias for %return.
+
+%halt   [status]    - exit program with numeric <status>, or zero if <status> is not provided.
+                      See also: $CG_EXIT_STATUS reserved variable
+%abort  [status]    - alias for %halt
+
 
 
 

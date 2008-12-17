@@ -1,6 +1,8 @@
 #generate the test ksh wrappers
+#Usage:  codegen -cgroot . create_wrappers.cg
+#        do not pass -u unless you want to re-write the wrapper(s).
 
-CG_ROOT=bld
+%ifndef CG_ROOT  CG_ROOT=bld
 
 {
 KSH_WRAPPER := << EOF
@@ -24,7 +26,7 @@ EOF
 }
 
 #this is the number of tests:
-TNUM = 31
+TNUM = 32
 %call emit_wrapper
 ###  just emit one test:
 %exit

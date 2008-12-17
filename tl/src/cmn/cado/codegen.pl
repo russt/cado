@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.71 - 12-Dec-2008
+# @(#)codegen.pl - ver 1.71 - 16-Dec-2008
 #
 # Copyright 2003-2008 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -211,6 +211,7 @@
 #       were reducing newline, and lines at EOF without EOL were adding newline.
 #       Fix bug in template expansion of lines containing "%s" sequences.
 #       Add doc for %halt, %return, %if*, and missing doc for trim ops statements.
+#       Add %return -e -s <status> options.
 #
 
 
@@ -222,7 +223,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.71",         #VERSION - the program version number.
-    "12-Dec-2008",  #VERSION_DATE - date this version was released.
+    "16-Dec-2008",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -450,6 +451,7 @@ sub interpret
 
         if ($fhidx < 0) {
             printf STDERR "%s [interpret]: ERROR: out of file descriptors for nested templates (max is %d).\n", $p, $LAST_TEMPLATE_FD_KEY+1;
+            ++$GLOBAL_ERROR_COUNT;
             return 1;
         }
 
@@ -457,6 +459,7 @@ sub interpret
         if (!open($fhref, $infile)) {
             printf STDERR "%s [interpret]: ERROR: cannot open definition file '%s' (%s)\n", $p, $infile, $!;
             &free_filehandle($fhidx, "interpret");   #free our allocated filehandle
+            ++$GLOBAL_ERROR_COUNT;
             return 1;
         }
     }
@@ -1255,19 +1258,56 @@ sub returncommand
 #NOTE:  use %halt to exit to shell
 {
     my ($line, $linecnt) = @_;
+    my $token = "";
+
     return 0 unless ($line =~ /^\s*%(exit|return)\s*$/ || $line =~ /^\s*%(exit|return)\s+/);
 
-    #we have an exit command - get the command string:
-    my $exitmessage = $line;
+    #skip past command token:
+    $line =~ s/^\s*%(exit|return)\s*//;
+    $token = $1;
 
-    $exitmessage =~ s/^\s*%(exit|return)\s*//;
+    #check for options:
+    #  -e      redirects message to stderr
+    #  -s num  set CG_EXIT_STATUS to <num>
+
+    my $msgtostderr = 0;
+
+    while ($line =~ /^-[es]/) {
+        if ( $line =~ /^-e(\s+|$)/ ) {
+            $line =~ s/^-e\s*//;
+            $msgtostderr = 1;
+        } elsif ( $line =~ /^-s(\s+|$)/ ) {
+            $line =~ s/^-s\s*//;
+
+            if ( $line =~ /^(-?\d+)(\s+|$)/ ) {
+                #set exit status:
+                $CG_USER_VARS{'CG_EXIT_STATUS'} = $1;
+
+                $line =~ s/^-?\d+\s*//;
+            } else {
+                printf STDERR "%s: ERROR: line %d: Usage:  %s [-e] [-s status] [message]\n",
+                    $p, $linecnt, ('%' . $token) unless ($QUIET);
+                ++ $GLOBAL_ERROR_COUNT;
+            }
+        }
+    }
+
+    #we get the message string:
+    my $exitmessage = $line;
 
     #can have exit message:
     if ($exitmessage ne "") {
         #expand definitions in text:
         $exitmessage = &expand_macros($exitmessage);
 
-        print "$exitmessage\n" if ($exitmessage ne "");
+        #if still not empty...
+        if ($exitmessage ne "") {
+            if ($msgtostderr) {
+                print STDERR "$exitmessage\n" 
+            } else {
+                print "$exitmessage\n" 
+            }
+        }
     }
 
     return 1;   #we found and processed a exit command

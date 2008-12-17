@@ -1,0 +1,67 @@
+TESTNAME is codegen00032
+----
+running suite 1 test test01=(%return)
+.   status=0
+running suite 1 test test02=(%return -e)
+.   status=0
+running suite 1 test test03=(%return -s)
+.   status=0
+running suite 1 test test04=(%return -s -e)
+.   status=0
+running suite 1 test test05=(%return -s 0)
+.   status=0
+running suite 1 test test06=(%return -s 1)
+.   status=1
+running suite 1 test test07=(%return -e -s 0)
+.   status=0
+running suite 1 test test08=(%return -s 1 -e)
+.   status=1
+running suite 1 test test09=(%return $msg)
+.   status=0
+running suite 1 test test10=(%return -e $msg)
+.   status=0
+running suite 1 test test11=(%return -s $msg)
+.   status=0
+running suite 1 test test12=(%return -s 0 $msg)
+.   status=0
+running suite 1 test test13=(%return -s 1 $msg)
+.   status=1
+running suite 1 test test14=(%return -e -s 0 $msg)
+.   status=0
+running suite 1 test test15=(%return -s 1 -e $msg)
+.   status=1
+----
+running suite 2 test test01=(%return)
+.   status=0
+running suite 2 test test02=(%return -e)
+.   status=0
+running suite 2 test test03=(%return -s)
+.   status=0
+running suite 2 test test04=(%return -s -e)
+.   status=0
+running suite 2 test test05=(%return -s 0)
+.   status=0
+running suite 2 test test06=(%return -s 1)
+.   status=1
+running suite 2 test test07=(%return -e -s 0)
+.   status=0
+running suite 2 test test08=(%return -s 1 -e)
+.   status=1
+running suite 2 test test09=(%return $msg)
+a message
+.   status=0
+running suite 2 test test10=(%return -e $msg)
+.   status=0
+running suite 2 test test11=(%return -s $msg)
+a message
+.   status=0
+running suite 2 test test12=(%return -s 0 $msg)
+a message
+.   status=0
+running suite 2 test test13=(%return -s 1 $msg)
+a message
+.   status=1
+running suite 2 test test14=(%return -e -s 0 $msg)
+.   status=0
+running suite 2 test test15=(%return -s 1 -e $msg)
+.   status=1
