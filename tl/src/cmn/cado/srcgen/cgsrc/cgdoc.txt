@@ -429,13 +429,15 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %whiledef <name|ref> <statement>
                     - execute <statement> only while $name or $ref:valueof is defined.
 %while <expr> <statement>
-                    - execute <statement> only while <expr> evaluates to non-zero or non-null.
+                    - execute <statement> only while <expr> evaluates to non-zero or non-null (not empty string).
 
 %foreach            - %foreach iterator_var {range_var|range_var_ptr} statement
                       example 1:  arange = 01..05
                                   %foreach ii arange %call loop
                       example 2:  ptr = $arange
                                   %foreach ii $ptr %call loop
+                      example 3:  vpattern := /^FOO_VAR_.*/
+                                  %foreach var vpattern %echo var=$var
 
                     ===========
                     ERRORS/EXIT
@@ -454,6 +456,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %halt   [status]    - exit program with numeric <status>, or zero if <status> is not provided.
                       See also: $CG_EXIT_STATUS reserved variable
 %abort  [status]    - alias for %halt
+
 
 
 
