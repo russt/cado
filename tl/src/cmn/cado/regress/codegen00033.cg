@@ -1,0 +1,50 @@
+#test %evalrecursive statement.
+
+tname= %evalrecursive
+tnum = 0
+
+{
+    %echo maxevaldepth=$maxevaldepth:pv
+    IN = {=IN=}
+    %evalrecursive CG_COMPARE_SPEC IN
+    result=FAILED
+    %if $IN:eq	result=PASSED
+    %echo $tname TEST #$tnum:incr:a $result
+}
+
+{
+    #set up for infinite recursion:
+    %pragma maxevaldepth 0
+    %echo maxevaldepth=$maxevaldepth:pv
+
+    IN  = {=IN2=}
+    IN2 = {=IN3=}
+    IN3 = DONE
+    %evalrecursive CG_COMPARE_SPEC IN
+    result=FAILED
+    %if $IN3:eq	result=PASSED
+    %echo $tname TEST #$tnum:incr:a $result
+    %if $IN3:ne	%echo >>>> FAILED <<<< out='$CG_COMPARE_SPEC'
+}
+
+{
+    #this test sets up non-terminating macro.
+    #we exit after 3, but any odd number will do.
+    %pragma maxevaldepth 3
+    %echo maxevaldepth=$maxevaldepth:pv
+
+    IN  = {=IN2=}
+    IN2 = {=IN=}
+    %evalr CG_COMPARE_SPEC IN
+    result=FAILED
+    %if $IN2:eq	result=PASSED
+    %echo $tname TEST #$tnum:incr:a $result
+    %if $IN2:ne	%echo >>>> FAILED <<<< out='$CG_COMPARE_SPEC'
+}
+
+#check parser:
+%evalrdirty
+%evalrecursive
+%evalr
+%evalrecursive xx
+%evalr xx yy

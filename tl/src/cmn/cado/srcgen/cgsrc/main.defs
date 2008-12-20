@@ -1,5 +1,5 @@
 VERSION = 1.71
-VERSION_DATE = 16-Dec-2008
+VERSION_DATE = 20-Dec-2008
 COPYRIGHT_RANGE = 2003-2008
 
 {
@@ -93,6 +93,7 @@ our (
     $pragma_verbose,
     $pragma_filegen_notices_to_stdout,
     $pragma_clrifndef,
+    $pragma_maxevaldepth,
 ) = (
     0,              #pragma_preserve_multiline_lnewline - preserve left newline in here-now defs.
     0,              #pragma_trim_multiline_rnewline - trim final newline in here-now defs.
@@ -106,6 +107,7 @@ our (
     0,              #pragma_verbose - set VERBOSE option
     0,              #pragma_filegen_notices_to_stdout - send file generation (x -> y) messages to stdout, not stderr.
     0,              #pragma_clrifndef - initialize undefined variables to empty string during macro expansion.
+    10,             #pragma_maxevaldepth - max depth of recursion for %evalrecursive
 );
 
 #these are the user names for pragmas.  internal variable is prefixed with "pragma_".
@@ -123,6 +125,7 @@ my %PRAGMAS = (
     'reset_stack_delimiter', 1,
     'filegen_notices_to_stdout', 1,
     'clrifndef', 1,
+    'maxevaldepth', 1,
 );
 
 my @INPUT_DATA;
@@ -313,6 +316,8 @@ sub interpret
                 ;
             } elsif (&evalmacro_spec($line, $linecnt)) {
                 ;       #evaluate a template-var into an output var
+            } elsif (&evalrecursive_spec($line, $linecnt)) {
+                ;       #evaluate a template-var into an output var, recursively.
             } elsif (&evaltemplate_spec($line, $linecnt)) {
                 ;       #evaluate a template file into an output var
             } elsif (&readtemplate_spec($line, $linecnt)) {
@@ -682,6 +687,85 @@ sub pragma_require
     }
 
     return 0;    #SUCCESS
+}
+
+sub evalrecursive_spec
+#returns true if we have an %evalrecursive or %evalr spec
+#if output var is prefixed by '>>', then we append the variable.
+{
+    my ($line, $linecnt) = @_;
+    return 0 unless ($line =~ /^\s*%(evalrecursive|evalr)(\s|$)/);
+
+    my $token = $1;
+
+    $line =~ s/^\s*%$token\s*//;
+    #trim trailing spaces too:
+    $line =~ s/\s*$//;
+
+    my $is_append = 0;
+
+    if ($line =~ /^>>\s*/) {
+        $is_append = 1;
+        $line =~ s/^>>\s*//;
+    }
+
+    my ($output_var, $macro_var_ref_in)  = split(/\s+/, $line, 2);
+
+    if (!defined($output_var) || !defined($macro_var_ref_in)) {
+        printf STDERR "%s[%%%s]: ERROR: line %d: Usage %%%s OUT IN\n",
+            $p, $token, $linecnt, $token unless($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;   #return true because we parsed a evalrecursive_spec
+    }
+
+    #expand varible refs in statement:
+    $output_var = &expand_macros($output_var);
+    my $macro_var_ref = &expand_macros($macro_var_ref_in);
+
+    if (!defined($CG_USER_VARS{$macro_var_ref})) {
+        printf STDERR "%s[%%%s]: ERROR: line %d: variable '%s' is undefined.\n",
+            $p, $token, $linecnt, $macro_var_ref_in unless($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;   #return true because we parsed a evalrecursive_spec
+    }
+
+    my $macro_var = $CG_USER_VARS{$macro_var_ref};
+
+    printf STDERR "evalrecursive_spec: output_var='%s' macro_var='%s'\n", $output_var, $macro_var if ($DEBUG);
+
+    my $tmp = &expand_string_template($macro_var);
+    my ($cnt, $lasteval) = (0,"");
+
+    #while eval is different...
+    while(1 < 2) {
+        ++$cnt;
+#printf STDERR "evalrecursive LOOP cnt=%d max=%d tmp='%s'\n", $cnt, $pragma_maxevaldepth,  $tmp;
+
+        #max == 1 <=> %evalmacro
+        if ($pragma_maxevaldepth > 0 && $cnt >= $pragma_maxevaldepth) {
+#printf STDERR "evalrecursive EXIT LOOP A cnt=%d max=%d tmp='%s'\n", $cnt, $pragma_maxevaldepth, $tmp;
+            printf STDERR "%s: WARNING: line %d: %s exceeded max recursion depth: %%pragma maxevaldepth %d\n",
+                $p, $linecnt, ('%' . $token), $pragma_maxevaldepth unless ($QUIET);
+            last;
+        }
+
+        $lasteval = $tmp;
+        $tmp = &expand_string_template($tmp);
+        if ($tmp eq $lasteval) {
+#printf STDERR "evalrecursive EXIT LOOP B cnt=%d max=%d tmp='%s' lasteval='%s'\n", $cnt, $pragma_maxevaldepth, $tmp, $lasteval;
+            last;
+        }
+    }
+
+    if ($is_append && defined($CG_USER_VARS{$output_var})) {
+        $CG_USER_VARS{$output_var} .= $tmp;
+    } else {
+        $CG_USER_VARS{$output_var} = $tmp;
+    }
+
+    printf STDERR "evalrecursive_spec: AFTER expand_string_template: var='%s value='%s'\n", $output_var, $CG_USER_VARS{$output_var} if ($DEBUG);
+
+    return 1;
 }
 
 sub evalmacro_spec
@@ -3130,12 +3214,17 @@ Variables that modify postfix operations:
 
 Pragmas modifiy the behavior of the interpreter as follows:
     \%pragma require perl_file
-            read a <perl_file> into the current context.
+            read a <perl_file> into the current context.  Can be used to add custom operators.
     \%pragma reset_stack_delimiter
             restore CG_STACK_DELIMITER to default value. 
 
     \%pragma echo_expands [1|0]
             if 1, auto-expand macros in %echo template argument list.
+    \%pragma maxevaldepth <num>
+            if <= 0, max recursion depth for %evalrecursive is unbounded.
+            if >= 1, max recursion depth for %evalrecursive is set to <num>.
+            NOTE:  default setting is ${pragma_maxevaldepth}.
+
     \%pragma clrifndef [1|0]
             if 1, undefined template macros resolve to empty string instead of \${var:undef}.
 
@@ -3724,7 +3813,7 @@ CODEGEN_HEADER := << EOF
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  12-Dec-2008 (russt) [Version 1.71]
+#  20-Dec-2008 (russt) [Version 1.71]
 #       Correct copyright and version headers.
 #       Add pragmas clrifndef and trim_multiline_rnewline.
 #       Add :pragmavalue op.  No longer truncate postfix op processing at :undef.
@@ -3737,6 +3826,7 @@ CODEGEN_HEADER := << EOF
 #       Fix bug in template expansion of lines containing "%s" sequences.
 #       Add doc for %halt, %return, %if*, and missing doc for trim ops statements.
 #       Add %return -e -s <status> options.
+#       Add %evalrecursive (alias %evalr) statement.
 #
 
 EOF

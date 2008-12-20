@@ -266,9 +266,14 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
                     PRAGMAS
                     =======
 %pragma require <perl_file>   - read a <perl_file> into the current context.
+                                Can be used to add custom postfix operators.
 %pragma reset_stack_delimiter - restore CG_STACK_DELIMITER to default value. 
 
 %pragma echo_expands [1|0]    - if 1, auto-expand macros in %echo template argument list.
+%pragma maxevaldepth <num>    - if <= 0, max recursion depth for %evalrecursive is unbounded.
+                                if >= 1, max recursion depth for %evalrecursive is set to <num>.
+                                (See also:  %evalrecursive statement).
+
 %pragma clrifndef [1|0]       - if 1, undefined template macros resolve to empty string instead of ${var:undef}.
                                 (See also:  :clrifndef op).
 %pragma copy    [1|0]         - if 1, do not expand templates when generating documents.
@@ -386,9 +391,23 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                     ==========
 %pragma             - %pragma var value.  See PRAGMAS for list of pragmas.
 
-%evalmacro          - if output var is prefixed by '>>', then we append the variable.
-%evaltemplate       - %evaltemplate spec
-%readtemplate       - %readtemplate spec
+%evalmacro [>>] OUT IN
+                    - evaluate the contents of IN into OUT, expanding all template macros.
+                      if output var is prefixed by '>>', then we append the variable.
+
+%evalrecursive [>>] OUT IN
+                    - same as %evalmacro, except we evaluate IN recursively until its contents
+                      are unchanging, or maxevaldepth is exceeded.
+                      See also:  %pragma maxevaldepth
+
+%evalr              - alias for %evalrecursive
+
+%readtemplate OUT <infile>
+                    - read the literal contents of <infile> into OUT, without any evaluation.
+%evaltemplate OUT <infile>
+                    - shorthand for:
+                          %readtemple OUT <infile>
+                          %evalmacro OUT OUT
 
 %include            - process include.
 %interpret          - interpret the contents of a variable:  %interpret varname

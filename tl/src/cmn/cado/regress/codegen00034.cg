@@ -1,0 +1,40 @@
+#test that we can evaluate a reflexive {=..=} var many times.
+
+reflexive := {=reflexive=}
+
+simple := reflex={=reflexive=}
+
+%evalmacro x1 simple
+%evalmacro x2 x1
+%evalmacro x3 x2
+
+%echo simple='$simple'
+%echo x1='$x1'
+%echo x2='$x2'
+%echo x3='$x3'
+
+#create a bunch of reflexive variables:
+%void $CB_PRODUCT_NAME:clr $CB_PRODUCT_SHORT_NAME:clr $CB_IS_JAVANET:clr
+%void $CB_IS_SVN_SCM:clr $CB_IS_CVS_SCM:clr $CB_CODELINE_NAME:clr $CB_BRANCH_NAME:clr
+
+vpattern := /^CB_.*/
+%foreach var vpattern $var={=$var=}
+%foreach var vpattern %echo $var='$var:valueof'
+
+%pushv vars /^CB_.*/
+#%echo vars=$vars:showstack
+
+loop := << EOF
+%echo car=$vars:car
+vars = $vars:cdr
+EOF
+
+%echo
+%echo call loop:
+%whiledef $vars:car  %call loop
+
+%echo
+%echo cdr:
+%pushv vars /^CB_.*/
+%whiledef $vars:car %echo car=$vars:car cdr=$vars:cdr:a
+#%whiledef vars   %echo ${vars:showstack}$vars:cdr:a
