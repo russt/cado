@@ -73,11 +73,8 @@ test_generated_cshvar := << EOF
     #import definitions we just created:
     %call CG_CSHVAR_DEFS
 
-    #evaluate any var-macro refs in value defs:
-    %call $expand_varvaldefs
-
-    #now evaluate factoring of original script:
-    %evalmacro CG_COMPARE_SPEC OUT
+    #now recursively evaluate factoring of original script:
+    %evalr CG_COMPARE_SPEC OUT
 
     #test that new string is same as original:
     result=FAILED

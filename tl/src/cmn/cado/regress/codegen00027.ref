@@ -7,7 +7,7 @@ v2="v2 value"
 #test a var prefixed by another:
 v21="v21 value"
 V3="${v2} is not $v21 but it is the same as $v2"
-foo="foo value, $v2, ${V3:xx}"
+foo="foo value,$v2,${V3:xx}"
 
 if [ "$IIS_XX" != "" ]; then
     echo IIS_XX=$IIS_XX
@@ -72,7 +72,7 @@ shvar_product := product
 shvar_product_val01 := ${=shvar_product=}
 
 shvar_foo := foo
-shvar_foo_val01 := "foo value, ${=shvar_v2=}, ${V3:xx}"
+shvar_foo_val01 := "foo value,${=shvar_v2=},${V3:xx}"
 
 shvar_V3 := V3
 shvar_V3_val01 := "${{=shvar_v2=}} is not ${=shvar_v21=} but it is the same as ${=shvar_v2=}"
@@ -150,7 +150,7 @@ CBVAR_product := product
 CBVAR_product_val01 := ${=CBVAR_product=}
 
 CBVAR_foo := foo
-CBVAR_foo_val01 := "foo value, ${=CBVAR_v2=}, ${V3:xx}"
+CBVAR_foo_val01 := "foo value,${=CBVAR_v2=},${V3:xx}"
 
 CBVAR_V3 := V3
 CBVAR_V3_val01 := "${{=CBVAR_v2=}} is not ${=CBVAR_v21=} but it is the same as ${=CBVAR_v2=}"
@@ -193,7 +193,7 @@ v_1="v_1 value"
 #test a var prefixed by another:
 v21="v21 value"
 {=shvar_V3=}={=shvar_V3_val01=}
-foo="foo value, ${=shvar_v2=}, ${{=shvar_V3=}:xx}"
+foo="foo value,${=shvar_v2=},${{=shvar_V3=}:xx}"
 
 if [ "$IIS_XX" != "" ]; then
     echo IIS_XX=$IIS_XX
@@ -279,7 +279,7 @@ shvar_product := product
 shvar_product_val01 := ${=shvar_product=}
 
 shvar_foo := foo
-shvar_foo_val01 := "foo value, $v2, ${V3:xx}"
+shvar_foo_val01 := "foo value,$v2,${V3:xx}"
 
 shvar_IIS_XX := IIS_XX
 shvar_IIS_XX_val01 := ${=shvar_IIS_XX=}
@@ -317,7 +317,7 @@ v_1="v_1 value"
 #test a var prefixed by another:
 v21="v21 value"
 V3="${{=shvar_v2=}} is not ${=shvar_v2=}1 but it is the same as ${=shvar_v2=}"
-foo="foo value, ${=shvar_v2=}, ${V3:xx}"
+foo="foo value,${=shvar_v2=},${V3:xx}"
 
 if [ "$IIS_XX" != "" ]; then
     echo IIS_XX=$IIS_XX
