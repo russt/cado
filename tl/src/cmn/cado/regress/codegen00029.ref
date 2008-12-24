@@ -78,21 +78,6 @@ cshvar_V3_val01 := "${{=cshvar_v2=}} is not ${=cshvar_v21=} but it is the same a
 
 cshvar_IIS_XX := IIS_XX
 cshvar_IIS_XX_val01 := "a b c"
-
-#call this routine to expand any variable macros within the value defs:
-expand_varvaldefs = cshvar_EVAL_VARVAL_DEFS
-cshvar_EVAL_VARVAL_DEFS := << cshvar_EOF
-{
-    %evalmacro cshvar_v_1_val01 cshvar_v_1_val01
-    %evalmacro cshvar_v21_val01 cshvar_v21_val01
-    %evalmacro cshvar_v2_val01 cshvar_v2_val01
-    %evalmacro cshvar_foo_val01 cshvar_foo_val01
-    %evalmacro cshvar_foo_val02 cshvar_foo_val02
-    %evalmacro cshvar_V3_val01 cshvar_V3_val01
-    %evalmacro cshvar_IIS_XX_val01 cshvar_IIS_XX_val01
-}
-cshvar_EOF
-
 '
 ----------------}
 
@@ -149,21 +134,6 @@ CBVAR_V3_val01 := "${{=CBVAR_v2=}} is not ${=CBVAR_v21=} but it is the same as $
 
 CBVAR_IIS_XX := IIS_XX
 CBVAR_IIS_XX_val01 := "a b c"
-
-#call this routine to expand any variable macros within the value defs:
-expand_varvaldefs = CBVAR_EVAL_VARVAL_DEFS
-CBVAR_EVAL_VARVAL_DEFS := << CBVAR_EOF
-{
-    %evalmacro CBVAR_v_1_val01 CBVAR_v_1_val01
-    %evalmacro CBVAR_v21_val01 CBVAR_v21_val01
-    %evalmacro CBVAR_v2_val01 CBVAR_v2_val01
-    %evalmacro CBVAR_foo_val01 CBVAR_foo_val01
-    %evalmacro CBVAR_foo_val02 CBVAR_foo_val02
-    %evalmacro CBVAR_V3_val01 CBVAR_V3_val01
-    %evalmacro CBVAR_IIS_XX_val01 CBVAR_IIS_XX_val01
-}
-CBVAR_EOF
-
 '
 ----------------}
 
@@ -206,16 +176,6 @@ cshvar_v2_val01 := "v2 value"
 
 cshvar_V3 := V3
 cshvar_V3_val01 := "${{=cshvar_v2=}} is not ${=cshvar_v2=}1 but it is the same as ${=cshvar_v2=}"
-
-#call this routine to expand any variable macros within the value defs:
-expand_varvaldefs = cshvar_EVAL_VARVAL_DEFS
-cshvar_EVAL_VARVAL_DEFS := << cshvar_EOF
-{
-    %evalmacro cshvar_v2_val01 cshvar_v2_val01
-    %evalmacro cshvar_V3_val01 cshvar_V3_val01
-}
-cshvar_EOF
-
 '
 ----------------}
 
@@ -267,19 +227,6 @@ cshvar_foo_val02 := (xx yy zz)
 
 cshvar_IIS_XX := IIS_XX
 cshvar_IIS_XX_val01 := "a b c"
-
-#call this routine to expand any variable macros within the value defs:
-expand_varvaldefs = cshvar_EVAL_VARVAL_DEFS
-cshvar_EVAL_VARVAL_DEFS := << cshvar_EOF
-{
-    %evalmacro cshvar_v_1_val01 cshvar_v_1_val01
-    %evalmacro cshvar_v21_val01 cshvar_v21_val01
-    %evalmacro cshvar_foo_val01 cshvar_foo_val01
-    %evalmacro cshvar_foo_val02 cshvar_foo_val02
-    %evalmacro cshvar_IIS_XX_val01 cshvar_IIS_XX_val01
-}
-cshvar_EOF
-
 '
 ----------------}
 
@@ -319,15 +266,6 @@ echo form6=${foo[2]}
 :factorCshVars test 8  CG_CSHVAR_DEFS='
 cshvar_v2 := v2
 cshvar_v2_val01 := "v2 value"
-
-#call this routine to expand any variable macros within the value defs:
-expand_varvaldefs = cshvar_EVAL_VARVAL_DEFS
-cshvar_EVAL_VARVAL_DEFS := << cshvar_EOF
-{
-    %evalmacro cshvar_v2_val01 cshvar_v2_val01
-}
-cshvar_EOF
-
 '
 ----------------}
 

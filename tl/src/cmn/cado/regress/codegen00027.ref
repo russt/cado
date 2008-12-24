@@ -81,24 +81,6 @@ shvar_IIS_XX := IIS_XX
 shvar_IIS_XX_val01 := ${=shvar_IIS_XX=}
 shvar_IIS_XX_val02 := ${=shvar_IIS_XX=}
 shvar_IIS_XX_val03 := ${=shvar_IIS_XX=}
-
-#call this routine to expand any variable macros within the value defs:
-expand_varvaldefs = shvar_EVAL_VARVAL_DEFS
-shvar_EVAL_VARVAL_DEFS := << shvar_EOF
-{
-    %evalmacro shvar_v_1_val01 shvar_v_1_val01
-    %evalmacro shvar_v_1_val02 shvar_v_1_val02
-    %evalmacro shvar_v21_val01 shvar_v21_val01
-    %evalmacro shvar_v2_val01 shvar_v2_val01
-    %evalmacro shvar_product_val01 shvar_product_val01
-    %evalmacro shvar_foo_val01 shvar_foo_val01
-    %evalmacro shvar_V3_val01 shvar_V3_val01
-    %evalmacro shvar_IIS_XX_val01 shvar_IIS_XX_val01
-    %evalmacro shvar_IIS_XX_val02 shvar_IIS_XX_val02
-    %evalmacro shvar_IIS_XX_val03 shvar_IIS_XX_val03
-}
-shvar_EOF
-
 '
 ----------------}
 
@@ -159,24 +141,6 @@ CBVAR_IIS_XX := IIS_XX
 CBVAR_IIS_XX_val01 := ${=CBVAR_IIS_XX=}
 CBVAR_IIS_XX_val02 := ${=CBVAR_IIS_XX=}
 CBVAR_IIS_XX_val03 := ${=CBVAR_IIS_XX=}
-
-#call this routine to expand any variable macros within the value defs:
-expand_varvaldefs = CBVAR_EVAL_VARVAL_DEFS
-CBVAR_EVAL_VARVAL_DEFS := << CBVAR_EOF
-{
-    %evalmacro CBVAR_v_1_val01 CBVAR_v_1_val01
-    %evalmacro CBVAR_v_1_val02 CBVAR_v_1_val02
-    %evalmacro CBVAR_v21_val01 CBVAR_v21_val01
-    %evalmacro CBVAR_v2_val01 CBVAR_v2_val01
-    %evalmacro CBVAR_product_val01 CBVAR_product_val01
-    %evalmacro CBVAR_foo_val01 CBVAR_foo_val01
-    %evalmacro CBVAR_V3_val01 CBVAR_V3_val01
-    %evalmacro CBVAR_IIS_XX_val01 CBVAR_IIS_XX_val01
-    %evalmacro CBVAR_IIS_XX_val02 CBVAR_IIS_XX_val02
-    %evalmacro CBVAR_IIS_XX_val03 CBVAR_IIS_XX_val03
-}
-CBVAR_EOF
-
 '
 ----------------}
 
@@ -220,16 +184,6 @@ shvar_v2_val01 := "v2 value"
 
 shvar_V3 := V3
 shvar_V3_val01 := "${{=shvar_v2=}} is not ${=shvar_v2=}1 but it is the same as ${=shvar_v2=}"
-
-#call this routine to expand any variable macros within the value defs:
-expand_varvaldefs = shvar_EVAL_VARVAL_DEFS
-shvar_EVAL_VARVAL_DEFS := << shvar_EOF
-{
-    %evalmacro shvar_v2_val01 shvar_v2_val01
-    %evalmacro shvar_V3_val01 shvar_V3_val01
-}
-shvar_EOF
-
 '
 ----------------}
 
@@ -285,22 +239,6 @@ shvar_IIS_XX := IIS_XX
 shvar_IIS_XX_val01 := ${=shvar_IIS_XX=}
 shvar_IIS_XX_val02 := ${=shvar_IIS_XX=}
 shvar_IIS_XX_val03 := ${=shvar_IIS_XX=}
-
-#call this routine to expand any variable macros within the value defs:
-expand_varvaldefs = shvar_EVAL_VARVAL_DEFS
-shvar_EVAL_VARVAL_DEFS := << shvar_EOF
-{
-    %evalmacro shvar_v_1_val01 shvar_v_1_val01
-    %evalmacro shvar_v_1_val02 shvar_v_1_val02
-    %evalmacro shvar_v21_val01 shvar_v21_val01
-    %evalmacro shvar_product_val01 shvar_product_val01
-    %evalmacro shvar_foo_val01 shvar_foo_val01
-    %evalmacro shvar_IIS_XX_val01 shvar_IIS_XX_val01
-    %evalmacro shvar_IIS_XX_val02 shvar_IIS_XX_val02
-    %evalmacro shvar_IIS_XX_val03 shvar_IIS_XX_val03
-}
-shvar_EOF
-
 '
 ----------------}
 
@@ -341,15 +279,6 @@ foo
 
 shvar_v2 := v2
 shvar_v2_val01 := "v2 value"
-
-#call this routine to expand any variable macros within the value defs:
-expand_varvaldefs = shvar_EVAL_VARVAL_DEFS
-shvar_EVAL_VARVAL_DEFS := << shvar_EOF
-{
-    %evalmacro shvar_v2_val01 shvar_v2_val01
-}
-shvar_EOF
-
 '
 ----------------}
 

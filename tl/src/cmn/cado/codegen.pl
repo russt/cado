@@ -5456,26 +5456,6 @@ sub factorCshVars_op
     ######
     $var = join("\n", @var);
 
-    ####
-    #add eval routine to var-value defs (user can call this to expand variable references within value strings):
-    ####
-
-    @tmp = @shvarvals;
-    grep($_ =~ s/(.*)/%evalmacro $1 $1/, @tmp);
-    my $varval_expand_txt .= join("\n    ", @tmp);   #indent 4 spaces
-
-    $shvardeftxt .= << "!";
-
-#call this routine to expand any variable macros within the value defs:
-expand_varvaldefs = ${prefix}EVAL_VARVAL_DEFS
-${prefix}EVAL_VARVAL_DEFS := << ${prefix}EOF
-{
-    $varval_expand_txt
-}
-${prefix}EOF
-
-!
-
     ######
     #write results to user vars:
     ######
@@ -5629,26 +5609,6 @@ sub factorShVars_op
     #write variable text instrumented with macros:
     ######
     $var = join("\n", @var);
-
-    ####
-    #add eval routine to var-value defs (user can call this to expand variable references within value strings):
-    ####
-
-    @tmp = @shvarvals;
-    grep($_ =~ s/(.*)/%evalmacro $1 $1/, @tmp);
-    my $varval_expand_txt .= join("\n    ", @tmp);   #indent 4 spaces
-
-    $shvardeftxt .= << "!";
-
-#call this routine to expand any variable macros within the value defs:
-expand_varvaldefs = ${prefix}EVAL_VARVAL_DEFS
-${prefix}EVAL_VARVAL_DEFS := << ${prefix}EOF
-{
-    $varval_expand_txt
-}
-${prefix}EOF
-
-!
 
     ######
     #write results to user vars:
@@ -5833,7 +5793,6 @@ _save_trim_multiline_rnewline = \$trim_multiline_rnewline:pragmavalue
     #LOOP 4 - write out definitions:
     #####
 
-    my $sr_expand_txt = "";
     foreach $cg_srname (@cg_srnames_final) {
         $srname = $shsub_names{$cg_srname};
         my $cg_srname_ref = "${cg_srname}_ref";
@@ -5849,25 +5808,13 @@ $srtxt
 ${prefix}EOF
 
 !
-        #push line to expand this macro:
-        $sr_expand_txt .= "    \%evalmacro $cg_srname $cg_srname\n";
     }
 
-    chomp $sr_expand_txt;
-
-    #definiton POST-SCRIPT:
+    #POST-SCRIPT:
     $srdeftxt .= << "!";
 
 #restore normal behavior for here-now defs:
 \%pragma trim_multiline_rnewline = \$_save_trim_multiline_rnewline
-
-#call this routine to expand any cross-refs or variable macros within the sr defs:
-expand_srdefs = ${prefix}EVAL_SR_DEFS
-${prefix}EVAL_SR_DEFS := << ${prefix}EOF
-{
-$sr_expand_txt
-}
-${prefix}EOF
 
 !
 

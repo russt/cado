@@ -113,17 +113,6 @@ shsub_EOF
 #restore normal behavior for here-now defs:
 %pragma trim_multiline_rnewline = $_save_trim_multiline_rnewline
 
-#call this routine to expand any cross-refs or variable macros within the sr defs:
-expand_srdefs = shsub_EVAL_SR_DEFS
-shsub_EVAL_SR_DEFS := << shsub_EOF
-{
-    %evalmacro shsub_a shsub_a
-    %evalmacro shsub_B_o_B52s shsub_B_o_B52s
-    %evalmacro shsub_c shsub_c
-    %evalmacro shsub__123 shsub__123
-}
-shsub_EOF
-
 '
 ----------------}
 
@@ -205,17 +194,6 @@ CBSUB_EOF
 #restore normal behavior for here-now defs:
 %pragma trim_multiline_rnewline = $_save_trim_multiline_rnewline
 
-#call this routine to expand any cross-refs or variable macros within the sr defs:
-expand_srdefs = CBSUB_EVAL_SR_DEFS
-CBSUB_EVAL_SR_DEFS := << CBSUB_EOF
-{
-    %evalmacro CBSUB_a CBSUB_a
-    %evalmacro CBSUB_B_o_B52s CBSUB_B_o_B52s
-    %evalmacro CBSUB_c CBSUB_c
-    %evalmacro CBSUB__123 CBSUB__123
-}
-CBSUB_EOF
-
 '
 ----------------}
 
@@ -283,15 +261,6 @@ shsub_EOF
 #restore normal behavior for here-now defs:
 %pragma trim_multiline_rnewline = $_save_trim_multiline_rnewline
 
-#call this routine to expand any cross-refs or variable macros within the sr defs:
-expand_srdefs = shsub_EVAL_SR_DEFS
-shsub_EVAL_SR_DEFS := << shsub_EOF
-{
-    %evalmacro shsub_a shsub_a
-    %evalmacro shsub_B_o_B52s shsub_B_o_B52s
-}
-shsub_EOF
-
 '
 ----------------}
 
@@ -358,15 +327,6 @@ shsub_EOF
 
 #restore normal behavior for here-now defs:
 %pragma trim_multiline_rnewline = $_save_trim_multiline_rnewline
-
-#call this routine to expand any cross-refs or variable macros within the sr defs:
-expand_srdefs = shsub_EVAL_SR_DEFS
-shsub_EVAL_SR_DEFS := << shsub_EOF
-{
-    %evalmacro shsub_c shsub_c
-    %evalmacro shsub__123 shsub__123
-}
-shsub_EOF
 
 '
 ----------------}
@@ -441,16 +401,6 @@ shsub_EOF
 
 #restore normal behavior for here-now defs:
 %pragma trim_multiline_rnewline = $_save_trim_multiline_rnewline
-
-#call this routine to expand any cross-refs or variable macros within the sr defs:
-expand_srdefs = shsub_EVAL_SR_DEFS
-shsub_EVAL_SR_DEFS := << shsub_EOF
-{
-    %evalmacro shsub_a shsub_a
-    %evalmacro shsub_B_o_B52s shsub_B_o_B52s
-    %evalmacro shsub__123 shsub__123
-}
-shsub_EOF
 
 '
 ----------------}
