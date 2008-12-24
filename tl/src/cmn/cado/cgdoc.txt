@@ -1,7 +1,7 @@
 
                     =========================
                      Codegen Quick Reference
-                    Version 1.71, 20-Dec-2008
+                    Version 1.71, 23-Dec-2008
                     =========================
 
 {
@@ -152,17 +152,6 @@ CG_SHSUB_DEFS       - definitions of factored out sh subroutines.
 CG_SHSUB_LIST       - stack of generated variable names for subroutine names factored out.
                       Example:  shsub_foo, shsub_foo2, ...
 
-$expand_srdefs, ${CG_SHSUB_PREFIX}EVAL_SR_DEFS
-                    - generate code to evaluate any variable name macros contained with the
-                      subroutine definitions.   Example:
-                          $shtxt = $shtxt:factorShVars:factorShSubs
-                          ...
-                          %call $expand_varvaldefs
-                          %call $expand_srdefs
-                      will evaluate any macros contained in the subroutine definitions with the current
-                      variable definitions, including any desired variable name changes.  See also
-                      the description of $expand_varvaldefs below.
-
                     -----------------------
                     :factorShVars modifiers
                     -----------------------
@@ -182,15 +171,6 @@ CG_SHVAR_LIST       - stack of generated variable names for variables factored o
                       Example:  shvar_foo, shvar_foo2, ...
 CG_SHVARVAL_LIST    - stack of generated variable-value names for variables factored out.
                       Example:  shvar_foo_val01, shvar_foo2_val01, shvar_foo2_val02, etc.
-
-$expand_varvaldefs, ${CG_SHVAR_PREFIX}EVAL_VARVAL_DEFS
-                    - generate code to evaluate any variable name macros contained with the
-                      value definitions.   Example:
-                          $shtxt = $shtxt:factorShVars
-                          ...
-                          %call $expand_varvaldefs
-                      will evaluate any macros contained in the value definitions with the current
-                      variable definitions, including any desired variable name changes.
 
                     ------------------------
                     :factorCshVars modifiers
@@ -475,6 +455,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %halt   [status]    - exit program with numeric <status>, or zero if <status> is not provided.
                       See also: $CG_EXIT_STATUS reserved variable
 %abort  [status]    - alias for %halt
+
 
 
 

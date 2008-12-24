@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.71 - 20-Dec-2008
+# @(#)codegen.pl - ver 1.71 - 23-Dec-2008
 #
 # Copyright 2003-2008 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -199,7 +199,7 @@
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  20-Dec-2008 (russt) [Version 1.71]
+#  23-Dec-2008 (russt) [Version 1.71]
 #       Correct copyright and version headers.
 #       Add pragmas clrifndef and trim_multiline_rnewline.
 #       Add :pragmavalue op.  No longer truncate postfix op processing at :undef.
@@ -224,7 +224,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.71",         #VERSION - the program version number.
-    "20-Dec-2008",  #VERSION_DATE - date this version was released.
+    "23-Dec-2008",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -5824,6 +5824,7 @@ sub factorShSubs_op
     #set pragma to trim final newlines in here-now defs we generate for subroutines.
     #this allows us to substitute macros and restore the spacing of the original text.
     my $srdeftxt = << "!";
+_save_trim_multiline_rnewline = \$trim_multiline_rnewline:pragmavalue
 \%pragma trim_multiline_rnewline 1
 
 !
@@ -5858,7 +5859,7 @@ ${prefix}EOF
     $srdeftxt .= << "!";
 
 #restore normal behavior for here-now defs:
-\%pragma trim_multiline_rnewline 0
+\%pragma trim_multiline_rnewline = \$_save_trim_multiline_rnewline
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
 expand_srdefs = ${prefix}EVAL_SR_DEFS

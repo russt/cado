@@ -524,6 +524,7 @@ sub factorShSubs_op
     #set pragma to trim final newlines in here-now defs we generate for subroutines.
     #this allows us to substitute macros and restore the spacing of the original text.
     my $srdeftxt = << "!";
+_save_trim_multiline_rnewline = \$trim_multiline_rnewline:pragmavalue
 \%pragma trim_multiline_rnewline 1
 
 !
@@ -558,7 +559,7 @@ ${prefix}EOF
     $srdeftxt .= << "!";
 
 #restore normal behavior for here-now defs:
-\%pragma trim_multiline_rnewline 0
+\%pragma trim_multiline_rnewline = \$_save_trim_multiline_rnewline
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
 expand_srdefs = ${prefix}EVAL_SR_DEFS

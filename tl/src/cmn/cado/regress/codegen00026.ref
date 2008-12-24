@@ -61,7 +61,8 @@ V3="V3 value"
 {=shsub_a_ref=};{=shsub_c_ref=};{=shsub__123_ref=}&{=shsub_B_o_B52s_ref=}
 '
 :factorShSubs test 1  CG_SHSUB_LIST='a	B_o_B52s	c	_123'
-:factorShSubs test 1  CG_SHSUB_DEFS='%pragma trim_multiline_rnewline 1
+:factorShSubs test 1  CG_SHSUB_DEFS='_save_trim_multiline_rnewline = $trim_multiline_rnewline:pragmavalue
+%pragma trim_multiline_rnewline 1
 
 
 ##sh subroutine a()
@@ -110,7 +111,7 @@ shsub_EOF
 
 
 #restore normal behavior for here-now defs:
-%pragma trim_multiline_rnewline 0
+%pragma trim_multiline_rnewline = $_save_trim_multiline_rnewline
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
 expand_srdefs = shsub_EVAL_SR_DEFS
@@ -152,7 +153,8 @@ V3="V3 value"
 {=CBSUB_a_ref=};{=CBSUB_c_ref=};{=CBSUB__123_ref=}&{=CBSUB_B_o_B52s_ref=}
 '
 :factorShSubs test 3  CG_SHSUB_LIST='a	B_o_B52s	c	_123'
-:factorShSubs test 3  CG_SHSUB_DEFS='%pragma trim_multiline_rnewline 1
+:factorShSubs test 3  CG_SHSUB_DEFS='_save_trim_multiline_rnewline = $trim_multiline_rnewline:pragmavalue
+%pragma trim_multiline_rnewline 1
 
 
 ##sh subroutine a()
@@ -201,7 +203,7 @@ CBSUB_EOF
 
 
 #restore normal behavior for here-now defs:
-%pragma trim_multiline_rnewline 0
+%pragma trim_multiline_rnewline = $_save_trim_multiline_rnewline
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
 expand_srdefs = CBSUB_EVAL_SR_DEFS
@@ -250,7 +252,8 @@ _123
 {=shsub_a_ref=};c;_123&{=shsub_B_o_B52s_ref=}
 '
 :factorShSubs test 5  CG_SHSUB_LIST='a	B_o_B52s'
-:factorShSubs test 5  CG_SHSUB_DEFS='%pragma trim_multiline_rnewline 1
+:factorShSubs test 5  CG_SHSUB_DEFS='_save_trim_multiline_rnewline = $trim_multiline_rnewline:pragmavalue
+%pragma trim_multiline_rnewline 1
 
 
 ##sh subroutine a()
@@ -278,7 +281,7 @@ shsub_EOF
 
 
 #restore normal behavior for here-now defs:
-%pragma trim_multiline_rnewline 0
+%pragma trim_multiline_rnewline = $_save_trim_multiline_rnewline
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
 expand_srdefs = shsub_EVAL_SR_DEFS
@@ -328,7 +331,8 @@ B_o_B52s
 a;{=shsub_c_ref=};{=shsub__123_ref=}&B_o_B52s
 '
 :factorShSubs test 7  CG_SHSUB_LIST='c	_123'
-:factorShSubs test 7  CG_SHSUB_DEFS='%pragma trim_multiline_rnewline 1
+:factorShSubs test 7  CG_SHSUB_DEFS='_save_trim_multiline_rnewline = $trim_multiline_rnewline:pragmavalue
+%pragma trim_multiline_rnewline 1
 
 
 ##sh subroutine c()
@@ -353,7 +357,7 @@ shsub_EOF
 
 
 #restore normal behavior for here-now defs:
-%pragma trim_multiline_rnewline 0
+%pragma trim_multiline_rnewline = $_save_trim_multiline_rnewline
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
 expand_srdefs = shsub_EVAL_SR_DEFS
@@ -396,7 +400,8 @@ c
 {=shsub_a_ref=};c;{=shsub__123_ref=}&{=shsub_B_o_B52s_ref=}
 '
 :factorShSubs test 9  CG_SHSUB_LIST='a	B_o_B52s	_123'
-:factorShSubs test 9  CG_SHSUB_DEFS='%pragma trim_multiline_rnewline 1
+:factorShSubs test 9  CG_SHSUB_DEFS='_save_trim_multiline_rnewline = $trim_multiline_rnewline:pragmavalue
+%pragma trim_multiline_rnewline 1
 
 
 ##sh subroutine a()
@@ -435,7 +440,7 @@ shsub_EOF
 
 
 #restore normal behavior for here-now defs:
-%pragma trim_multiline_rnewline 0
+%pragma trim_multiline_rnewline = $_save_trim_multiline_rnewline
 
 #call this routine to expand any cross-refs or variable macros within the sr defs:
 expand_srdefs = shsub_EVAL_SR_DEFS

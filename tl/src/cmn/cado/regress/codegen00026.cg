@@ -76,10 +76,7 @@ test_generated_shsub := << EOF
     #create a new string using definitions we just created:
     %call CG_SHSUB_DEFS
 
-    #call generated function to expand any macros contained within the subroutine defs:
-    %call $expand_srdefs
-
-    %evalmacro CG_COMPARE_SPEC OUT
+    %evalrecursive CG_COMPARE_SPEC OUT
 
     #test that new string is same as original:
     result=FAILED
