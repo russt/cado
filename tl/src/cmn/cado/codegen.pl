@@ -21,9 +21,9 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.71 - 23-Dec-2008
+# @(#)codegen.pl - ver 1.71 - 02-Jan-2009
 #
-# Copyright 2003-2008 Sun Microsystems, Inc. All Rights Reserved.
+# Copyright 2003-2009 Sun Microsystems, Inc. All Rights Reserved.
 #
 # END_HEADER - DO NOT EDIT
 #
@@ -199,20 +199,22 @@
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  23-Dec-2008 (russt) [Version 1.71]
+#  02-Jan-2009 (russt) [Version 1.71]
 #       Correct copyright and version headers.
-#       Add pragmas clrifndef and trim_multiline_rnewline.
-#       Add :pragmavalue op.  No longer truncate postfix op processing at :undef.
-#       The %pragma statement was not expanding the rhs pragma expression.
-#       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
-#       Add :eolsqeeze op.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
-#       Fix bug in template expansion - macros alone on lines, and resolving to non-empty strings,
+#       No longer truncate postfix op processing at :undef, so we can operate on undefined values (:clrifndef).
+#       Fix bug in template expansion - macros alone on lines and resolving to non-empty strings
 #       were reducing newline, and lines at EOF without EOL were adding newline.
 #       Fix bug in template expansion of lines containing "%s" sequences.
-#       Add doc for %halt, %return, %if*, and missing doc for trim ops statements.
+#       The %pragma statement was not expanding the rhs pragma expression.
+#       Add pragmas clrifndef and trim_multiline_rnewline.
+#       Add :pragmavalue op.
+#       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
+#       Add :eolsqeeze op.
 #       Add %return -e -s <status> options.
-#       Add %evalrecursive (alias %evalr) statement.
+#       Add %eval * (recursive) statement.
+#       TODO:  Add recursive (*) option to %evaltemplate statement.
+#       Add doc for %halt, %return, %if*, and other missing doc (trim ops, etc.)
 #
 
 
@@ -224,7 +226,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.71",         #VERSION - the program version number.
-    "23-Dec-2008",  #VERSION_DATE - date this version was released.
+    "02-Jan-2009",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -313,7 +315,7 @@ our (
     0,              #pragma_verbose - set VERBOSE option
     0,              #pragma_filegen_notices_to_stdout - send file generation (x -> y) messages to stdout, not stderr.
     0,              #pragma_clrifndef - initialize undefined variables to empty string during macro expansion.
-    10,             #pragma_maxevaldepth - max depth of recursion for %evalrecursive
+    10,             #pragma_maxevaldepth - max depth of recursion for %evalmacro * (recursive).
 );
 
 #these are the user names for pragmas.  internal variable is prefixed with "pragma_".
@@ -522,8 +524,6 @@ sub interpret
                 ;
             } elsif (&evalmacro_spec($line, $linecnt)) {
                 ;       #evaluate a template-var into an output var
-            } elsif (&evalrecursive_spec($line, $linecnt)) {
-                ;       #evaluate a template-var into an output var, recursively.
             } elsif (&evaltemplate_spec($line, $linecnt)) {
                 ;       #evaluate a template file into an output var
             } elsif (&readtemplate_spec($line, $linecnt)) {
@@ -895,21 +895,14 @@ sub pragma_require
     return 0;    #SUCCESS
 }
 
-sub evalrecursive_spec
-#returns true if we have an %evalrecursive or %evalr spec
+sub evalrecursive
+#private routine returns true if we have an %eval * (recursive) statement.
 #if output var is prefixed by '>>', then we append the variable.
+#NOTE:  when we get here we have already scanned "%evalmacro *".
 {
-    my ($line, $linecnt) = @_;
-    return 0 unless ($line =~ /^\s*%(evalrecursive|evalr)(\s|$)/);
-
-    my $token = $1;
-
-    $line =~ s/^\s*%$token\s*//;
-    #trim trailing spaces too:
-    $line =~ s/\s*$//;
+    my ($line, $linecnt, $token) = @_;
 
     my $is_append = 0;
-
     if ($line =~ /^>>\s*/) {
         $is_append = 1;
         $line =~ s/^>>\s*//;
@@ -918,10 +911,10 @@ sub evalrecursive_spec
     my ($output_var, $macro_var_ref_in)  = split(/\s+/, $line, 2);
 
     if (!defined($output_var) || !defined($macro_var_ref_in)) {
-        printf STDERR "%s[%%%s]: ERROR: line %d: Usage %%%s OUT IN\n",
+        printf STDERR "%s[%s *]: ERROR: line %d: Usage %s * OUT IN\n",
             $p, $token, $linecnt, $token unless($QUIET);
         ++ $GLOBAL_ERROR_COUNT;
-        return 1;   #return true because we parsed a evalrecursive_spec
+        return 1;   #return true because we parsed a %evalmacro
     }
 
     #expand varible refs in statement:
@@ -929,15 +922,15 @@ sub evalrecursive_spec
     my $macro_var_ref = &expand_macros($macro_var_ref_in);
 
     if (!defined($CG_USER_VARS{$macro_var_ref})) {
-        printf STDERR "%s[%%%s]: ERROR: line %d: variable '%s' is undefined.\n",
+        printf STDERR "%s[%s *]: ERROR: line %d: variable '%s' is undefined.\n",
             $p, $token, $linecnt, $macro_var_ref_in unless($QUIET);
         ++ $GLOBAL_ERROR_COUNT;
-        return 1;   #return true because we parsed a evalrecursive_spec
+        return 1;   #return true because we parsed a %evalmacro
     }
 
     my $macro_var = $CG_USER_VARS{$macro_var_ref};
 
-    printf STDERR "evalrecursive_spec: output_var='%s' macro_var='%s'\n", $output_var, $macro_var if ($DEBUG);
+    printf STDERR "evalrecursive: output_var='%s' macro_var='%s'\n", $output_var, $macro_var if ($DEBUG);
 
     my $tmp = &expand_string_template($macro_var);
     my ($cnt, $lasteval) = (0,"");
@@ -950,8 +943,8 @@ sub evalrecursive_spec
         #max == 1 <=> %evalmacro
         if ($pragma_maxevaldepth > 0 && $cnt >= $pragma_maxevaldepth) {
 #printf STDERR "evalrecursive EXIT LOOP A cnt=%d max=%d tmp='%s'\n", $cnt, $pragma_maxevaldepth, $tmp;
-            printf STDERR "%s: WARNING: line %d: %s exceeded max recursion depth: %%pragma maxevaldepth %d\n",
-                $p, $linecnt, ('%' . $token), $pragma_maxevaldepth unless ($QUIET);
+            printf STDERR "%s: WARNING: line %d: %s * exceeded max recursion depth: %%pragma maxevaldepth %d\n",
+                $p, $linecnt, $token, $pragma_maxevaldepth unless ($QUIET);
             last;
         }
 
@@ -969,7 +962,7 @@ sub evalrecursive_spec
         $CG_USER_VARS{$output_var} = $tmp;
     }
 
-    printf STDERR "evalrecursive_spec: AFTER expand_string_template: var='%s value='%s'\n", $output_var, $CG_USER_VARS{$output_var} if ($DEBUG);
+    printf STDERR "evalrecursive: AFTER expand_string_template: var='%s value='%s'\n", $output_var, $CG_USER_VARS{$output_var} if ($DEBUG);
 
     return 1;
 }
@@ -987,8 +980,13 @@ sub evalmacro_spec
     #trim trailing spaces too:
     $line =~ s/\s*$//;
 
-    my $is_append = 0;
+    if ($line =~ /^\*\s*/) {
+        #scan past recursive designator:
+        $line =~ s/^\*\s*//;
+        return &evalrecursive($line, $linecnt, $token);
+    }
 
+    my $is_append = 0;
     if ($line =~ /^>>\s*/) {
         $is_append = 1;
         $line =~ s/^>>\s*//;
@@ -3419,8 +3417,8 @@ Pragmas modifiy the behavior of the interpreter as follows:
     \%pragma echo_expands [1|0]
             if 1, auto-expand macros in %echo template argument list.
     \%pragma maxevaldepth <num>
-            if <= 0, max recursion depth for %evalrecursive is unbounded.
-            if >= 1, max recursion depth for %evalrecursive is set to <num>.
+            if <= 0, max recursion depth for %evalmacro * (recursive) is unbounded.
+            if >= 1, max recursion depth for %evalmacro * is set to <num>.
             NOTE:  default setting is ${pragma_maxevaldepth}.
 
     \%pragma clrifndef [1|0]

@@ -250,9 +250,9 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
 %pragma reset_stack_delimiter - restore CG_STACK_DELIMITER to default value. 
 
 %pragma echo_expands [1|0]    - if 1, auto-expand macros in %echo template argument list.
-%pragma maxevaldepth <num>    - if <= 0, max recursion depth for %evalrecursive is unbounded.
-                                if >= 1, max recursion depth for %evalrecursive is set to <num>.
-                                (See also:  %evalrecursive statement).
+%pragma maxevaldepth <num>    - if <= 0, max recursion depth for %evalmacro * (recursive) is unbounded.
+                                if >= 1, max recursion depth for %evalmacro * is set to <num>.
+                                (See also:  %evalmacro statement).
 
 %pragma clrifndef [1|0]       - if 1, undefined template macros resolve to empty string instead of ${var:undef}.
                                 (See also:  :clrifndef op).
@@ -371,16 +371,11 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                     ==========
 %pragma             - %pragma var value.  See PRAGMAS for list of pragmas.
 
-%evalmacro [>>] OUT IN
+%evalmacro [*] [>>] OUT IN
                     - evaluate the contents of IN into OUT, expanding all template macros.
                       if output var is prefixed by '>>', then we append the variable.
-
-%evalrecursive [>>] OUT IN
-                    - same as %evalmacro, except we evaluate IN recursively until its contents
-                      are unchanging, or maxevaldepth is exceeded.
-                      See also:  %pragma maxevaldepth
-
-%evalr              - alias for %evalrecursive
+                      If '*' we evaluate IN recursively until its contents are unchanging,
+                      or %pragma maxevaldepth is exceeded.  See also:  %pragma maxevaldepth
 
 %readtemplate OUT <infile>
                     - read the literal contents of <infile> into OUT, without any evaluation.

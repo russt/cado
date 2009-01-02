@@ -1,14 +1,20 @@
-#test %evalrecursive statement.
+#test %evalmacro* statement.
 
-tname= %evalrecursive
+tname= %evalmacro*
 tnum = 0
 
 {
     %echo maxevaldepth=$maxevaldepth:pv
     IN = {=IN=}
-    %evalrecursive CG_COMPARE_SPEC IN
+    %evalmacro * CG_COMPARE_SPEC IN
     result=FAILED
     %if $IN:eq	result=PASSED
+    %echo $tname TEST #$tnum:incr:a $result
+
+    #test append:
+    %evalmacro * >> CG_COMPARE_SPEC IN
+    ININ = $IN$IN
+    %if $ININ:eq	result=PASSED
     %echo $tname TEST #$tnum:incr:a $result
 }
 
@@ -20,7 +26,7 @@ tnum = 0
     IN  = {=IN2=}
     IN2 = {=IN3=}
     IN3 = DONE
-    %evalrecursive CG_COMPARE_SPEC IN
+    %evalmacro*CG_COMPARE_SPEC IN
     result=FAILED
     %if $IN3:eq	result=PASSED
     %echo $tname TEST #$tnum:incr:a $result
@@ -35,7 +41,7 @@ tnum = 0
 
     IN  = {=IN2=}
     IN2 = {=IN=}
-    %evalr CG_COMPARE_SPEC IN
+    %evalmacro * CG_COMPARE_SPEC IN
     result=FAILED
     %if $IN2:eq	result=PASSED
     %echo $tname TEST #$tnum:incr:a $result
@@ -43,8 +49,6 @@ tnum = 0
 }
 
 #check parser:
-%evalrdirty
-%evalrecursive
-%evalr
-%evalrecursive xx
-%evalr xx yy
+%evalmacro  *  
+%evalmacro*xx
+%evalmacro *xx yy

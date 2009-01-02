@@ -77,7 +77,7 @@ test_generated_shvar := << EOF
     %call CG_SHVAR_DEFS
 
     #recursively evaluate factored shell script in the context of var & value definitions:
-    %evalr CG_COMPARE_SPEC OUT
+    %evalmacro * CG_COMPARE_SPEC OUT
 
     #test that new string is same as original:
     result=FAILED

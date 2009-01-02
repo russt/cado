@@ -1,7 +1,8 @@
 TESTNAME is codegen00033
 maxevaldepth=10
-%evalrecursive TEST #1 PASSED
+%evalmacro* TEST #1 PASSED
+%evalmacro* TEST #2 PASSED
 maxevaldepth=0
-%evalrecursive TEST #2 PASSED
+%evalmacro* TEST #3 PASSED
 maxevaldepth=3
-%evalrecursive TEST #3 PASSED
+%evalmacro* TEST #4 PASSED

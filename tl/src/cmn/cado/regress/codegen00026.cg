@@ -76,7 +76,7 @@ test_generated_shsub := << EOF
     #create a new string using definitions we just created:
     %call CG_SHSUB_DEFS
 
-    %evalrecursive CG_COMPARE_SPEC OUT
+    %evalmacro * CG_COMPARE_SPEC OUT
 
     #test that new string is same as original:
     result=FAILED
