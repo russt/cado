@@ -3821,6 +3821,7 @@ CODEGEN_HEADER := << EOF
 #       Add :pragmavalue op.
 #       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
 #       Add :eolsqeeze op.
+#       Add :substituteliteral (alias :sl) op.
 #       Add %return -e -s <status> options.
 #       Add %eval * (recursive) statement.
 #       TODO:  Add recursive (*) option to %evaltemplate statement.

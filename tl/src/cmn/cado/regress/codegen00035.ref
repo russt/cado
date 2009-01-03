@@ -1,0 +1,8 @@
+TESTNAME is codegen00035
+IN='*.(x){x}'
+:literalsubstitute TEST #1 PASSED
+:literalsubstitute TEST #2 PASSED
+IN='*..*..(x)*.{x}'
+:literalsubstitute TEST #3 PASSED
+IN='\/*..*..\\\/(x)*.\/{x}\\'
+:literalsubstitute TEST #4 PASSED

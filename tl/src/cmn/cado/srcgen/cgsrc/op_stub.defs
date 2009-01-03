@@ -107,8 +107,8 @@ sub substitute_op
 {
     my ($var) = @_;
 
-    my $spec = $CG_USER_VARS{'CG_SUBSTITUTE_SPEC'};
-    return $var unless (defined($spec));
+    my $spec = &lookup_def('CG_SUBSTITUTE_SPEC');
+    return $var unless (&var_defined('CG_SUBSTITUTE_SPEC'));
 
     my $savevar = $var;
     my $result = eval "\$var =~ $spec";
@@ -122,6 +122,68 @@ sub substitute_op
         printf STDERR "%s[substitute]: ERROR: line %d: evaluation of CG_SUBSTITUTE_SPEC (%s) failed: %s\n",
             $p, $LINE_CNT, $spec, "ERROR in eval" ;
         return $savevar;
+    }
+
+    return $var;
+}
+
+sub sl_op
+#alias for :substituteliteral (literal substitute).
+{
+    return(substituteliteral_op(@_));
+}
+
+sub substituteliteral_op
+#process :substituteliteral postfix op (literal substitute).
+#TODO:  allow g modifier, i.e., substitute all occurances of literal
+{
+    my ($var) = @_;
+
+    my $spec = &lookup_def('CG_SUBSTITUTE_SPEC');
+    return $var unless (&var_defined('CG_SUBSTITUTE_SPEC'));
+
+    #skip over "s" in substitute spec:
+    $spec =~ s/\s*s\s*//;
+
+    #what is the delimiter?
+    my $sep = substr($spec, 0, 1);
+
+    #eliminate leading delimiter:
+    $spec =~ s/^$sep//;
+
+    #convert non-escaped separators to $;
+    $spec =~ s/\\\\/!#%EsCaPeD_BaCkSlAsHeS%#!/g; #substitute escaped backslashes with special pattern
+    $spec =~ s/$sep/$;/g;                        #convert sep chars to $;
+    $spec =~ s/\\$;/$sep/g;                      #revert escaped sep chars
+    $spec =~ s/!#%EsCaPeD_BaCkSlAsHeS%#!/\\\\/g; #revert escaped backslashes
+
+    my ($lit, $rep) = split($;, $spec, 2);
+
+    #eliminate trailing separator and pickoff modifiers:
+    my $modifiers = "";
+    $rep =~ s/$;(.*)$//;
+    $modifiers = $1 if defined($1);
+
+    my $isglobal = 0;
+    $isglobal = 1 if ($modifiers eq "g");  #currently g is the only allowed modifier
+
+#printf STDERR "substituteliteral_op: (sep lit rep modifiers isglobal)=('%s' '%s' '%s' '%s' '%s')\n", $sep, $lit, $rep, $modifiers, $isglobal;
+
+    #return if $lit is the same as $rep - this is a nop and will prevent loop below from terminating.
+    return $var if ($lit eq $rep);
+
+    my ($idx, $len) = (index($var, $lit), length($lit));
+
+#printf STDERR "substituteliteral_op: (idx,len)=(%d,%d)\n", $idx, $len;
+
+    #if literal is found in var, then replace it:
+    if ($idx >= 0) {
+        substr($var, $idx, $len) = $rep;
+
+        #replace all occurances if "g" specified:
+        while ($isglobal && ($idx = index($var, $lit)) >= 0) {
+            substr($var, $idx, $len) = $rep;
+        }
     }
 
     return $var;

@@ -1,0 +1,45 @@
+#test :literalsubstitute operator.
+
+tname= :literalsubstitute
+tnum = 0
+
+{
+    IN := *.(x){x}
+    %echo IN='$IN'
+
+    CG_COMPARE_SPEC := STARDOT(x){x}
+    CG_SUBSTITUTE_SPEC := s/*./STARDOT/
+
+    result=FAILED
+    %if $IN:substituteliteral:eq	result=PASSED
+    %echo $tname TEST #$tnum:incr:a $result
+
+    result=FAILED
+    %if $IN:sl:eq	result=PASSED
+    %echo $tname TEST #$tnum:incr:a $result
+}
+
+{
+    IN := *..*..(x)*.{x}
+    %echo IN='$IN'
+
+    CG_SUBSTITUTE_SPEC := s/*./STARDOT/g
+    CG_COMPARE_SPEC := STARDOT.STARDOT.(x)STARDOT{x}
+
+    result=FAILED
+    %if $IN:sl:eq	result=PASSED
+    %echo $tname TEST #$tnum:incr:a $result
+}
+
+{
+    IN := \/*..*..\\\/(x)*.\/{x}\\
+    %echo IN='$IN'
+
+    CG_SUBSTITUTE_SPEC := s/*./STARDOT/g
+    CG_COMPARE_SPEC := \/STARDOT.STARDOT.\\\/(x)STARDOT\/{x}\\
+#%echo CG_COMPARE_SPEC='$CG_COMPARE_SPEC' IN:substituteliteral='$IN:substituteliteral'
+
+    result=FAILED
+    %if $IN:sl:eq	result=PASSED
+    %echo $tname TEST #$tnum:incr:a $result
+}

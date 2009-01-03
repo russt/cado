@@ -71,6 +71,13 @@
 
 :substitute         - apply substitute pattern specified by $CG_SUBSTITUTE_SPEC
 :s                  - alias for :substitute
+:substituteliteral  - apply substitute specified by $CG_SUBSTITUTE_SPEC, ignoring meta-characters.
+                      For example:  
+                          CG_SUBSTITUTE_SPEC = s/.*(foo)/bloop/g
+                          somevar = $somevar:substituteliteral
+                      will change all literal occurances of the string '.*(foo)' in the input to 'bloop'.
+                      Note:  g is currently the only modifier allowed.
+:sl                 - alias for :substituteliteral
 
 :lspace             - add one leading space to string iff non-empty string.
 :rspace             - add one trailing space iff non-empty string.
@@ -450,6 +457,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %halt   [status]    - exit program with numeric <status>, or zero if <status> is not provided.
                       See also: $CG_EXIT_STATUS reserved variable
 %abort  [status]    - alias for %halt
+
 
 
 
