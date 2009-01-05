@@ -1,5 +1,5 @@
 VERSION = 1.71
-VERSION_DATE = 02-Jan-2009
+VERSION_DATE = 05-Jan-2009
 COPYRIGHT_RANGE = 2003-2009
 
 {
@@ -79,7 +79,7 @@ my (
 );
 
 #these are global variables that we share within the eval context of postfix ops, for example.
-#not that "my" variables are not entered in the symbol table and therefore cannot be looked up by name.
+#note that "my" variables are not entered in the symbol table and therefore cannot be looked up by name.
 our (
     $pragma_preserve_multiline_lnewline,
     $pragma_trim_multiline_rnewline,
@@ -617,31 +617,27 @@ sub pragma_spec
     #process the simple boolean pragmas:
     ########
 
-    #set the pragma through the reference we created earlier:
-    $$pragma_ref = $rhs;
-
-    #for pragmas that effect options, check value and set corresponding option:
-    my $err = 1;
-    if ($pragma_var eq "pragma_debug") {
-        $DEBUG   = $pragma_debug,   $err=0 if ($pragma_debug =~ /0|1/);
-    } elsif ($pragma_var eq "pragma_ddebug") {
-        $DDEBUG  = $pragma_ddebug,  $err=0 if ($pragma_ddebug =~ /0|1/);
-    } elsif ($pragma_var eq "pragma_quiet") {
-        $QUIET   = $pragma_quiet,   $err=0 if ($pragma_quiet =~ /0|1/);
-    } elsif ($pragma_var eq "pragma_verbose") {
-        $VERBOSE = $pragma_verbose, $err=0 if ($pragma_verbose =~ /0|1/);
-    } elsif ($pragma_var eq "pragma_update") {
-        $UPDATE = $pragma_update, $err=0 if ($pragma_update =~ /0|1/);
+    if ($rhs =~ /\d+/) {
+        #set the pragma through the reference we created earlier:
+        $$pragma_ref = $rhs;
     } else {
-        #not a simple option pragma:
-        $err = 0;
-    }
-
-    if ($err) {
         printf STDERR "%s: WARNING: %%pragma '%s': value '%s' must be in: {0,1}, file %s, line %d.\n",
             $p, $lhs, $rhs, $infile, $linecnt unless ($QUIET);
     }
     
+    #for pragmas that effect options, set corresponding option:
+    if ($pragma_var eq "pragma_debug") {
+        $DEBUG   = $pragma_debug;
+    } elsif ($pragma_var eq "pragma_ddebug") {
+        $DDEBUG  = $pragma_ddebug;
+    } elsif ($pragma_var eq "pragma_quiet") {
+        $QUIET   = $pragma_quiet;
+    } elsif ($pragma_var eq "pragma_verbose") {
+        $VERBOSE = $pragma_verbose;
+    } elsif ($pragma_var eq "pragma_update") {
+        $UPDATE = $pragma_update;
+    }
+
     return 1;
 }
 
@@ -3809,7 +3805,7 @@ CODEGEN_HEADER := << EOF
 #       Fixed bug in %ifdef whereby :undef vars were considered defined.
 #       Implemented %exec template operator (can also use back-tick syntax).
 #       Add :clrifndef op.  Add %pragma update.
-#  02-Jan-2009 (russt) [Version 1.71]
+#  05-Jan-2009 (russt) [Version 1.71]
 #       Correct copyright and version headers.
 #       Allow %undef patterns to be wrapped with /match/ or /^match$/.
 #       No longer truncate postfix op processing at :undef, so we can operate on undefined values (:clrifndef).
@@ -3817,6 +3813,7 @@ CODEGEN_HEADER := << EOF
 #       were reducing newline, and lines at EOF without EOL were adding newline.
 #       Fix bug in template expansion of lines containing "%s" sequences.
 #       The %pragma statement was not expanding the rhs pragma expression.
+#       Emit WARNING and ignore setting for simple boolean %pragma's, unless passed numeric value
 #       Add pragmas clrifndef and trim_multiline_rnewline.
 #       Add :pragmavalue op.
 #       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.

@@ -514,7 +514,7 @@ ${prefix}EOF
     $srdeftxt .= << "!";
 
 #restore normal behavior for here-now defs:
-\%pragma trim_multiline_rnewline = \$_save_trim_multiline_rnewline
+\%pragma trim_multiline_rnewline \$_save_trim_multiline_rnewline
 
 !
 

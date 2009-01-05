@@ -27,3 +27,4 @@ clrifndef=0
 
 set test: quiet=1
 reset test: quiet=0
+:pragmavalue TEST #1 PASSED

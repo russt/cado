@@ -1,5 +1,8 @@
 #test :pragmavalue op
 
+tname= :pragmavalue
+tnum = 0
+
 test1 := << EOF
 {
     %echo pragma quiet:pragmavalue is $quiet:pragmavalue
@@ -49,3 +52,11 @@ reset = 0
 
 %pragma quiet $reset
 %echo reset test: quiet=$quiet:pv
+
+#test that we get a warning if setting is bad:
+%pragma trim_multiline_rnewline 0
+%pragma trim_multiline_rnewline =bogus=
+
+result=FAILED
+%ifnot $trim_multiline_rnewline	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
