@@ -4,17 +4,21 @@
 #    :factorShSubs
 
 sh_txt := << EOF
+d()
+{
+    echo test that first line can be a subroutine dcl.
+}
 v_1="v_1 value"
 v2="v2 value"
 V3="V3 value"
 
-a()
+a ()
 {
 #test comments ignored: a:c;_123&B_o_B52s
     echo sub a: $v_1
 }
 
-B_o_B52s (  ){
+  B_o_B52s (  ){
     echo sub B_o_B52s: $v2
     #test refs within subroutine body:
     echo semicolon:;a;_123

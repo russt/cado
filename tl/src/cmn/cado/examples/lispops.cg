@@ -1,0 +1,26 @@
+%ifndef CG_ROOT CG_ROOT = .
+
+#test :car, :cdr
+
+mystack = a,b,c
+mystack = $mystack:split
+savestack = $mystack
+
+%echo car=$mystack:car
+%echo cdr=$mystack:cdr
+
+loop := << loop
+    %echo LOOP:  car=$mystack:car
+    mystack=$mystack:cdr
+loop
+
+#note that this will exit on first empty element:
+mystack = $savestack
+%while $mystack:car %call loop
+
+mystack = $savestack
+#this won't work too well.  best we can do is return ${mystack:undef}
+#Q:  should %whildef, %ifdef, etc, recognize ${varname:undef} as a legit value,
+#    and have the side effect of undefining the variable named iff the varname is the same as
+#    the one we are examining? SEEMS reasonable...
+%whiledef mystack %call loop

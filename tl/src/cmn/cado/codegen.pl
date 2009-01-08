@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.71 - 05-Jan-2009
+# @(#)codegen.pl - ver 1.72 - 07-Jan-2009
 #
 # Copyright 2003-2009 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -217,6 +217,11 @@
 #       Add %eval * (recursive) statement.
 #       TODO:  Add recursive (*) option to %evaltemplate statement.
 #       Add doc for %halt, %return, %if*, and other missing doc (trim ops, etc.)
+#  07-Jan-2009 (russt) [Version 1.72]
+#       Fix bug in :factorShSubs - was not using shsub_*_ref macro in subroutine() name declaration.
+#       Fix bug in %pop/%shift and :stacksize.  Was not handling empty-string elements correctly.
+#       Add test #36 to check %while/%whiledef looping methods using stacks; test handling of empty elements.
+#       Add examples directory and a few examples.
 #
 
 
@@ -227,8 +232,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.71",         #VERSION - the program version number.
-    "05-Jan-2009",  #VERSION_DATE - date this version was released.
+    "1.72",         #VERSION - the program version number.
+    "07-Jan-2009",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -709,7 +714,19 @@ sub popspec
     $line =~ s/\s*$//;
 
     #the rhs is the stack var, lhs is going to get the top element:
-    my ($topvarname, $stackvarname)  = split(/\s+/, $line, 2);
+    my (@tmp)  = split(/\s+/, $line, 2);
+    if ($#tmp < 1) {
+        #error - not enough parameters:
+        printf STDERR "%s[%s]: ERROR: line %d: too few parameters:  Usage:  %s topvar stackvar\n",
+            $p, $token, $linecnt, $token;
+
+        ++ $GLOBAL_ERROR_COUNT;
+        $CG_USER_VARS{'CG_EXIT_STATUS'} = 1;
+
+        return 1;  #we processed a %pop or %shift
+    }
+
+    my ($topvarname, $stackvarname)  = (@tmp[0,1]);
 
     #expand varible refs in statement:
     $stackvarname = &expand_macros($stackvarname);
@@ -727,17 +744,14 @@ sub popspec
     }
 
     my $stack_contents = $CG_USER_VARS{$stackvarname};
+    my (@stack) = ();
 
-    #if stack is empty, we return empty string and undefine the stack:
-    if ($stack_contents eq "") {
-        $CG_USER_VARS{$topvarname} = "";
-
-        #this stack is done:
-        delete $CG_USER_VARS{$stackvarname};
-        return 1;   #done
+    #note:  if stack is empty string, then we avoid split since it sets $#stack (incorrectly IMO) to -1
+    if ( $stack_contents eq '' ) {
+        push @stack, $stack_contents;
+    } else {
+        @stack = split($;, $stack_contents, -1); #preserve empty fields
     }
-
-    my (@stack) = split($;, $stack_contents, -1); #preserve empty fields
 
     if ($ispop) {
         #get the top (right end) of the stack:
@@ -4422,9 +4436,13 @@ sub stacksize_op
 
     return 0 unless (&var_defined($varname));
 
+    #this is because split on an empty string sets length of array incorrectly to -1.
+    return 1 if ($var eq '');
+
     my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
 
 #printf STDERR "stacksize_op: varname='%s' value='%s' #tmp=%d\n", $varname, $var, $#tmp;
+
     return $#tmp +1;
 }
 
@@ -5757,6 +5775,10 @@ sub factorShSubs_op
     #LOOP 1 - parse subroutines declarations and save them:
     #####
 
+    #prepend newline to fix bug where subroutine not detected if declared on first line:
+    #later, we will remove it.  fixed in 1.72.  RT 1/7/09
+    $var = "\n" . $var;
+
     while ($var =~ /$re/so ) {
         $wsp_leading = $1;
         $srname = $2;
@@ -5811,6 +5833,9 @@ sub factorShSubs_op
     #LOOP 3 - replace references to factored subroutines with macros:
     #####
 
+    #now it is safe to remove prepended newline:
+    $var =~ s/^\n//;
+
     #split variable text:
     my (@var) = split("\n", $var, -1);
 
@@ -5854,7 +5879,12 @@ _save_trim_multiline_rnewline = \$trim_multiline_rnewline:pragmavalue
     foreach $cg_srname (@cg_srnames_final) {
         $srname = $shsub_names{$cg_srname};
         my $cg_srname_ref = "${cg_srname}_ref";
+        my $cg_srname_ref_macro = "{=$cg_srname_ref=}";
         $srtxt = $shsub_defs{$cg_srname};
+
+        #change name of sub-routine to use reference:
+        #note:  srtxt retains whitespace in the subroutine declaration line, whereas srname is trimmed.
+        $srtxt =~ s/^(\s*)$srname(\s*\()/$1$cg_srname_ref_macro$2/;
 
         #output definition:
         $srdeftxt .= << "!";

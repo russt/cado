@@ -1,0 +1,22 @@
+%readtemplate FOO inc/foo.sh
+
+%echo
+%echo BEFORE FOO='$FOO'
+FOO = $FOO:factorShSubs
+%echo
+%echo AFTER FOO='$FOO'
+
+#%echo $CG_SHVAR_DEFS
+#%call CG_SHVAR_DEFS
+
+%call CG_SHSUB_DEFS
+%echo
+%echo $CG_SHSUB_DEFS
+
+shsub_a_ref = c
+shsub_b_ref = a
+shvar_foovar = blahvar
+
+%evalmacro* FOO FOO
+%echo
+%echo $FOO

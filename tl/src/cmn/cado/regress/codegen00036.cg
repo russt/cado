@@ -1,0 +1,85 @@
+#
+#test different ways to iterate thru a stack.
+#NOTE: codegen always uses perl var $; as the internal delimiter for stacks.
+#
+
+loop := << loop
+    %shift thetop loopstack
+    %echo LOOP:  thetop='$thetop'
+    %echo size=$loopstack:stacksize
+loop
+
+runtest := << EOF
+{
+    %echo TESTING WITH WHILE-STACKSIZE
+    loopstack = $mystack
+    %echo size=$loopstack:stacksize
+    %while $loopstack:stacksize  %call loop
+}
+EOF
+
+runtest2 := << EOF
+{
+    %echo TESTING WITH WHILEDEF
+    loopstack = $mystack
+    %echo size=$loopstack:stacksize
+    %whiledef loopstack  %call loop
+}
+EOF
+
+#
+#alternative 1, using built-in split pattern of /[\t,]/:
+%echo
+%echo initing with split
+mystack = a,b,c
+%void $mystack:split:a
+%call runtest
+
+#%return TESTING TESTING
+
+%echo
+%echo initing again with split
+CG_SPLIT_PATTERN = /\s+/
+mystack = << EOF
+a	b
+c
+EOF
+%void $mystack:split:a
+%call runtest
+%call runtest2
+
+%pragma trim_multiline_rnewline 1
+%echo
+%echo initing again with split in presence of %pragma trim_multiline_rnewline 1
+CG_SPLIT_PATTERN = /\s+/
+mystack = << EOF
+a	b
+c
+EOF
+%void $mystack:split:a
+%call runtest
+%call runtest2
+
+#alternative 2, using built-in stack delimiter of \t:
+%echo
+%echo initing with %push
+mystack =
+%push mystack a	b	c
+%call runtest
+
+%void $CG_STACK_DELIMITER:clr:space:a
+%echo
+%echo initing again with %push
+mystack =
+%push mystack a b c
+%call runtest
+%call runtest2
+
+#testing again with built-in stack delimiter after %pragma reset_stack_delimiter
+%pragma reset_stack_delimiter
+%echo
+%echo initing with %push and empty element after %pragma reset_stack_delimiter
+mystack =
+%push mystack a	b	c	
+%call runtest
+%call runtest2

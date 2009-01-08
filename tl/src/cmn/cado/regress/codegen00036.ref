@@ -1,0 +1,101 @@
+TESTNAME is codegen00036
+
+initing with split
+TESTING WITH WHILE-STACKSIZE
+size=3
+LOOP:  thetop='a'
+size=2
+LOOP:  thetop='b'
+size=1
+LOOP:  thetop='c'
+size=0
+
+initing again with split
+TESTING WITH WHILE-STACKSIZE
+size=4
+LOOP:  thetop='a'
+size=3
+LOOP:  thetop='b'
+size=2
+LOOP:  thetop='c'
+size=1
+LOOP:  thetop=''
+size=0
+TESTING WITH WHILEDEF
+size=4
+LOOP:  thetop='a'
+size=3
+LOOP:  thetop='b'
+size=2
+LOOP:  thetop='c'
+size=1
+LOOP:  thetop=''
+size=0
+
+initing again with split in presence of %pragma trim_multiline_rnewline 1
+TESTING WITH WHILE-STACKSIZE
+size=3
+LOOP:  thetop='a'
+size=2
+LOOP:  thetop='b'
+size=1
+LOOP:  thetop='c'
+size=0
+TESTING WITH WHILEDEF
+size=3
+LOOP:  thetop='a'
+size=2
+LOOP:  thetop='b'
+size=1
+LOOP:  thetop='c'
+size=0
+
+initing with %push
+TESTING WITH WHILE-STACKSIZE
+size=3
+LOOP:  thetop='a'
+size=2
+LOOP:  thetop='b'
+size=1
+LOOP:  thetop='c'
+size=0
+
+initing again with %push
+TESTING WITH WHILE-STACKSIZE
+size=3
+LOOP:  thetop='a'
+size=2
+LOOP:  thetop='b'
+size=1
+LOOP:  thetop='c'
+size=0
+TESTING WITH WHILEDEF
+size=3
+LOOP:  thetop='a'
+size=2
+LOOP:  thetop='b'
+size=1
+LOOP:  thetop='c'
+size=0
+
+initing with %push and empty element after %pragma reset_stack_delimiter
+TESTING WITH WHILE-STACKSIZE
+size=4
+LOOP:  thetop='a'
+size=3
+LOOP:  thetop='b'
+size=2
+LOOP:  thetop='c'
+size=1
+LOOP:  thetop=''
+size=0
+TESTING WITH WHILEDEF
+size=4
+LOOP:  thetop='a'
+size=3
+LOOP:  thetop='b'
+size=2
+LOOP:  thetop='c'
+size=1
+LOOP:  thetop=''
+size=0

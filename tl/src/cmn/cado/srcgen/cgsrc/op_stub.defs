@@ -389,9 +389,13 @@ sub stacksize_op
 
     return 0 unless (&var_defined($varname));
 
+    #this is because split on an empty string sets length of array incorrectly to -1.
+    return 1 if ($var eq '');
+
     my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
 
 #printf STDERR "stacksize_op: varname='%s' value='%s' #tmp=%d\n", $varname, $var, $#tmp;
+
     return $#tmp +1;
 }
 

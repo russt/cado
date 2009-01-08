@@ -120,12 +120,17 @@
                     SH/CSH REFACTORING
                     ==================
 :factorShSubs       - replace sh subroutine declarations with macros, and create macro definitions in
-                      CG_SHSUB_DEFS variable, which is cleared with each use.  Store list of
-                      subroutines processed in CG_SHSUB_LIST stack variable.  Exclude names
-                      matching CG_SHSUB_EXCLUDE_PATTERN if defined, and include only names
-                      matching CG_SHSUB_INCLUDE_PATTERN if defined.
+                      CG_SHSUB_DEFS variable, which is cleared with each use.  Store list of macro
+                      names for subroutines processed in CG_SHSUB_LIST stack variable.  Macro names are
+                      prepended with CG_SHSUB_PREFIX (see below).  Exclude names matching
+                      CG_SHSUB_EXCLUDE_PATTERN if defined, and only include names matching
+                      CG_SHSUB_INCLUDE_PATTERN, if defined, with excludes overriding includes.
 
-:factorShVars       - replace sh variable names and values with references with macros,
+                      References to the subroutine are appended with "_ref", for example:
+                          shsub_foo_ref, shsub_foo2_ref
+                      for references to subroutines foo(), foo2().
+
+:factorShVars       - replace sh variable names and values with references to macros,
                       and create list of variables processed in CG_SHVAR_LIST stack variable.
                       Exclude names matching CG_SHVAR_EXCLUDE_PATTERN if defined, and include
                       only names matching CG_SHVAR_INCLUDE_PATTERN if defined.
@@ -457,6 +462,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %halt   [status]    - exit program with numeric <status>, or zero if <status> is not provided.
                       See also: $CG_EXIT_STATUS reserved variable
 %abort  [status]    - alias for %halt
+
 
 
 

@@ -1,15 +1,19 @@
 TESTNAME is codegen00026
-BEGIN sh_txt='v_1="v_1 value"
+BEGIN sh_txt='d()
+{
+    echo test that first line can be a subroutine dcl.
+}
+v_1="v_1 value"
 v2="v2 value"
 V3="V3 value"
 
-a()
+a ()
 {
 #test comments ignored: a:c;_123&B_o_B52s
     echo sub a: $v_1
 }
 
-B_o_B52s (  ){
+  B_o_B52s (  ){
     echo sub B_o_B52s: $v2
     #test refs within subroutine body:
     echo semicolon:;a;_123
@@ -39,13 +43,14 @@ a;c;_123&B_o_B52s
 '
 
 {----------------
-:factorShSubs test 1        OUT='v_1="v_1 value"
+:factorShSubs test 1        OUT='{=shsub_d=}
+v_1="v_1 value"
 v2="v2 value"
 V3="V3 value"
 
 {=shsub_a=}
 
-{=shsub_B_o_B52s=}
+  {=shsub_B_o_B52s=}
 
 # c() { echo sub c }
 
@@ -60,15 +65,25 @@ V3="V3 value"
     # a;c;_123&B_o_B52s
 {=shsub_a_ref=};{=shsub_c_ref=};{=shsub__123_ref=}&{=shsub_B_o_B52s_ref=}
 '
-:factorShSubs test 1  CG_SHSUB_LIST='a	B_o_B52s	c	_123'
+:factorShSubs test 1  CG_SHSUB_LIST='d	a	B_o_B52s	c	_123'
 :factorShSubs test 1  CG_SHSUB_DEFS='_save_trim_multiline_rnewline = $trim_multiline_rnewline:pragmavalue
 %pragma trim_multiline_rnewline 1
+
+
+##sh subroutine d()
+shsub_d_ref := d
+shsub_d := << shsub_EOF
+{=shsub_d_ref=}()
+{
+    echo test that first line can be {=shsub_a_ref=} subroutine dcl.
+}
+shsub_EOF
 
 
 ##sh subroutine a()
 shsub_a_ref := a
 shsub_a := << shsub_EOF
-a()
+{=shsub_a_ref=} ()
 {
 #test comments ignored: a:c;_123&B_o_B52s
     echo sub {=shsub_a_ref=}: $v_1
@@ -92,7 +107,7 @@ shsub_EOF
 ##sh subroutine c()
 shsub_c_ref := c
 shsub_c := << shsub_EOF
-c()
+{=shsub_c_ref=}()
 {
 echo sub {=shsub_c_ref=}: $V3
 }
@@ -102,7 +117,7 @@ shsub_EOF
 ##sh subroutine _123()
 shsub__123_ref := _123
 shsub__123 := << shsub_EOF
-_123()
+{=shsub__123_ref=}()
 {
 echo sub {=shsub__123_ref=}
 a=${v2}
@@ -120,13 +135,14 @@ CG_SHSUB_PREFIX=shsub_
 POSTFIX OPERATOR :factorShSubs TEST #2 PASSED
 
 {----------------
-:factorShSubs test 3        OUT='v_1="v_1 value"
+:factorShSubs test 3        OUT='{=CBSUB_d=}
+v_1="v_1 value"
 v2="v2 value"
 V3="V3 value"
 
 {=CBSUB_a=}
 
-{=CBSUB_B_o_B52s=}
+  {=CBSUB_B_o_B52s=}
 
 # c() { echo sub c }
 
@@ -141,15 +157,25 @@ V3="V3 value"
     # a;c;_123&B_o_B52s
 {=CBSUB_a_ref=};{=CBSUB_c_ref=};{=CBSUB__123_ref=}&{=CBSUB_B_o_B52s_ref=}
 '
-:factorShSubs test 3  CG_SHSUB_LIST='a	B_o_B52s	c	_123'
+:factorShSubs test 3  CG_SHSUB_LIST='d	a	B_o_B52s	c	_123'
 :factorShSubs test 3  CG_SHSUB_DEFS='_save_trim_multiline_rnewline = $trim_multiline_rnewline:pragmavalue
 %pragma trim_multiline_rnewline 1
+
+
+##sh subroutine d()
+CBSUB_d_ref := d
+CBSUB_d := << CBSUB_EOF
+{=CBSUB_d_ref=}()
+{
+    echo test that first line can be {=CBSUB_a_ref=} subroutine dcl.
+}
+CBSUB_EOF
 
 
 ##sh subroutine a()
 CBSUB_a_ref := a
 CBSUB_a := << CBSUB_EOF
-a()
+{=CBSUB_a_ref=} ()
 {
 #test comments ignored: a:c;_123&B_o_B52s
     echo sub {=CBSUB_a_ref=}: $v_1
@@ -173,7 +199,7 @@ CBSUB_EOF
 ##sh subroutine c()
 CBSUB_c_ref := c
 CBSUB_c := << CBSUB_EOF
-c()
+{=CBSUB_c_ref=}()
 {
 echo sub {=CBSUB_c_ref=}: $V3
 }
@@ -183,7 +209,7 @@ CBSUB_EOF
 ##sh subroutine _123()
 CBSUB__123_ref := _123
 CBSUB__123 := << CBSUB_EOF
-_123()
+{=CBSUB__123_ref=}()
 {
 echo sub {=CBSUB__123_ref=}
 a=${v2}
@@ -201,13 +227,17 @@ POSTFIX OPERATOR :factorShSubs TEST #4 PASSED
 INCLUDE is /^(a|B.*)$/
 
 {----------------
-:factorShSubs test 5        OUT='v_1="v_1 value"
+:factorShSubs test 5        OUT='d()
+{
+    echo test that first line can be {=shsub_a_ref=} subroutine dcl.
+}
+v_1="v_1 value"
 v2="v2 value"
 V3="V3 value"
 
 {=shsub_a=}
 
-{=shsub_B_o_B52s=}
+  {=shsub_B_o_B52s=}
 
 # c() { echo sub c }
 
@@ -237,7 +267,7 @@ _123
 ##sh subroutine a()
 shsub_a_ref := a
 shsub_a := << shsub_EOF
-a()
+{=shsub_a_ref=} ()
 {
 #test comments ignored: a:c;_123&B_o_B52s
     echo sub {=shsub_a_ref=}: $v_1
@@ -268,17 +298,18 @@ POSTFIX OPERATOR :factorShSubs TEST #6 PASSED
 EXCLUDE is /^(a|B.*)$/
 
 {----------------
-:factorShSubs test 7        OUT='v_1="v_1 value"
+:factorShSubs test 7        OUT='{=shsub_d=}
+v_1="v_1 value"
 v2="v2 value"
 V3="V3 value"
 
-a()
+a ()
 {
 #test comments ignored: a:c;_123&B_o_B52s
     echo sub a: $v_1
 }
 
-B_o_B52s (  ){
+  B_o_B52s (  ){
     echo sub B_o_B52s: $v2
     #test refs within subroutine body:
     echo semicolon:;a;{=shsub__123_ref=}
@@ -299,15 +330,25 @@ B_o_B52s
     # a;c;_123&B_o_B52s
 a;{=shsub_c_ref=};{=shsub__123_ref=}&B_o_B52s
 '
-:factorShSubs test 7  CG_SHSUB_LIST='c	_123'
+:factorShSubs test 7  CG_SHSUB_LIST='d	c	_123'
 :factorShSubs test 7  CG_SHSUB_DEFS='_save_trim_multiline_rnewline = $trim_multiline_rnewline:pragmavalue
 %pragma trim_multiline_rnewline 1
+
+
+##sh subroutine d()
+shsub_d_ref := d
+shsub_d := << shsub_EOF
+{=shsub_d_ref=}()
+{
+    echo test that first line can be a subroutine dcl.
+}
+shsub_EOF
 
 
 ##sh subroutine c()
 shsub_c_ref := c
 shsub_c := << shsub_EOF
-c()
+{=shsub_c_ref=}()
 {
 echo sub {=shsub_c_ref=}: $V3
 }
@@ -317,7 +358,7 @@ shsub_EOF
 ##sh subroutine _123()
 shsub__123_ref := _123
 shsub__123 := << shsub_EOF
-_123()
+{=shsub__123_ref=}()
 {
 echo sub {=shsub__123_ref=}
 a=${v2}
@@ -335,13 +376,17 @@ POSTFIX OPERATOR :factorShSubs TEST #8 PASSED
 INCLUDE is /^(a|B.*|c|_\d*)$/, EXCLUDE is /^(c)$/
 
 {----------------
-:factorShSubs test 9        OUT='v_1="v_1 value"
+:factorShSubs test 9        OUT='d()
+{
+    echo test that first line can be {=shsub_a_ref=} subroutine dcl.
+}
+v_1="v_1 value"
 v2="v2 value"
 V3="V3 value"
 
 {=shsub_a=}
 
-{=shsub_B_o_B52s=}
+  {=shsub_B_o_B52s=}
 
 # c() { echo sub c }
 
@@ -367,7 +412,7 @@ c
 ##sh subroutine a()
 shsub_a_ref := a
 shsub_a := << shsub_EOF
-a()
+{=shsub_a_ref=} ()
 {
 #test comments ignored: a:c;_123&B_o_B52s
     echo sub {=shsub_a_ref=}: $v_1
@@ -391,7 +436,7 @@ shsub_EOF
 ##sh subroutine _123()
 shsub__123_ref := _123
 shsub__123 := << shsub_EOF
-_123()
+{=shsub__123_ref=}()
 {
 echo sub {=shsub__123_ref=}
 a=${v2}

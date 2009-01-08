@@ -399,6 +399,10 @@ sub factorShSubs_op
     #LOOP 1 - parse subroutines declarations and save them:
     #####
 
+    #prepend newline to fix bug where subroutine not detected if declared on first line:
+    #later, we will remove it.  fixed in 1.72.  RT 1/7/09
+    $var = "\n" . $var;
+
     while ($var =~ /$re/so ) {
         $wsp_leading = $1;
         $srname = $2;
@@ -453,6 +457,9 @@ sub factorShSubs_op
     #LOOP 3 - replace references to factored subroutines with macros:
     #####
 
+    #now it is safe to remove prepended newline:
+    $var =~ s/^\n//;
+
     #split variable text:
     my (@var) = split("\n", $var, -1);
 
@@ -496,7 +503,12 @@ _save_trim_multiline_rnewline = \$trim_multiline_rnewline:pragmavalue
     foreach $cg_srname (@cg_srnames_final) {
         $srname = $shsub_names{$cg_srname};
         my $cg_srname_ref = "${cg_srname}_ref";
+        my $cg_srname_ref_macro = "{=$cg_srname_ref=}";
         $srtxt = $shsub_defs{$cg_srname};
+
+        #change name of sub-routine to use reference:
+        #note:  srtxt retains whitespace in the subroutine declaration line, whereas srname is trimmed.
+        $srtxt =~ s/^(\s*)$srname(\s*\()/$1$cg_srname_ref_macro$2/;
 
         #output definition:
         $srdeftxt .= << "!";
