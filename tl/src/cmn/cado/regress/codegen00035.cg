@@ -43,3 +43,17 @@ tnum = 0
     %if $IN:sl:eq	result=PASSED
     %echo $tname TEST #$tnum:incr:a $result
 }
+
+{
+    #test when we have unescaped separators in input
+    IN := 1/test/2
+    %echo IN='$IN'
+
+    CG_SUBSTITUTE_SPEC := s//test//.test./
+    CG_COMPARE_SPEC := 1.test.2
+#%echo CG_COMPARE_SPEC='$CG_COMPARE_SPEC' IN:substituteliteral='$IN:substituteliteral'
+
+    result=FAILED
+    %if $IN:sl:eq	result=PASSED
+    %echo $tname TEST #$tnum:incr:a $result
+}

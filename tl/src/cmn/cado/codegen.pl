@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.72 - 07-Jan-2009
+# @(#)codegen.pl - ver 1.72 - 09-Jan-2009
 #
 # Copyright 2003-2009 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -217,9 +217,10 @@
 #       Add %eval * (recursive) statement.
 #       TODO:  Add recursive (*) option to %evaltemplate statement.
 #       Add doc for %halt, %return, %if*, and other missing doc (trim ops, etc.)
-#  07-Jan-2009 (russt) [Version 1.72]
+#  09-Jan-2009 (russt) [Version 1.72]
 #       Fix bug in :factorShSubs - was not using shsub_*_ref macro in subroutine() name declaration.
 #       Fix bug in %pop/%shift and :stacksize.  Was not handling empty-string elements correctly.
+#       Issue warning if :substituteliteral contains too many separators, and guess where separators belong.
 #       Add test #36 to check %while/%whiledef looping methods using stacks; test handling of empty elements.
 #       Add examples directory and a few examples.
 #
@@ -233,7 +234,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.72",         #VERSION - the program version number.
-    "07-Jan-2009",  #VERSION_DATE - date this version was released.
+    "09-Jan-2009",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -4182,13 +4183,13 @@ sub sl_op
 
 sub substituteliteral_op
 #process :substituteliteral postfix op (literal substitute).
-#TODO:  allow g modifier, i.e., substitute all occurances of literal
 {
     my ($var) = @_;
 
     my $spec = &lookup_def('CG_SUBSTITUTE_SPEC');
     return $var unless (&var_defined('CG_SUBSTITUTE_SPEC'));
 
+    my $input_spec = $spec;    #save original for messages.
     #skip over "s" in substitute spec:
     $spec =~ s/\s*s\s*//;
 
@@ -4204,12 +4205,34 @@ sub substituteliteral_op
     $spec =~ s/\\$;/$sep/g;                      #revert escaped sep chars
     $spec =~ s/!#%EsCaPeD_BaCkSlAsHeS%#!/\\\\/g; #revert escaped backslashes
 
-    my ($lit, $rep) = split($;, $spec, 2);
-
-    #eliminate trailing separator and pickoff modifiers:
+    my (@tmp) = split($;, $spec, -1);
+    my ($lit, $rep) = ("", "");
     my $modifiers = "";
-    $rep =~ s/$;(.*)$//;
-    $modifiers = $1 if defined($1);
+
+    ###
+    #Set subst/replace strings.  try to compensate for some common user errors.
+    ###
+    if ($#tmp == 2) {
+        #case I:  3 elements:  lit/rep/modfiers  (modifiers can be empty)
+        #                      0   1   2
+        ($lit, $rep, $modifiers) = @tmp;
+    } elsif ($#tmp == 1) {
+        #case II:  2 elements:  lit/rep
+        #                       0   1
+        #we assume user forgot to add final separator.
+        ($lit, $rep) = @tmp;
+    } elsif ($#tmp > 2) {
+        #case II:  >2 elements:  lit/rep/modifiers
+        #                        0   $-1
+        #either lit or rep has separators.  we assume lit and issue warning.
+
+        my $nn = $#tmp;
+#printf STDERR "nn=%d tmp=(%s)\n", $nn, join('!', @tmp);
+        ($lit, $rep, $modifiers) = (join($sep, @tmp[0..$nn-2]), $tmp[$nn-1], $tmp[$nn]);
+
+    printf STDERR "%s[substituteliteral]: WARNING: line %d: too many separators in CG_SUBSTITUTE_SPEC (%s) - assuming they belong to lhs.\n",
+            $p, $LINE_CNT, $input_spec unless($QUIET);
+    }
 
     my $isglobal = 0;
     $isglobal = 1 if ($modifiers eq "g");  #currently g is the only allowed modifier

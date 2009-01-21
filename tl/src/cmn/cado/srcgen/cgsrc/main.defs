@@ -1,5 +1,5 @@
 VERSION = 1.72
-VERSION_DATE = 07-Jan-2009
+VERSION_DATE = 09-Jan-2009
 COPYRIGHT_RANGE = 2003-2009
 
 {
@@ -3832,9 +3832,10 @@ CODEGEN_HEADER := << EOF
 #       Add %eval * (recursive) statement.
 #       TODO:  Add recursive (*) option to %evaltemplate statement.
 #       Add doc for %halt, %return, %if*, and other missing doc (trim ops, etc.)
-#  07-Jan-2009 (russt) [Version 1.72]
+#  09-Jan-2009 (russt) [Version 1.72]
 #       Fix bug in :factorShSubs - was not using shsub_*_ref macro in subroutine() name declaration.
 #       Fix bug in %pop/%shift and :stacksize.  Was not handling empty-string elements correctly.
+#       Issue warning if :substituteliteral contains too many separators, and guess where separators belong.
 #       Add test #36 to check %while/%whiledef looping methods using stacks; test handling of empty elements.
 #       Add examples directory and a few examples.
 #
