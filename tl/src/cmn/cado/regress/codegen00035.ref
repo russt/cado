@@ -6,3 +6,5 @@ IN='*..*..(x)*.{x}'
 :literalsubstitute TEST #3 PASSED
 IN='\/*..*..\\\/(x)*.\/{x}\\'
 :literalsubstitute TEST #4 PASSED
+IN='1/test/2'
+:literalsubstitute TEST #5 PASSED
