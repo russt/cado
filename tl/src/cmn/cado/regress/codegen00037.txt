@@ -1,0 +1,9 @@
+{=#####=}
+{=#test %assign command: =}
+{=%assign foo = hello =}{=%a foo .= world=}
+{=$foo:_p=}
+{=#####=}
+{=#test xml attribute variables: =}
+{=%a foo = Last week was spent learning enough xslt to "data-mine" the Safari Browser history.=}
+{=%a CG_ATTRIBUTE_span = style="font-family: Verdana;"=}
+{=$foo:_span:_p=}

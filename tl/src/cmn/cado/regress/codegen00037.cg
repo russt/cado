@@ -1,0 +1,17 @@
+#
+#test %assign template macro
+#
+
+#CG_TEMPLATES = .
+#CG_ROOT = .
+
+%ifndef CG_ROOT %echo setting CG_ROOT because it is not defined
+
+%ifndef CG_ROOT CG_ROOT = ./bld
+
+%echo CG_ROOT is now defined to be '$CG_ROOT'
+
+ds := $
+$TESTNAME.txt    /$TESTNAME.gen
+
+%cat $CG_ROOT/$TESTNAME.gen

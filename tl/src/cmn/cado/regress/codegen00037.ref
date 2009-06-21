@@ -1,0 +1,4 @@
+TESTNAME is codegen00037
+CG_ROOT is now defined to be '../bld/cgtstroot'
+<p>hello world</p>
+<p><span style="font-family: Verdana;">Last week was spent learning enough xslt to "data-mine" the Safari Browser history.</span></p>

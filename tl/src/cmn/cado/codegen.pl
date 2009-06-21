@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.72 - 09-Jan-2009
+# @(#)codegen.pl - ver 1.73 - 20-Jun-2009
 #
 # Copyright 2003-2009 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -223,7 +223,8 @@
 #       Issue warning if :substituteliteral contains too many separators, and guess where separators belong.
 #       Add test #36 to check %while/%whiledef looping methods using stacks; test handling of empty elements.
 #       Add examples directory and a few examples.
-#
+#  20-Jun-2009 (russt) [Version 1.73]
+#       Add %assign (alias %a) template operator.
 
 
 use strict;
@@ -233,8 +234,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.72",         #VERSION - the program version number.
-    "09-Jan-2009",  #VERSION_DATE - date this version was released.
+    "1.73",         #VERSION - the program version number.
+    "20-Jun-2009",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -356,6 +357,8 @@ my %MACRO_FUNCTIONS = (
     'gen_javadoc', \&cg_gen_javadoc,
     'echo', \&cg_echo,
     'exec', \&cg_exec,
+    'assign', \&cg_assign,
+    'a', \&cg_assign,
 );
 
 #keep track of template file descriptors for nested includes:
@@ -3205,6 +3208,32 @@ sub cg_exec
     $CG_USER_VARS{'CG_SHELL_STATUS'} = 255;    #unless shell sets status, we assume bad
     print $outfile_ref `sh -c '$cmd'`;
     $CG_USER_VARS{'CG_SHELL_STATUS'} = $?;
+
+    return 0;
+}
+
+sub cg_assign
+#this executes a restricted form of the assignment statement from within a macro.
+#
+#Example:  {=%assign foo = blah=}
+#
+#will create a variable $foo with contents 'blah'.
+{
+    my($outfile_ref, $assignment_txt) = @_;
+        #note:  outfile_ref is unused here, as there is no output generated from the assignment.
+    my $token = "cg_assign";
+
+    printf STDERR "%s[%s]: assignment_txt=%s\n", $p, $token, $assignment_txt if ($DEBUG);
+
+    return 0 if ($assignment_txt eq "");
+
+    my ($lhs, $rhs, $is_multiline, $eoi_tok) = ("", "", 0, "");
+    my ($is_raw) = 0;     #for := assignment operator
+    my ($is_append) = 0;  #for .= assignment operator
+    my ($numop) = 0;   #for +=, -=, /=, *= ...
+
+    #now we can call normal definition parser:
+    &definition($assignment_txt, 0, \$lhs, \$rhs, \$is_multiline, \$eoi_tok, \$is_raw, \$is_append, \$numop);
 
     return 0;
 }

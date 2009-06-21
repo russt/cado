@@ -1,7 +1,7 @@
 
                     =========================
                      Codegen Quick Reference
-                    Version 1.72, 09-Jan-2009
+                    Version 1.73, 20-Jun-2009
                     =========================
 
 {
@@ -42,6 +42,7 @@
                     =============
 :xmlcomment         - wrap $var in xml comment:
 :xmlcommentblock    - wrap $var in multi-line xml comment: #wrap the input string in an xml comment
+:_<element_name>    - wrap $var in <element_name>, adding CG_ATTRIBUTE_<element_name> attributes, if defined.
 
                     ================
                     STRING OPERATORS
@@ -472,12 +473,21 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 
 
 
+
                     ===================
                     TEMPLATE EXPANSIONS
                     ===================
+{=#comment=}        - a comment. ignored and eliminated from output.
+
 {=SIMPLE_VAR=}      - expand $SIMPLE_VAR into template.
 {=<expr>=}          - expand <expr> into template, where <expr> is expanded as in in rhs of simple
                       assignment statement.
+
+{=%assign <definition expression>=}
+{=%a <definition expression>=}
+                    - evaluate <definition expression>, just as if it appeared as a statement.
+                      example:  {=%a foo = hello world=}  will create $foo with value "hello world".
+
 {=%echo <expr>=}    - expand <expr> into output.  auto-eval template macros if "%pragma echo_expands" is set.
                       (note that auto-eval is not available in simpler form: {=<expr>=}).
 

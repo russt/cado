@@ -42,6 +42,7 @@
                     =============
 :xmlcomment         - wrap $var in xml comment:
 :xmlcommentblock    - wrap $var in multi-line xml comment: #wrap the input string in an xml comment
+:_<element_name>    - wrap $var in <element_name>, adding CG_ATTRIBUTE_<element_name> attributes, if defined.
 
                     ================
                     STRING OPERATORS
@@ -462,6 +463,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %halt   [status]    - exit program with numeric <status>, or zero if <status> is not provided.
                       See also: $CG_EXIT_STATUS reserved variable
 %abort  [status]    - alias for %halt
+
 
 
 
