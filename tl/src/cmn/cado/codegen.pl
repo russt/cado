@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.73 - 20-Jun-2009
+# @(#)codegen.pl - ver 1.74 - 22-Jun-2009
 #
 # Copyright 2003-2009 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -225,6 +225,8 @@
 #       Add examples directory and a few examples.
 #  20-Jun-2009 (russt) [Version 1.73]
 #       Add %assign (alias %a) template operator.
+#  22-Jun-2009 (russt) [Version 1.74]
+#       Require whitespace to disambiguate "x=" op, e.g. use "xx x=10" instead of "xxx=10".
 
 
 use strict;
@@ -234,8 +236,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.73",         #VERSION - the program version number.
-    "20-Jun-2009",  #VERSION_DATE - date this version was released.
+    "1.74",         #VERSION - the program version number.
+    "22-Jun-2009",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -2201,9 +2203,9 @@ sub definition
     } elsif ($line =~ /^\s*([^\*\s]*)\s*\*\*=\s*(.*)$/) {
         $lhs = $1; $numop = ord('e'); $rhs = $2;  # 'e' for exponent
 #printf STDERR "T2 lhs='%s' rhs='%s' numop=%d(%s)\n", $lhs, $rhs, $numop, chr($numop);
-    #} elsif ($line =~ /^\s*([^\s:\.\/\*\+\-\%\&\|\^]*)\s*([:\.\/\*\+\-\%\&\|\^])=\s*(.*)$/) {
-    #this is really looking for:  var_expr op data_expr
-    } elsif ($line =~ /^\s*([a-zA-Z_0-9\${}:]*)\s*([x:\.\/\*\+\-\%\&\|\^])=\s*(.*)$/) {
+    } elsif ( ($line =~ /^\s*([a-zA-Z_0-9\${}:]+)\s*([:\.\/\*\+\-\%\&\|\^])=\s*(.*)$/) ||
+              ($line =~ /^\s*([a-zA-Z_0-9\${}:]+)\s+(x)=\s*(.*)$/) ) {
+        #note second case:  x= requires a space in front to disambiguate "xx=rhs" from "x x=rhs"
         $lhs = $1; $numop = ord($2); $rhs = $3;
         if ($numop == ord('.')) {
             $is_append = 1; $numop=0;

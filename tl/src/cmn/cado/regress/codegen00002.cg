@@ -277,6 +277,7 @@ foo:=.=
 foo:=.:=
 %echo foo='$foo'
 
+{
 #####
 #test exotic assignment operators:
 #####
@@ -313,7 +314,7 @@ foo ^= 2
 
 foo x= 10
 %echo foo x= 10 -> foo=$foo
-
+}
 
 %echo
 msg := rerun with $foovar = foo on the lhs:
@@ -401,3 +402,50 @@ ${foo:nameof} := 10
 
 ${foo_2:nameof}:=10
 %echo foo_2:=10 -> foo_2=$foo_2
+
+{
+#####
+#test again with no whitespace:
+#####
+
+%echo rerun exotic assignment operators without whitespace
+
+foo=2
+%echo foo=2 -> foo=$foo
+
+foo-=2
+%echo foo-=2 -> foo=$foo
+
+foo+=2
+%echo foo+=2 -> foo=$foo
+
+foo*=2
+%echo foo*=2 -> foo=$foo
+
+foo/=2
+%echo foo/=2 -> foo=$foo
+
+foo**=3
+%echo foo**=3 -> foo=$foo
+
+foo%=3
+%echo foo%=3 -> foo=$foo
+
+foo|=4
+%echo foo|=4 -> foo=$foo
+
+foo&=2
+%echo foo&=2 -> foo=$foo
+
+foo^=2
+%echo foo^=2 -> foo=$foo
+
+#this should be intepreted as foox = 10, not foo x= 10.  RT 6/22/09
+foo = x
+foo x= 10
+%echo foo x= 10 -> foo=$foo
+foox = x
+foox=10
+%echo foox=10 -> foox=$foox
+}
+

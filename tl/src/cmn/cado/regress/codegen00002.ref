@@ -104,3 +104,16 @@ foo x= 10 -> foo=0000000000
 more tests  with ${foo:nameof} on the lhs:
 foo := 10 -> foo=10
 foo_2:=10 -> foo_2=10
+rerun exotic assignment operators without whitespace
+foo=2 -> foo=2
+foo-=2 -> foo=0
+foo+=2 -> foo=2
+foo*=2 -> foo=4
+foo/=2 -> foo=2
+foo**=3 -> foo=8
+foo%=3 -> foo=2
+foo|=4 -> foo=6
+foo&=2 -> foo=2
+foo^=2 -> foo=0
+foo x= 10 -> foo=xxxxxxxxxx
+foox=10 -> foox=10

@@ -1,5 +1,5 @@
-VERSION = 1.73
-VERSION_DATE = 20-Jun-2009
+VERSION = 1.74
+VERSION_DATE = 22-Jun-2009
 COPYRIGHT_RANGE = 2003-2009
 
 {
@@ -1984,9 +1984,9 @@ sub definition
     } elsif ($line =~ /^\s*([^\*\s]*)\s*\*\*=\s*(.*)$/) {
         $lhs = $1; $numop = ord('e'); $rhs = $2;  # 'e' for exponent
 #printf STDERR "T2 lhs='%s' rhs='%s' numop=%d(%s)\n", $lhs, $rhs, $numop, chr($numop);
-    #} elsif ($line =~ /^\s*([^\s:\.\/\*\+\-\%\&\|\^]*)\s*([:\.\/\*\+\-\%\&\|\^])=\s*(.*)$/) {
-    #this is really looking for:  var_expr op data_expr
-    } elsif ($line =~ /^\s*([a-zA-Z_0-9\${}:]*)\s*([x:\.\/\*\+\-\%\&\|\^])=\s*(.*)$/) {
+    } elsif ( ($line =~ /^\s*([a-zA-Z_0-9\${}:]+)\s*([:\.\/\*\+\-\%\&\|\^])=\s*(.*)$/) ||
+              ($line =~ /^\s*([a-zA-Z_0-9\${}:]+)\s+(x)=\s*(.*)$/) ) {
+        #note second case:  x= requires a space in front to disambiguate "xx=rhs" from "x x=rhs"
         $lhs = $1; $numop = ord($2); $rhs = $3;
         if ($numop == ord('.')) {
             $is_append = 1; $numop=0;
@@ -3868,6 +3868,8 @@ CODEGEN_HEADER := << EOF
 #       Add examples directory and a few examples.
 #  20-Jun-2009 (russt) [Version 1.73]
 #       Add %assign (alias %a) template operator.
+#  22-Jun-2009 (russt) [Version 1.74]
+#       Require whitespace to disambiguate "x=" op, e.g. use "xx x=10" instead of "xxx=10".
 
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER
