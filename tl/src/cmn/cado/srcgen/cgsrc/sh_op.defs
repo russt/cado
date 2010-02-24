@@ -491,7 +491,7 @@ sub factorShSubs_op
     #set pragma to trim final newlines in here-now defs we generate for subroutines.
     #this allows us to substitute macros and restore the spacing of the original text.
     my $srdeftxt = << "!";
-_save_trim_multiline_rnewline = \$trim_multiline_rnewline:pragmavalue
+_save_trim_multiline_rnewline = \$trim_multiline_rnewline:nameof:pragmavalue
 \%pragma trim_multiline_rnewline 1
 
 !

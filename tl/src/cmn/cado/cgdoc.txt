@@ -1,7 +1,7 @@
 
                     =========================
                      Codegen Quick Reference
-                    Version 1.74, 22-Jun-2009
+                    Version 1.75, 20-Feb-2010
                     =========================
 
 {
@@ -251,7 +251,7 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
                           %echo pragma quiet=$quiet:nameof:pragmavalue
                       will display "pragma quiet=1"
                       Note that $quiet:pragmavalue is shorthand for $quiet:nameof:pragmavalue
-                      iff $quiet:valueof is undefined.
+                      iff $quiet:valueof is undefined or empty.
 
 }
 

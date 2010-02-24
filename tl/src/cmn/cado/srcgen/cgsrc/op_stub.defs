@@ -455,7 +455,7 @@ sub pragmavalue_op
 {
     my ($var, $varname, $linecnt) = @_;
     #use varname if contents is undefined:
-    my $pragma_name = (&isUndefinedVarnameValue($varname,$var) ? $varname : $var);
+    my $pragma_name = ( (&isUndefinedVarnameValue($varname,$var) || $var eq "") ? $varname : $var);
 
 #printf STDERR "pragmavalue_op A: varname='%s' var='%s' pragma_name='%s'\n", $varname, $var, $pragma_name;
 #printf STDERR "%s='%s'\n", "pragma_preserve_multiline_lnewline", $pragma_preserve_multiline_lnewline;

@@ -1,6 +1,6 @@
-VERSION = 1.74
-VERSION_DATE = 22-Jun-2009
-COPYRIGHT_RANGE = 2003-2009
+VERSION = 1.75
+VERSION_DATE = 20-Feb-2010
+COPYRIGHT_RANGE = 2003-2010
 
 {
 CODEGEN_PACKAGE := << EOF
@@ -3870,6 +3870,9 @@ CODEGEN_HEADER := << EOF
 #       Add %assign (alias %a) template operator.
 #  22-Jun-2009 (russt) [Version 1.74]
 #       Require whitespace to disambiguate "x=" op, e.g. use "xx x=10" instead of "xxx=10".
+#  20-Feb-2010 (russt) [Version 1.75]
+#       Use :nameof in trim_multiline_rnewline save/restore in :factorShSubs.  Change :pragmavalue to use
+#       :nameof if var is undefined or empty instead of just undefined.
 
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER

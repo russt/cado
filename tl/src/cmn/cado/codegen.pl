@@ -21,9 +21,9 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.74 - 22-Jun-2009
+# @(#)codegen.pl - ver 1.75 - 20-Feb-2010
 #
-# Copyright 2003-2009 Sun Microsystems, Inc. All Rights Reserved.
+# Copyright 2003-2010 Sun Microsystems, Inc. All Rights Reserved.
 #
 # END_HEADER - DO NOT EDIT
 #
@@ -227,6 +227,9 @@
 #       Add %assign (alias %a) template operator.
 #  22-Jun-2009 (russt) [Version 1.74]
 #       Require whitespace to disambiguate "x=" op, e.g. use "xx x=10" instead of "xxx=10".
+#  20-Feb-2010 (russt) [Version 1.75]
+#       Use :nameof in trim_multiline_rnewline save/restore in :factorShSubs.  Change :pragmavalue to use
+#       :nameof if var is undefined or empty instead of just undefined.
 
 
 use strict;
@@ -236,8 +239,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.74",         #VERSION - the program version number.
-    "22-Jun-2009",  #VERSION_DATE - date this version was released.
+    "1.75",         #VERSION - the program version number.
+    "20-Feb-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -4534,7 +4537,7 @@ sub pragmavalue_op
 {
     my ($var, $varname, $linecnt) = @_;
     #use varname if contents is undefined:
-    my $pragma_name = (&isUndefinedVarnameValue($varname,$var) ? $varname : $var);
+    my $pragma_name = ( (&isUndefinedVarnameValue($varname,$var) || $var eq "") ? $varname : $var);
 
 #printf STDERR "pragmavalue_op A: varname='%s' var='%s' pragma_name='%s'\n", $varname, $var, $pragma_name;
 #printf STDERR "%s='%s'\n", "pragma_preserve_multiline_lnewline", $pragma_preserve_multiline_lnewline;
@@ -5921,7 +5924,7 @@ sub factorShSubs_op
     #set pragma to trim final newlines in here-now defs we generate for subroutines.
     #this allows us to substitute macros and restore the spacing of the original text.
     my $srdeftxt = << "!";
-_save_trim_multiline_rnewline = \$trim_multiline_rnewline:pragmavalue
+_save_trim_multiline_rnewline = \$trim_multiline_rnewline:nameof:pragmavalue
 \%pragma trim_multiline_rnewline 1
 
 !
