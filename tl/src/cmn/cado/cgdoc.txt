@@ -1,7 +1,7 @@
 
                     =========================
                      Codegen Quick Reference
-                    Version 1.75, 20-Feb-2010
+                    Version 1.76, 26-Feb-2010
                     =========================
 
 {
@@ -180,6 +180,7 @@ CG_SHVAR_INCLUDE_PATTERN
                     --------------------
                     :factorShVars output
                     --------------------
+CG_SHVAR_DEFS       - factored text created from original, with macros for all variables and values.
 CG_SHVAR_LIST       - stack of generated variable names for variables factored out.
                       Example:  shvar_foo, shvar_foo2, ...
 CG_SHVARVAL_LIST    - stack of generated variable-value names for variables factored out.
@@ -200,6 +201,7 @@ CG_CSHVAR_INCLUDE_PATTERN
                     ---------------------
                     :factorCshVars output
                     ---------------------
+CG_CSHVAR_DEFS      - factored text created from original, with macros for all variables and values.
 CG_CSHVAR_LIST      - stack of generated variable names for variables factored out.
 CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables factored out.
 

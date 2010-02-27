@@ -70,7 +70,7 @@ cshvar_v2_val01 := "v2 value"
 cshvar_product := product
 
 cshvar_foo := foo
-cshvar_foo_val01 := "foo value,${=cshvar_v2=},${V3:xx}"
+cshvar_foo_val01 := "foo value,${=cshvar_v2=},${{=cshvar_V3=}:xx}"
 cshvar_foo_val02 := (xx yy zz)
 
 cshvar_V3 := V3
@@ -126,7 +126,7 @@ CBVAR_v2_val01 := "v2 value"
 CBVAR_product := product
 
 CBVAR_foo := foo
-CBVAR_foo_val01 := "foo value,${=CBVAR_v2=},${V3:xx}"
+CBVAR_foo_val01 := "foo value,${=CBVAR_v2=},${{=CBVAR_V3=}:xx}"
 CBVAR_foo_val02 := (xx yy zz)
 
 CBVAR_V3 := V3

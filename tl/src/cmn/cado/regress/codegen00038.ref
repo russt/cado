@@ -1,0 +1,60 @@
+TESTNAME is codegen00038
+BEGIN sh_txt='
+#verify fix for values not being substituted here:
+    if [ $I_AM_PRIMARY -eq 1 ]; then
+        kitports="`bldhost -a -kitports -port`"
+    else
+        kitports=$REGRESS_FORTE_PORT
+    fi
+
+    #create $PRODUCT.ver file:
+    ojcverfile="${relstage}/$PRODUCT.ver"
+
+    cat << EOF_VER >> "$ojcverfile"
+FULL_PRODUCT_NAME="$FULL_PRODUCT_NAME"
+EOF_VER
+
+'
+
+{----------------
+:factorShVars test 1        OUT='
+
+#verify fix for values not being substituted here:
+    if [ ${=shvar_I_AM_PRIMARY=} -eq 1 ]; then
+        {=shvar_kitports=}={=shvar_kitports_val01=}
+    else
+        {=shvar_kitports=}={=shvar_kitports_val02=}
+    fi
+
+    #create ${=shvar_PRODUCT=}.ver file:
+    {=shvar_ojcverfile=}={=shvar_ojcverfile_val01=}
+
+    cat << EOF_VER >> "${=shvar_ojcverfile=}"
+{=shvar_FULL_PRODUCT_NAME=}={=shvar_FULL_PRODUCT_NAME_val01=}
+EOF_VER
+
+'
+:factorShVars test 1  CG_SHVAR_LIST=(shvar_I_AM_PRIMARY,shvar_kitports,shvar_REGRESS_FORTE_PORT,shvar_ojcverfile,shvar_relstage,shvar_PRODUCT,shvar_FULL_PRODUCT_NAME)
+:factorShVars test 1  CG_SHVARVAL_LIST=(shvar_ojcverfile_val01,shvar_kitports_val01,shvar_kitports_val02,shvar_FULL_PRODUCT_NAME_val01)
+:factorShVars test 1  CG_SHVAR_DEFS='
+
+shvar_relstage := relstage
+
+shvar_ojcverfile := ojcverfile
+shvar_ojcverfile_val01 := "${{=shvar_relstage=}}/${=shvar_PRODUCT=}.ver"
+
+shvar_kitports := kitports
+shvar_kitports_val01 := "`bldhost -a -kitports -port`"
+shvar_kitports_val02 := ${=shvar_REGRESS_FORTE_PORT=}
+
+shvar_REGRESS_FORTE_PORT := REGRESS_FORTE_PORT
+
+shvar_PRODUCT := PRODUCT
+
+shvar_I_AM_PRIMARY := I_AM_PRIMARY
+
+shvar_FULL_PRODUCT_NAME := FULL_PRODUCT_NAME
+shvar_FULL_PRODUCT_NAME_val01 := "${=shvar_FULL_PRODUCT_NAME=}"
+'
+----------------}
+

@@ -1,5 +1,5 @@
-VERSION = 1.75
-VERSION_DATE = 20-Feb-2010
+VERSION = 1.76
+VERSION_DATE = 26-Feb-2010
 COPYRIGHT_RANGE = 2003-2010
 
 {
@@ -3873,6 +3873,10 @@ CODEGEN_HEADER := << EOF
 #  20-Feb-2010 (russt) [Version 1.75]
 #       Use :nameof in trim_multiline_rnewline save/restore in :factorShSubs.  Change :pragmavalue to use
 #       :nameof if var is undefined or empty instead of just undefined.
+#  26-Feb-2010 (russt) [Version 1.76]
+#       Fix bug in :factorShVars, :factorCshVars where variables first appearing on rhs of definition were being omitted.
+#       Also fix more subtle bug whereby variables appearing in generated rhs values, did not always appear in macrotized form.
+#
 
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER

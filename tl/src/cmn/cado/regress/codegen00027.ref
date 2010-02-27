@@ -24,6 +24,20 @@ export IIS_XX foo v_1
 unset IIS_XX foo v_1
 
 foo
+
+#test that compound statements don't work right:
+avar=; bvar=12
+
+#verify fix for bug where variables first apearing on rhs of definition are omitted:
+avar="$cvar is cool with $dvar and $evar"
+
+#verify fix for values not being substituted here:
+    if [ $I_AM_PRIMARY -eq 1 ]; then
+        kitports="`bldhost -a -kitports -port`"
+    else
+        kitports=$REGRESS_FORTE_PORT
+    fi
+
 '
 
 {----------------
@@ -53,9 +67,23 @@ export {=shvar_IIS_XX=} {=shvar_foo=} {=shvar_v_1=}
 unset {=shvar_IIS_XX=} {=shvar_foo=} {=shvar_v_1=}
 
 foo
+
+#test that compound statements don't work right:
+{=shvar_avar=}={=shvar_avar_val01=}
+
+#verify fix for bug where variables first apearing on rhs of definition are omitted:
+{=shvar_avar=}={=shvar_avar_val02=}
+
+#verify fix for values not being substituted here:
+    if [ ${=shvar_I_AM_PRIMARY=} -eq 1 ]; then
+        {=shvar_kitports=}={=shvar_kitports_val01=}
+    else
+        {=shvar_kitports=}={=shvar_kitports_val02=}
+    fi
+
 '
-:factorShVars test 1  CG_SHVAR_LIST=(shvar_v_1,shvar_v2,shvar_v21,shvar_V3,shvar_foo,shvar_IIS_XX,shvar_product)
-:factorShVars test 1  CG_SHVARVAL_LIST=(shvar_v_1_val01,shvar_v_1_val02,shvar_v21_val01,shvar_v2_val01,shvar_product_val01,shvar_foo_val01,shvar_V3_val01,shvar_IIS_XX_val01,shvar_IIS_XX_val02,shvar_IIS_XX_val03)
+:factorShVars test 1  CG_SHVAR_LIST=(shvar_v_1,shvar_v2,shvar_v21,shvar_V3,shvar_foo,shvar_IIS_XX,shvar_product,shvar_avar,shvar_bvar,shvar_cvar,shvar_dvar,shvar_evar,shvar_I_AM_PRIMARY,shvar_kitports,shvar_REGRESS_FORTE_PORT)
+:factorShVars test 1  CG_SHVARVAL_LIST=(shvar_v_1_val01,shvar_v_1_val02,shvar_v21_val01,shvar_v2_val01,shvar_product_val01,shvar_kitports_val01,shvar_kitports_val02,shvar_foo_val01,shvar_bvar_val01,shvar_avar_val01,shvar_avar_val02,shvar_V3_val01,shvar_IIS_XX_val01,shvar_IIS_XX_val02,shvar_IIS_XX_val03)
 :factorShVars test 1  CG_SHVAR_DEFS='
 
 shvar_v_1 := v_1
@@ -71,11 +99,32 @@ shvar_v2_val01 := "v2 value"
 shvar_product := product
 shvar_product_val01 := ${=shvar_product=}
 
+shvar_kitports := kitports
+shvar_kitports_val01 := "`bldhost -a -kitports -port`"
+shvar_kitports_val02 := ${=shvar_REGRESS_FORTE_PORT=}
+
 shvar_foo := foo
-shvar_foo_val01 := "foo value,${=shvar_v2=},${V3:xx}"
+shvar_foo_val01 := "foo value,${=shvar_v2=},${{=shvar_V3=}:xx}"
+
+shvar_evar := evar
+
+shvar_dvar := dvar
+
+shvar_cvar := cvar
+
+shvar_bvar := bvar
+shvar_bvar_val01 := 12
+
+shvar_avar := avar
+shvar_avar_val01 := ; {=shvar_bvar=}={=shvar_bvar_val01=}
+shvar_avar_val02 := "${=shvar_cvar=} is cool with ${=shvar_dvar=} and ${=shvar_evar=}"
 
 shvar_V3 := V3
 shvar_V3_val01 := "${{=shvar_v2=}} is not ${=shvar_v21=} but it is the same as ${=shvar_v2=}"
+
+shvar_REGRESS_FORTE_PORT := REGRESS_FORTE_PORT
+
+shvar_I_AM_PRIMARY := I_AM_PRIMARY
 
 shvar_IIS_XX := IIS_XX
 shvar_IIS_XX_val01 := ${=shvar_IIS_XX=}
@@ -113,9 +162,23 @@ export {=CBVAR_IIS_XX=} {=CBVAR_foo=} {=CBVAR_v_1=}
 unset {=CBVAR_IIS_XX=} {=CBVAR_foo=} {=CBVAR_v_1=}
 
 foo
+
+#test that compound statements don't work right:
+{=CBVAR_avar=}={=CBVAR_avar_val01=}
+
+#verify fix for bug where variables first apearing on rhs of definition are omitted:
+{=CBVAR_avar=}={=CBVAR_avar_val02=}
+
+#verify fix for values not being substituted here:
+    if [ ${=CBVAR_I_AM_PRIMARY=} -eq 1 ]; then
+        {=CBVAR_kitports=}={=CBVAR_kitports_val01=}
+    else
+        {=CBVAR_kitports=}={=CBVAR_kitports_val02=}
+    fi
+
 '
-:factorShVars test 2  CG_SHVAR_LIST=(CBVAR_v_1,CBVAR_v2,CBVAR_v21,CBVAR_V3,CBVAR_foo,CBVAR_IIS_XX,CBVAR_product)
-:factorShVars test 2  CG_SHVARVAL_LIST=(CBVAR_v_1_val01,CBVAR_v_1_val02,CBVAR_v21_val01,CBVAR_v2_val01,CBVAR_product_val01,CBVAR_foo_val01,CBVAR_V3_val01,CBVAR_IIS_XX_val01,CBVAR_IIS_XX_val02,CBVAR_IIS_XX_val03)
+:factorShVars test 2  CG_SHVAR_LIST=(CBVAR_v_1,CBVAR_v2,CBVAR_v21,CBVAR_V3,CBVAR_foo,CBVAR_IIS_XX,CBVAR_product,CBVAR_avar,CBVAR_bvar,CBVAR_cvar,CBVAR_dvar,CBVAR_evar,CBVAR_I_AM_PRIMARY,CBVAR_kitports,CBVAR_REGRESS_FORTE_PORT)
+:factorShVars test 2  CG_SHVARVAL_LIST=(CBVAR_v_1_val01,CBVAR_v_1_val02,CBVAR_v21_val01,CBVAR_v2_val01,CBVAR_product_val01,CBVAR_kitports_val01,CBVAR_kitports_val02,CBVAR_foo_val01,CBVAR_bvar_val01,CBVAR_avar_val01,CBVAR_avar_val02,CBVAR_V3_val01,CBVAR_IIS_XX_val01,CBVAR_IIS_XX_val02,CBVAR_IIS_XX_val03)
 :factorShVars test 2  CG_SHVAR_DEFS='
 
 CBVAR_v_1 := v_1
@@ -131,11 +194,32 @@ CBVAR_v2_val01 := "v2 value"
 CBVAR_product := product
 CBVAR_product_val01 := ${=CBVAR_product=}
 
+CBVAR_kitports := kitports
+CBVAR_kitports_val01 := "`bldhost -a -kitports -port`"
+CBVAR_kitports_val02 := ${=CBVAR_REGRESS_FORTE_PORT=}
+
 CBVAR_foo := foo
-CBVAR_foo_val01 := "foo value,${=CBVAR_v2=},${V3:xx}"
+CBVAR_foo_val01 := "foo value,${=CBVAR_v2=},${{=CBVAR_V3=}:xx}"
+
+CBVAR_evar := evar
+
+CBVAR_dvar := dvar
+
+CBVAR_cvar := cvar
+
+CBVAR_bvar := bvar
+CBVAR_bvar_val01 := 12
+
+CBVAR_avar := avar
+CBVAR_avar_val01 := ; {=CBVAR_bvar=}={=CBVAR_bvar_val01=}
+CBVAR_avar_val02 := "${=CBVAR_cvar=} is cool with ${=CBVAR_dvar=} and ${=CBVAR_evar=}"
 
 CBVAR_V3 := V3
 CBVAR_V3_val01 := "${{=CBVAR_v2=}} is not ${=CBVAR_v21=} but it is the same as ${=CBVAR_v2=}"
+
+CBVAR_REGRESS_FORTE_PORT := REGRESS_FORTE_PORT
+
+CBVAR_I_AM_PRIMARY := I_AM_PRIMARY
 
 CBVAR_IIS_XX := IIS_XX
 CBVAR_IIS_XX_val01 := ${=CBVAR_IIS_XX=}
@@ -174,6 +258,20 @@ export IIS_XX foo v_1
 unset IIS_XX foo v_1
 
 foo
+
+#test that compound statements don't work right:
+avar=; bvar=12
+
+#verify fix for bug where variables first apearing on rhs of definition are omitted:
+avar="$cvar is cool with $dvar and $evar"
+
+#verify fix for values not being substituted here:
+    if [ $I_AM_PRIMARY -eq 1 ]; then
+        kitports="`bldhost -a -kitports -port`"
+    else
+        kitports=$REGRESS_FORTE_PORT
+    fi
+
 '
 :factorShVars test 4  CG_SHVAR_LIST=(shvar_v2,shvar_V3)
 :factorShVars test 4  CG_SHVARVAL_LIST=(shvar_v2_val01,shvar_V3_val01)
@@ -217,9 +315,23 @@ export {=shvar_IIS_XX=} {=shvar_foo=} {=shvar_v_1=}
 unset {=shvar_IIS_XX=} {=shvar_foo=} {=shvar_v_1=}
 
 foo
+
+#test that compound statements don't work right:
+{=shvar_avar=}={=shvar_avar_val01=}
+
+#verify fix for bug where variables first apearing on rhs of definition are omitted:
+{=shvar_avar=}={=shvar_avar_val02=}
+
+#verify fix for values not being substituted here:
+    if [ ${=shvar_I_AM_PRIMARY=} -eq 1 ]; then
+        {=shvar_kitports=}={=shvar_kitports_val01=}
+    else
+        {=shvar_kitports=}={=shvar_kitports_val02=}
+    fi
+
 '
-:factorShVars test 6  CG_SHVAR_LIST=(shvar_v_1,shvar_v21,shvar_foo,shvar_IIS_XX,shvar_product)
-:factorShVars test 6  CG_SHVARVAL_LIST=(shvar_v_1_val01,shvar_v_1_val02,shvar_v21_val01,shvar_product_val01,shvar_foo_val01,shvar_IIS_XX_val01,shvar_IIS_XX_val02,shvar_IIS_XX_val03)
+:factorShVars test 6  CG_SHVAR_LIST=(shvar_v_1,shvar_v21,shvar_foo,shvar_IIS_XX,shvar_product,shvar_avar,shvar_bvar,shvar_cvar,shvar_dvar,shvar_evar,shvar_I_AM_PRIMARY,shvar_kitports,shvar_REGRESS_FORTE_PORT)
+:factorShVars test 6  CG_SHVARVAL_LIST=(shvar_v_1_val01,shvar_v_1_val02,shvar_v21_val01,shvar_product_val01,shvar_kitports_val01,shvar_kitports_val02,shvar_foo_val01,shvar_bvar_val01,shvar_avar_val01,shvar_avar_val02,shvar_IIS_XX_val01,shvar_IIS_XX_val02,shvar_IIS_XX_val03)
 :factorShVars test 6  CG_SHVAR_DEFS='
 
 shvar_v_1 := v_1
@@ -232,8 +344,29 @@ shvar_v21_val01 := "v21 value"
 shvar_product := product
 shvar_product_val01 := ${=shvar_product=}
 
+shvar_kitports := kitports
+shvar_kitports_val01 := "`bldhost -a -kitports -port`"
+shvar_kitports_val02 := ${=shvar_REGRESS_FORTE_PORT=}
+
 shvar_foo := foo
 shvar_foo_val01 := "foo value,$v2,${V3:xx}"
+
+shvar_evar := evar
+
+shvar_dvar := dvar
+
+shvar_cvar := cvar
+
+shvar_bvar := bvar
+shvar_bvar_val01 := 12
+
+shvar_avar := avar
+shvar_avar_val01 := ; {=shvar_bvar=}={=shvar_bvar_val01=}
+shvar_avar_val02 := "${=shvar_cvar=} is cool with ${=shvar_dvar=} and ${=shvar_evar=}"
+
+shvar_REGRESS_FORTE_PORT := REGRESS_FORTE_PORT
+
+shvar_I_AM_PRIMARY := I_AM_PRIMARY
 
 shvar_IIS_XX := IIS_XX
 shvar_IIS_XX_val01 := ${=shvar_IIS_XX=}
@@ -272,6 +405,20 @@ export IIS_XX foo v_1
 unset IIS_XX foo v_1
 
 foo
+
+#test that compound statements don't work right:
+avar=; bvar=12
+
+#verify fix for bug where variables first apearing on rhs of definition are omitted:
+avar="$cvar is cool with $dvar and $evar"
+
+#verify fix for values not being substituted here:
+    if [ $I_AM_PRIMARY -eq 1 ]; then
+        kitports="`bldhost -a -kitports -port`"
+    else
+        kitports=$REGRESS_FORTE_PORT
+    fi
+
 '
 :factorShVars test 8  CG_SHVAR_LIST=(shvar_v2)
 :factorShVars test 8  CG_SHVARVAL_LIST=(shvar_v2_val01)

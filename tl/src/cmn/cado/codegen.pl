@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.75 - 20-Feb-2010
+# @(#)codegen.pl - ver 1.76 - 26-Feb-2010
 #
 # Copyright 2003-2010 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -230,6 +230,10 @@
 #  20-Feb-2010 (russt) [Version 1.75]
 #       Use :nameof in trim_multiline_rnewline save/restore in :factorShSubs.  Change :pragmavalue to use
 #       :nameof if var is undefined or empty instead of just undefined.
+#  26-Feb-2010 (russt) [Version 1.76]
+#       Fix bug in :factorShVars, :factorCshVars where variables first appearing on rhs of definition were being omitted.
+#       Also fix more subtle bug whereby variables appearing in generated rhs values, did not always appear in macrotized form.
+#
 
 
 use strict;
@@ -239,8 +243,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.75",         #VERSION - the program version number.
-    "20-Feb-2010",  #VERSION_DATE - date this version was released.
+    "1.76",         #VERSION - the program version number.
+    "26-Feb-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -5487,23 +5491,27 @@ sub factorCshVars_op
     $var =~ s/\\\n//sg;
     my (@var) = split("\n", $var, -1);
 
-    my $line = "";
-    foreach $line (@var) {
-        #skip comment, lines without var defs:
+    my $set_def = 'set\s+([a-z_A-Z]\w*)\s*=';
+    my $env_def = 'setenv\s+([a-z_A-Z]\w*)(\s|$)';
+    my $re_ref = '\$\{?[#?]?([a-z_A-Z]\w*)';
+
+    my $vptr = "";
+    foreach $vptr (@var) {
+        my $line = $vptr;  #make a copy otherwise will rewrite input
+
+        #skip comments, empty lines:
         next if ($line =~ /^\s*#/ || $line =~ /^\s*$/);
 
-        my $set_def = 'set\s+([a-z_A-Z]\w*)\s*=';
-        my $env_def = 'setenv\s+([a-z_A-Z]\w*)(\s|$)';
-        my $re_ref = '\$\{?[#?]?([a-z_A-Z]\w*)';
+        while ($line =~ /$set_def/ || $line =~ /$env_def/ || $line =~ /$re_ref/) {
+            my $shvname = $1;
+            $line =~ s/$shvname//;
 
-        next unless ($line =~ /$set_def/ || $line =~ /$env_def/ || $line =~ /$re_ref/);
-        my $shvname = $1;
+            #ignore if we are excluding this variable name:
+            next if ( &sh_name_is_excluded($shvname, $ipat, $xpat) );
 
-        #ignore if we are excluding this variable name:
-        next if ( &sh_name_is_excluded($shvname, $ipat, $xpat) );
-
-        #otherwise, we have a var - add to list:
-        push @shvars, $shvname;
+            #otherwise, we have a var - add to list:
+            push @shvars, $shvname;
+        }
     }
 
     #eliminate duplicates, preserving order:
@@ -5526,8 +5534,8 @@ sub factorCshVars_op
     #LOOP 2 - foreach var def, substitute in macro name:
     #####
 
-    my $shvar = "";
     #sort backwards so longest variable names are applied first:
+    my $shvar = "";
     foreach $shvar (sort { $b cmp $a } @shvars) {
         my $cg_shvar = "$prefix$shvar";
         my $macroref = "{##$cg_shvar##}";    #use temp delimiters for macro brackets
@@ -5540,6 +5548,17 @@ sub factorCshVars_op
         grep($_ =~ s/$re_def/$1${macroref}$2/g, @var);
         grep($_ =~ s/$re_ref/$1${macroref}/g, @var);
         grep(/^\s*(setenv\s|unsetenv\s|unset\s|#)/ && $_ =~ s/$re_iden/$1${macroref}$2/g, @var);
+    }
+
+    #####
+    #LOOP 3 - foreach var def, create uniquely numbered rhs value definitions
+    #####
+
+    #sort backwards so longest variable names are applied first:
+    $shvar = "";
+    foreach $shvar (sort { $b cmp $a } @shvars) {
+        my $cg_shvar = "$prefix$shvar";
+        my $macroref = "{##$cg_shvar##}";    #use temp delimiters for macro brackets
 
         #generate variable definition:
         $shvardeftxt .= sprintf("\n%s := %s\n", $cg_shvar, $shvar);
@@ -5649,28 +5668,31 @@ sub factorShVars_op
     ##########
     #eliminate continuation lines, and split variable text.
     #RE patterns used below are line-by-line based, and do not handle continuation lines.
-    #TODO:  handle multi-line statements.  this is currently handled poorly.
+    #TODO:  handle multi statement lines (delimited by ; etc).  this is currently not handled.
     ##########
     $var =~ s/\\\n//sg;
     my (@var) = split("\n", $var, -1);
 
-    my $line = "";
-    foreach $line (@var) {
-        #skip comment, lines without var defs:
+    #init regular expressions defining sh variable defs and refs:
+    my $re_def = '([a-z_A-Z]\w*)=';
+    my $re_ref = '\$\{?([a-z_A-Z]\w*)';
+
+    my $vptr = "";
+    foreach $vptr (@var) {
+        my $line = $vptr;  #make a copy otherwise will rewrite input
+        #skip comments, empty lines:
         next if ($line =~ /^\s*#/ || $line =~ /^\s*$/);
 
-        #regular expressions defining sh variable defs and refs:
-        my $re_def = '([a-z_A-Z]\w*)=';
-        my $re_ref = '\$\{?([a-z_A-Z]\w*)';
+        while ($line =~ /$re_def/ || $line =~ /$re_ref/) {
+            my $shvname = $1;
+            $line =~ s/$shvname//;
 
-        next unless ($line =~ /$re_def/ || $line =~ /$re_ref/);
-        my $shvname = $1;
+            #ignore if we are excluding this variable name:
+            next if ( &sh_name_is_excluded($shvname, $ipat, $xpat) );
 
-        #ignore if we are excluding this variable name:
-        next if ( &sh_name_is_excluded($shvname, $ipat, $xpat) );
-
-        #otherwise, we have a var - add to list:
-        push @shvars, $shvname;
+            #otherwise, we have a var - add to list:
+            push @shvars, $shvname;
+        }
     }
 
     #eliminate duplicates, preserving order:
@@ -5693,8 +5715,8 @@ sub factorShVars_op
     #LOOP 2 - foreach var def, substitute in macro name:
     #####
 
-    my $shvar = "";
     #sort backwards so longest variable names are applied first:
+    my $shvar = "";
     foreach $shvar (sort { $b cmp $a } @shvars) {
         my $cg_shvar = "$prefix$shvar";
         my $macroref = "{##$cg_shvar##}";    #use temp delimiters for macro brackets
@@ -5703,10 +5725,23 @@ sub factorShVars_op
         my $re_ref = '(\$\{?)' . $shvar;
         my $re_iden = '(\s|#)' . $shvar . '($|\s|[\-\.,;&|])';
 
+
+#printf "processing shvar '%s' re_ref='%s'\n", $cg_shvar, $re_ref;
+
         #do substitutions for defs & refs:
         grep($_ =~ s/$re_def/$1${macroref}$2/g, @var);
         grep($_ =~ s/$re_ref/$1${macroref}/g, @var);
         grep(/^\s*(export\s|unset\s|#)/ && $_ =~ s/$re_iden/$1${macroref}$2/g, @var);
+    }
+
+    #####
+    #LOOP 3 - foreach var def, create uniquely numbered rhs value definitions
+    #####
+
+    $shvar = "";
+    foreach $shvar (sort { $b cmp $a } @shvars) {
+        my $cg_shvar = "$prefix$shvar";
+        my $macroref = "{##$cg_shvar##}";    #use temp delimiters for macro brackets
 
         #generate variable definition:
         $shvardeftxt .= sprintf("\n%s := %s\n", $cg_shvar, $shvar);
@@ -5717,9 +5752,9 @@ sub factorShVars_op
             $lref = \$_;
             next unless ($$lref =~ /(${macroref})=(.*)$/);
             $varvaltxt = $2;
+#printf "line='%s' 1='%s' 2='%s' varvaltxt='%s'\n", $$lref, $1, $2, $varvaltxt;
             $varvaltxt  =~ s/{##/{=/g;
             $varvaltxt  =~ s/##}/=}/g;
-#printf "line='%s' 1='%s' 2='%s' varvaltxt='%s'\n", $$lref, $1, $2, $varvaltxt;
 
             $cg_varval = sprintf("%s_val%02d", $cg_shvar, ++$VARVALS{$shvar});
             push(@shvarvals, $cg_varval);

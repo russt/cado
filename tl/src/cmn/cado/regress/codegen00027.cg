@@ -34,6 +34,20 @@ export IIS_XX foo v_1
 unset IIS_XX foo v_1
 
 foo
+
+#test that compound statements don't work right:
+avar=; bvar=12
+
+#verify fix for bug where variables first apearing on rhs of definition are omitted:
+avar="$cvar is cool with $dvar and $evar"
+
+#verify fix for values not being substituted here:
+    if [ $I_AM_PRIMARY -eq 1 ]; then
+        kitports="`bldhost -a -kitports -port`"
+    else
+        kitports=$REGRESS_FORTE_PORT
+    fi
+
 EOF
 
 #operator will automatically eliminate continuation lines, so compare

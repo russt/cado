@@ -1,0 +1,56 @@
+#make list displays a bit more readable:
+CG_STACK_DELIMITER = ,
+
+sh_txt := << EOF
+
+#verify fix for values not being substituted here:
+    if [ $I_AM_PRIMARY -eq 1 ]; then
+        kitports="`bldhost -a -kitports -port`"
+    else
+        kitports=$REGRESS_FORTE_PORT
+    fi
+
+    #create $PRODUCT.ver file:
+    ojcverfile="${relstage}/$PRODUCT.ver"
+
+    cat << EOF_VER >> "$ojcverfile"
+FULL_PRODUCT_NAME="$FULL_PRODUCT_NAME"
+EOF_VER
+
+EOF
+
+##### show initial sh txt:
+{
+    %echo BEGIN sh_txt='$sh_txt'
+}
+
+showvar_factoring :=  << EOF
+#display results of a :factorShVars test
+{
+    %echo
+    %echo {----------------
+    OUT=$sh_txt:factorShVars
+    %echo $tname test $tnum:i:a        OUT='$OUT:lnewline'
+    %echo $tname test $tnum  CG_SHVAR_LIST=($CG_SHVAR_LIST:showstack)
+    %echo $tname test $tnum  CG_SHVARVAL_LIST=($CG_SHVARVAL_LIST:showstack)
+    %echo $tname test $tnum  CG_SHVAR_DEFS='$CG_SHVAR_DEFS:lnewline'
+    %echo ----------------}
+    %echo
+}
+EOF
+
+undef_shvar_vars := << EOF
+#undefine any variables created when we evaluate generate shsub defs:
+{
+    undefpat = /${CG_SHVAR_PREFIX}.*/
+    %undef $undefpat
+}
+EOF
+
+#test :factorShVars
+{
+    tname=:factorShVars
+    tnum = 0
+
+    %call showvar_factoring
+}
