@@ -63,7 +63,7 @@
 :rnewline           - append trailing (right) newline iff non-empty string.
 :newline            - append trailing newline unconditionally.
 :fixeol             - force at most one newline at the end of the string
-:eoltrim            - trim whitespace preceeding newlines
+:eoltrim            - trim whitespace preceding newlines
 :eolsqueeze         - compress multiple empty lines into a single empty line.
 
 :ltrim              - trim leading whitespace (tabs, spaces, and newlines)
@@ -109,12 +109,12 @@
                     ==============================================
 :top                - return top value of stack (last-in)
 :bottom             - return bottom value of stack (first-in)
-:car                - alias for :bottom for lisp affectionados
+:car                - alias for :bottom for lisp aficionados.
 :cdr                - return the stack minus it's :car
 :split              - create stack variable by splitting text with $CG_SPLIT_PATTERN.
                       Default split pattern is:  /[\t,]/
 :stacksize          - return the size of a stack created with %push.
-:stackminus         - subtract the members of CG_STACK_SPEC from current stack (as in set subtaction).
+:stackminus         - subtract the members of CG_STACK_SPEC from current stack (as in set subtraction).
 :showstack          - display stack as list $CG_STACK_DELIMITER separating elements.
 
                     ==================
@@ -149,7 +149,7 @@
                     -----------------------
                     :factorShSubs modifiers
                     -----------------------
-CG_SHSUB_PREFIX     - use this prefix when generating sh subroutine defintions and macro refs.
+CG_SHSUB_PREFIX     - use this prefix when generating sh subroutine definitions and macro refs.
                       default prefix is "shsub_".
 CG_SHSUB_EXCLUDE_PATTERN
                     - exclude the names of sh subroutines matching this perl regular expression.
@@ -213,7 +213,7 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
 :d                  - return non-zero if file is directory.
 :e                  - return non-zero if file is exists.
 :f                  - return non-zero if file is plain file.
-:l                  - return non-zero if file is symlink.
+:l                  - return non-zero if file is symbolic link.
 :r                  - return non-zero if file is readable.
 :sz                 - return non-zero if file is non-zero size (returns size).
 :w                  - return non-zero if file is writable.
@@ -318,7 +318,7 @@ $CG_STACK_DELIMITER - Input delimiter character for creating stacks with %push. 
 $CG_SPLIT_PATTERN   - Split pattern for creating stack variables.  default pattern is:  /[\t,]/
 
 $CG_MATCH_SPEC      - Specify pattern for :match operator.
-$CG_SUBSTITUTE_SPEC - Specify substitute/replace pattern for :substiture operator.
+$CG_SUBSTITUTE_SPEC - Specify substitute/replace pattern for :substitute operator.
 $CG_COMPARE_SPEC    - Specify second value comparison operators.  See COMPARISON & MATCHING operators.
 
 $CG_INDENT_STRING   - indent string for :indent operator.  default is four spaces.
