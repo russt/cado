@@ -452,7 +452,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                     ERRORS/EXIT
                     ===========
 %return [-e] [-s status] [msg]
-                    - display optional <msg> on STDERR, and return immediately to the enclosing script.
+                    - display optional <msg>, and return immediately to the enclosing script.
                       if the current script is the top-level script, then return to shell.
                       Options:
                         -e      redirects message to stderr
