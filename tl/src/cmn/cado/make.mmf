@@ -10,5 +10,5 @@ MODE    =  0555
 MODE2   =  0444
 
 FILES   = codegen.prl
-FILES2  = codegen.pl
+FILES2  = codegen.pl cado.pl
 FILES3  = cgdoc.txt
