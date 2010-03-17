@@ -1,9 +1,13 @@
-TARGET_OS = cmn & skel
+TARGET_OS = cmn & noperlio & skel & sh
 codegen.prl        bin/$TARGET_OS/codegen                 0555
+codegen.prl        bin/$TARGET_OS/cado                    0555
 
 TARGET_OS = ntcmn & skel & ksh
 codegen.prl        bin/$TARGET_OS/codegen.ksh             0555
+codegen.prl        bin/$TARGET_OS/cado.ksh                0555
 
 TARGET_OS=cmn, ntcmn
 codegen.pl         lib/$TARGET_OS/codegen.pl              0444
+cado.pl            lib/$TARGET_OS/cado.pl                 0444
 cgdoc.txt          lib/$TARGET_OS/templates/cgdoc.txt     0444
+cgdoc.txt          lib/$TARGET_OS/templates/cado.txt      0444

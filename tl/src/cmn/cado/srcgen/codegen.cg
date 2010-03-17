@@ -16,9 +16,13 @@ CG_ROOT_BASE = $CG_ROOT
 #generate file test  ops:
 %include cgsrc/filetest_op.defs
 
+CODEGEN_PACKAGE_NAME = codegen
 %include cgsrc/codegen.defs
-
 cgsrc/codegen.pl	/codegen.pl
+
+CODEGEN_PACKAGE_NAME = cado
+%include cgsrc/codegen.defs
+cgsrc/codegen.pl	/cado.pl
 
 #generate documentation:
 CG_TMPDIR  = $CG_ROOT_BASE/tmp

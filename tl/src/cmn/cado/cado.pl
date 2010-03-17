@@ -1,26 +1,256 @@
-VERSION = 1.77
-VERSION_DATE = 16-Mar-2010
-COPYRIGHT_RANGE = 2003-2010
+#
+# BEGIN_HEADER - DO NOT EDIT
+#
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
 
-{
-CODEGEN_PACKAGE := << EOF
+#
+# @(#)cado.pl - ver 1.77 - 16-Mar-2010
+#
+# Copyright 2003-2010 Sun Microsystems, Inc. All Rights Reserved.
+#
+# END_HEADER - DO NOT EDIT
+#
+
+#
+# cado - create a tree full of source code
+#
+# Author: Russ Tremain
+#
+#  12-Nov-2003 (russt)
+#       Initial revision
+#  06-Jan-2004 (russt)
+#       add TEMPLATE_PATHS - search path for templates
+#  21-Jan-2004 (russt)
+#       add here-now defs, {} comments, %echo macro
+#  12-Mar-2004 (russt)
+#       add ifn?def, echo statements
+#  19-Mar-2004 (russt)
+#       implement -u (update) option
+#  29-Sep-2004 (russt)
+#       add postfix operators
+#  28-Oct-2004 (russt)
+#       add append file-spec directive
+#  30-Apr-2005 (russt)
+#       add := operator, %evalmacro, %evaltemplate, %readtemplate
+#  27-Jul-2005 (russt)
+#       add %if, %ifnot
+#  29-Jul-2005 (russt)
+#       add CG_SHELL_STATUS, user defined CG_EXIT_STATUS, correct exit status
+#  02-Aug-2005 (russt)
+#       add -V -version args
+#       add %interpret statement
+#       add %echo -n
+#       add :valueof op
+#       add :nameof op
+#       add :env op
+#       allow assignment to contents of a variable ($var on lhs).
+#       allow $var in %if?ndef, %undef expressions (now works like %if and %ifnot).
+#       fix :indent<integer> macro to indent all lines.
+#       if CGROOT undefined, set to "." on first use instead of creating "NULL" directory.
+#  04-Aug-2005 (russt) [Version 1.41]
+#       add %whiledef, %while statements.
+#       add :xmlcomment, :xmlcommentblock operators.
+#       changed semantics of %if, %ifnot:  false <==> zero or empty string, true <==> !false
+#       change :incr, :decr, :plus, etc. to preserve width of input, e.g., 00, 01, etc.
+#       variable names in %ifndef, etc, no longer incorporate leading/trailing white space.
+#  11-Aug-2005 (russt) [Version 1.42]
+#       add file i/o operators:
+#           :openfile
+#           :getnextline
+#           :currentline
+#           :currentlinenumber (1..nlines), 0 => file closed
+#           :closefile
+#       add match, compare operators:
+#           :match or :m - will match against CG_MATCH_SPEC
+#           :substitute or :s - will match against CG_SUBSTITUTE_SPEC
+#           :eq, :ne, :gt, :lt, :ge, :le - will compare against CG_COMPARE_SPEC
+#       add %push, %pop statements.
+#       add %call alias for %interpret
+#       %exit was requiring spaces after keyword
+#       add %return alias for %exit
+#       add %halt <status>, also aliased to %abort <status>
+#       add %eecho (echo to stderr).
+#       add tracing for allocate/free of file handles, and the limit 40 from 30
+#       fix &is_number(..) (was requiring '.').
+#       set result of perl =~ expressions to {0,1}, as they're undefined if false.
+#       standardize most of the error/warning messages.  needs more work.
+#  20-Aug-2005 (russt) [Version 1.43]
+#       add %shift operator
+#       allow patterns in %undef operator
+#       no longer need to escape % in input (existing scripts using %% have to be updated).
+#       ignore leading space in file spec statements
+#       %exit/%return - ignore exit message if empty string.
+#       add built-in CG_ARGV stack variable, which saves arguments to interpreter
+#       add :basename :dirname :suffix operators
+#       add :stripjavaheader operator
+#  22-Aug-2005 (russt) [Version 1.44]
+#       add -Dvar[=value] command line arg
+#  29-Aug-2005 (russt) [Version 1.45]
+#       :env now returns empty string if variable is undefined.
+#       add %export/%unexport operators to modify environment of sub-shells
+#       handle binary files specs.
+#       fix bug where $foovar:nameof[:op]+ was not updating var contents with [:op]+.
+#  17-Oct-2005 (russt) [Version 1.46]
+#       double the number of available file-descriptors to 80, add -debugfd option.
+#       fix bug in get_avaliable_filehandle() - was failing with descriptors available.
+#  18-Oct-2005 (russt) [Version 1.47]
+#       fix pathname creation in write_string_to_cg_tmp_file()
+#           (cygwin thinks //tmp is a network drive).
+#  20-Oct-2005 (russt) [Version 1.48]
+#       we were not freeing file-descriptors in close_fileop().
+#  05-Jun-2006 (russt) [Version 1.49]
+#       CG_TEMPLATE_PATH: . was overriding path. added :freq postfix op.
+#  15-Jun-2006 (russt) [Version 1.50]
+#       added %pragma statement, preserve_multiline_lnewline pragma.
+#  18-Jun-2006 (russt) [Version 1.51]
+#       added copy pragma, :rangelb, :rangeub, :split operators.
+#       move tests to regress subdir and adapt to jregress requirements.
+#  18-Jun-2006 (russt) [Version 1.52]
+#       restructure postfix eval to use function pointers.
+#  20-Jun-2006 (russt) [Version 1.53]
+#       add %foreach statement
+#  21-Jun-2006 (russt) [Version 1.54]
+#       match operator was generating spurious errors.
+#  25-Jun-2006 (russt) [Version 1.55]
+#       Add :pad operator.
+#       Add warning if -u option not specified.
+#       Add %print (%echo) & %printe (%eecho) aliases
+#       Re-work numeric %foreach to pad iterator, improve efficiency.
+#       Add pattern matching foreach variant.
+#       Fix "cascading failure" bug in &interpret.
+#       Rename %SPEC_VARS to %CG_USER_VARS, and add get_user_vars() function to access.
+#       Add debug, ddebug, quiet, verbose %pragma statements.  
+#       Change :valueof to return ${var:undef} instead of NULL for undefined variables.
+#  04-Oct-2006 (russt) [Version 1.56]
+#       Fix checkforexistingheader -> checkforexistingheader_op when called internally.
+#  14-Dec-2006 (russt) [Version 1.57]
+#       delete signsrc operators (not part of core interpreter).  add :fixeol op.
+#  20-Dec-2006 (russt) [Version 1.58]
+#       add -x -S options to allow "#!/bin/cado" scripts.
+#       add :crc :crcstr :crcfile ops.  add CG_LINE_NUMBER user variable.
+#       enhance -help message: add %pragma section, update user-variables, etc.
+#  21-Dec-2006 (russt) [Version 1.59]
+#       add :tounix :todos ops.
+#       add :cap, :uncap ops to capitalize or uncapitalize a string (first letter only).
+#       add file-test ops: :r,:w,:x,:e,:z,:sz,:f,:d,:l,:T,:B (same as perl, except :sz = -s).
+#       fix bug in %undef - was matching all vars with indicated prefix.
+#  22-Dec-2006 (russt) [Version 1.60]
+#       :crcstr op was not cleaning tmp file. eliminated redundant string copy in %readtemplate.
+#  22-Dec-2006 (russt) [Version 1.61]
+#       add %void statement.  re-order main interpreter loop based on estimated frequency of use.
+#       add :clr op.  %undef was not clearing CG_* vars.  :undef op now returns ${var:undef} like %undef.
+#       move test CG_ROOT to ../bld/cgtstroot, and clear it before first test.
+#  21-Feb-2007 (russt) [Version 1.62]
+#       filetest ops were emitting "unititialized" messages when result was false (undefined).
+#       add %upush statement, to maintain stack with unique elements.
+#       add $CG_STACK_DELIMITER user variable, to allow user to %push lists.
+#       add %pragma reset_stack_delimiter to restore CG_STACK_DELIMITER to default value.
+#       add :stackminus to subtract elements of $CG_STACK_SPEC from a named stack.
+#  02-Apr-2007 (russt) [Version 1.63]
+#       Add :_<iden> op to wrap xml/html elements, and CG_ATTRIBUTE_<n> spec to
+#       decorate element with optional attributes.
+#       Fix bug in :indent op - was using stale value for CG_INDENT_STRING.
+#  14-Apr-2007 (russt) [Version 1.64]
+#       add -T <tmpdir> option.
+#  15-May-2007 (russt) [Version 1.65]
+#       was not halting if %halt was in included file
+#  26-Oct-2007 (russt) [Version 1.66]
+#       Add .=, .:= append assignment operators.
+#       Add -=, +=, *=, /=, **=, %=, |=, &=, ^=, and x= assignment operators.
+#       Implement :split, :top, :bottom, :car, :cdr.
+#       Add alias :i for :incr.
+#       Add %pushv statement, to create a stack of varibles names matching a pattern.
+#       Interpret ${varname:undef} as undefined value for $varname.
+#       Add versioned cgdoc.txt to distribution.
+#  04-Dec-2007 (russt) [Version 1.67]
+#       Search for unimplemented "%" commands externally (e.g. %mkdir, etc).
+#       All external commands (%shell and postfix ops) now first cd to CG_SHELL_CWD,
+#       Add %pragma "filegen_notices_to_stdout".  If set, will redirect file
+#       generation messages to stdout (default is stderr).
+#  06-Mar-2008 (russt) [no version change]
+#       Fix bug in maven templates, and add some instructions.
+#  20-May-2008 (russt) [Version 1.68]
+#       Fix bug in :basename operator, and add regression test for it.
+#  12-June-2008 (russt) [Version 1.69]
+#       Fixed bug in %pushv causing interpreter to exit when user program passes in a bad RE.
+#       Add :studyclass op, which generates CG_ class variables.
+#       Rework %evalmacro to use more efficient expand_string_template().
+#       The template operators: gen_imports, and gen_javadoc, are now evaluated in place.
+#       The %echo template operator will also expand in place, but only if %pragma echo_expands 1.
+#       Added documentation for template expansion operators.
+#  15-Aug-2008 (russt) [Version 1.70]
+#       Fixed bug in %ifdef whereby :undef vars were considered defined.
+#       Implemented %exec template operator (can also use back-tick syntax).
+#       Add :clrifndef op.  Add %pragma update.
+#  05-Jan-2009 (russt) [Version 1.71]
+#       Correct copyright and version headers.
+#       Allow %undef patterns to be wrapped with /match/ or /^match$/.
+#       No longer truncate postfix op processing at :undef, so we can operate on undefined values (:clrifndef).
+#       Fix bug in template expansion - macros alone on lines and resolving to non-empty strings
+#       were reducing newline, and lines at EOF without EOL were adding newline.
+#       Fix bug in template expansion of lines containing "%s" sequences.
+#       The %pragma statement was not expanding the rhs pragma expression.
+#       Emit WARNING and ignore setting for simple boolean %pragma's, unless passed numeric value
+#       Add pragmas clrifndef and trim_multiline_rnewline.
+#       Add :pragmavalue op.
+#       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
+#       Add :eolsqeeze op.
+#       Add :substituteliteral (alias :sl) op.
+#       Add %return -e -s <status> options.
+#       Add %eval * (recursive) statement.
+#       TODO:  Add recursive (*) option to %evaltemplate statement.
+#       Add doc for %halt, %return, %if*, and other missing doc (trim ops, etc.)
+#  09-Jan-2009 (russt) [Version 1.72]
+#       Fix bug in :factorShSubs - was not using shsub_*_ref macro in subroutine() name declaration.
+#       Fix bug in %pop/%shift and :stacksize.  Was not handling empty-string elements correctly.
+#       Issue warning if :substituteliteral contains too many separators, and guess where separators belong.
+#       Add test #36 to check %while/%whiledef looping methods using stacks; test handling of empty elements.
+#       Add examples directory and a few examples.
+#  20-Jun-2009 (russt) [Version 1.73]
+#       Add %assign (alias %a) template operator.
+#  22-Jun-2009 (russt) [Version 1.74]
+#       Require whitespace to disambiguate "x=" op, e.g. use "xx x=10" instead of "xxx=10".
+#  20-Feb-2010 (russt) [Version 1.75]
+#       Use :nameof in trim_multiline_rnewline save/restore in :factorShSubs.  Change :pragmavalue to use
+#       :nameof if var is undefined or empty instead of just undefined.
+#  26-Feb-2010 (russt) [Version 1.76]
+#       Fix bug in :factorShVars, :factorCshVars where variables first appearing on rhs
+#       of definition were being omitted.  Also fix more subtle bug whereby variables appearing
+#       in generated rhs values, did not always appear in macrotized form.
+#  16-Mar-2010 (russt) [Version 1.77]
+#       Document perl 5.8.8 on linux bug when copying binary files.  Work-around is "setenv PERLIO stdio".
+#       Parameterize package name so we can run as "cado" as well as "codegen".
+#
+
+
 use strict;
-package {=CODEGEN_PACKAGE_NAME=};
+package cado;
 
 my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "{=VERSION=}",         #VERSION - the program version number.
-    "{=VERSION_DATE=}",  #VERSION_DATE - date this version was released.
+    "1.77",         #VERSION - the program version number.
+    "16-Mar-2010",  #VERSION_DATE - date this version was released.
 );
-EOF
-%evalmacro CODEGEN_PACKAGE CODEGEN_PACKAGE
-}
 
-{
-
-CODEGEN_MAIN := << EOF_MAIN
 require "path.pl";
 require "os.pl";
 require "pcrc.pl";
@@ -2161,11 +2391,7 @@ sub eval_spf_expr
     return $evalstr;
 }
 
-EOF_MAIN
-}
 
-{
-CODEGEN_MAIN2 := << EOF_MAIN2
 sub lookup_def
 #INPUT:   variable name
 #output:  variable value or the string "${varname:undef}" (if undefined)
@@ -3100,11 +3326,7 @@ sub free_filehandle_count
     return $cnt;
 }
 
-EOF_MAIN2
-}
 
-{
-CODEGEN_USAGE := << EOF_USAGE
 ################################ USAGE SUBROUTINES ###############################
 
 sub usage
@@ -3650,252 +3872,2181 @@ sub cleanup
 {
 }
 
-EOF_USAGE
-}
 
+sub eval_postfix_op
+#implement postfix operations for variables
+#returns input string with operation applied.
 {
-CODEGEN_HEADER := << EOF
-#
-# BEGIN_HEADER - DO NOT EDIT
-#
-# The contents of this file are subject to the terms
-# of the Common Development and Distribution License
-# (the "License").  You may not use this file except
-# in compliance with the License.
-#
-# You can obtain a copy of the license at
-# https://open-esb.dev.java.net/public/CDDLv1.0.html.
-# See the License for the specific language governing
-# permissions and limitations under the License.
-#
-# When distributing Covered Code, include this CDDL
-# HEADER in each file and include the License file at
-# https://open-esb.dev.java.net/public/CDDLv1.0.html.
-# If applicable add the following below this CDDL HEADER,
-# with the fields enclosed by brackets "[]" replaced with
-# your own identifying information: Portions Copyright
-# [year] [name of copyright owner]
-#
+    my ($op, $var, $varname, $linecnt) = @_;
 
-#
-# @(#){=CODEGEN_PACKAGE_NAME=}.pl - ver {=VERSION=} - {=VERSION_DATE=}
-#
-# Copyright {=COPYRIGHT_RANGE=} Sun Microsystems, Inc. All Rights Reserved.
-#
-# END_HEADER - DO NOT EDIT
-#
+    my $fname = sprintf("%s_op", $op);
+    my $fref = \&{$fname};
 
-#
-# {=CODEGEN_PACKAGE_NAME=} - create a tree full of source code
-#
-# Author: Russ Tremain
-#
-#  12-Nov-2003 (russt)
-#       Initial revision
-#  06-Jan-2004 (russt)
-#       add TEMPLATE_PATHS - search path for templates
-#  21-Jan-2004 (russt)
-#       add here-now defs, {} comments, %echo macro
-#  12-Mar-2004 (russt)
-#       add ifn?def, echo statements
-#  19-Mar-2004 (russt)
-#       implement -u (update) option
-#  29-Sep-2004 (russt)
-#       add postfix operators
-#  28-Oct-2004 (russt)
-#       add append file-spec directive
-#  30-Apr-2005 (russt)
-#       add := operator, %evalmacro, %evaltemplate, %readtemplate
-#  27-Jul-2005 (russt)
-#       add %if, %ifnot
-#  29-Jul-2005 (russt)
-#       add CG_SHELL_STATUS, user defined CG_EXIT_STATUS, correct exit status
-#  02-Aug-2005 (russt)
-#       add -V -version args
-#       add %interpret statement
-#       add %echo -n
-#       add :valueof op
-#       add :nameof op
-#       add :env op
-#       allow assignment to contents of a variable ($var on lhs).
-#       allow $var in %if?ndef, %undef expressions (now works like %if and %ifnot).
-#       fix :indent<integer> macro to indent all lines.
-#       if CGROOT undefined, set to "." on first use instead of creating "NULL" directory.
-#  04-Aug-2005 (russt) [Version 1.41]
-#       add %whiledef, %while statements.
-#       add :xmlcomment, :xmlcommentblock operators.
-#       changed semantics of %if, %ifnot:  false <==> zero or empty string, true <==> !false
-#       change :incr, :decr, :plus, etc. to preserve width of input, e.g., 00, 01, etc.
-#       variable names in %ifndef, etc, no longer incorporate leading/trailing white space.
-#  11-Aug-2005 (russt) [Version 1.42]
-#       add file i/o operators:
-#           :openfile
-#           :getnextline
-#           :currentline
-#           :currentlinenumber (1..nlines), 0 => file closed
-#           :closefile
-#       add match, compare operators:
-#           :match or :m - will match against CG_MATCH_SPEC
-#           :substitute or :s - will match against CG_SUBSTITUTE_SPEC
-#           :eq, :ne, :gt, :lt, :ge, :le - will compare against CG_COMPARE_SPEC
-#       add %push, %pop statements.
-#       add %call alias for %interpret
-#       %exit was requiring spaces after keyword
-#       add %return alias for %exit
-#       add %halt <status>, also aliased to %abort <status>
-#       add %eecho (echo to stderr).
-#       add tracing for allocate/free of file handles, and the limit 40 from 30
-#       fix &is_number(..) (was requiring '.').
-#       set result of perl =~ expressions to {0,1}, as they're undefined if false.
-#       standardize most of the error/warning messages.  needs more work.
-#  20-Aug-2005 (russt) [Version 1.43]
-#       add %shift operator
-#       allow patterns in %undef operator
-#       no longer need to escape % in input (existing scripts using %% have to be updated).
-#       ignore leading space in file spec statements
-#       %exit/%return - ignore exit message if empty string.
-#       add built-in CG_ARGV stack variable, which saves arguments to interpreter
-#       add :basename :dirname :suffix operators
-#       add :stripjavaheader operator
-#  22-Aug-2005 (russt) [Version 1.44]
-#       add -Dvar[=value] command line arg
-#  29-Aug-2005 (russt) [Version 1.45]
-#       :env now returns empty string if variable is undefined.
-#       add %export/%unexport operators to modify environment of sub-shells
-#       handle binary files specs.
-#       fix bug where $foovar:nameof[:op]+ was not updating var contents with [:op]+.
-#  17-Oct-2005 (russt) [Version 1.46]
-#       double the number of available file-descriptors to 80, add -debugfd option.
-#       fix bug in get_avaliable_filehandle() - was failing with descriptors available.
-#  18-Oct-2005 (russt) [Version 1.47]
-#       fix pathname creation in write_string_to_cg_tmp_file()
-#           (cygwin thinks //tmp is a network drive).
-#  20-Oct-2005 (russt) [Version 1.48]
-#       we were not freeing file-descriptors in close_fileop().
-#  05-Jun-2006 (russt) [Version 1.49]
-#       CG_TEMPLATE_PATH: . was overriding path. added :freq postfix op.
-#  15-Jun-2006 (russt) [Version 1.50]
-#       added %pragma statement, preserve_multiline_lnewline pragma.
-#  18-Jun-2006 (russt) [Version 1.51]
-#       added copy pragma, :rangelb, :rangeub, :split operators.
-#       move tests to regress subdir and adapt to jregress requirements.
-#  18-Jun-2006 (russt) [Version 1.52]
-#       restructure postfix eval to use function pointers.
-#  20-Jun-2006 (russt) [Version 1.53]
-#       add %foreach statement
-#  21-Jun-2006 (russt) [Version 1.54]
-#       match operator was generating spurious errors.
-#  25-Jun-2006 (russt) [Version 1.55]
-#       Add :pad operator.
-#       Add warning if -u option not specified.
-#       Add %print (%echo) & %printe (%eecho) aliases
-#       Re-work numeric %foreach to pad iterator, improve efficiency.
-#       Add pattern matching foreach variant.
-#       Fix "cascading failure" bug in &interpret.
-#       Rename %SPEC_VARS to %CG_USER_VARS, and add get_user_vars() function to access.
-#       Add debug, ddebug, quiet, verbose %pragma statements.  
-#       Change :valueof to return ${var:undef} instead of NULL for undefined variables.
-#  04-Oct-2006 (russt) [Version 1.56]
-#       Fix checkforexistingheader -> checkforexistingheader_op when called internally.
-#  14-Dec-2006 (russt) [Version 1.57]
-#       delete signsrc operators (not part of core interpreter).  add :fixeol op.
-#  20-Dec-2006 (russt) [Version 1.58]
-#       add -x -S options to allow "#!/bin/{=CODEGEN_PACKAGE_NAME=}" scripts.
-#       add :crc :crcstr :crcfile ops.  add CG_LINE_NUMBER user variable.
-#       enhance -help message: add %pragma section, update user-variables, etc.
-#  21-Dec-2006 (russt) [Version 1.59]
-#       add :tounix :todos ops.
-#       add :cap, :uncap ops to capitalize or uncapitalize a string (first letter only).
-#       add file-test ops: :r,:w,:x,:e,:z,:sz,:f,:d,:l,:T,:B (same as perl, except :sz = -s).
-#       fix bug in %undef - was matching all vars with indicated prefix.
-#  22-Dec-2006 (russt) [Version 1.60]
-#       :crcstr op was not cleaning tmp file. eliminated redundant string copy in %readtemplate.
-#  22-Dec-2006 (russt) [Version 1.61]
-#       add %void statement.  re-order main interpreter loop based on estimated frequency of use.
-#       add :clr op.  %undef was not clearing CG_* vars.  :undef op now returns ${var:undef} like %undef.
-#       move test CG_ROOT to ../bld/cgtstroot, and clear it before first test.
-#  21-Feb-2007 (russt) [Version 1.62]
-#       filetest ops were emitting "unititialized" messages when result was false (undefined).
-#       add %upush statement, to maintain stack with unique elements.
-#       add $CG_STACK_DELIMITER user variable, to allow user to %push lists.
-#       add %pragma reset_stack_delimiter to restore CG_STACK_DELIMITER to default value.
-#       add :stackminus to subtract elements of $CG_STACK_SPEC from a named stack.
-#  02-Apr-2007 (russt) [Version 1.63]
-#       Add :_<iden> op to wrap xml/html elements, and CG_ATTRIBUTE_<n> spec to
-#       decorate element with optional attributes.
-#       Fix bug in :indent op - was using stale value for CG_INDENT_STRING.
-#  14-Apr-2007 (russt) [Version 1.64]
-#       add -T <tmpdir> option.
-#  15-May-2007 (russt) [Version 1.65]
-#       was not halting if %halt was in included file
-#  26-Oct-2007 (russt) [Version 1.66]
-#       Add .=, .:= append assignment operators.
-#       Add -=, +=, *=, /=, **=, %=, |=, &=, ^=, and x= assignment operators.
-#       Implement :split, :top, :bottom, :car, :cdr.
-#       Add alias :i for :incr.
-#       Add %pushv statement, to create a stack of varibles names matching a pattern.
-#       Interpret ${varname:undef} as undefined value for $varname.
-#       Add versioned cgdoc.txt to distribution.
-#  04-Dec-2007 (russt) [Version 1.67]
-#       Search for unimplemented "%" commands externally (e.g. %mkdir, etc).
-#       All external commands (%shell and postfix ops) now first cd to CG_SHELL_CWD,
-#       Add %pragma "filegen_notices_to_stdout".  If set, will redirect file
-#       generation messages to stdout (default is stderr).
-#  06-Mar-2008 (russt) [no version change]
-#       Fix bug in maven templates, and add some instructions.
-#  20-May-2008 (russt) [Version 1.68]
-#       Fix bug in :basename operator, and add regression test for it.
-#  12-June-2008 (russt) [Version 1.69]
-#       Fixed bug in %pushv causing interpreter to exit when user program passes in a bad RE.
-#       Add :studyclass op, which generates CG_ class variables.
-#       Rework %evalmacro to use more efficient expand_string_template().
-#       The template operators: gen_imports, and gen_javadoc, are now evaluated in place.
-#       The %echo template operator will also expand in place, but only if %pragma echo_expands 1.
-#       Added documentation for template expansion operators.
-#  15-Aug-2008 (russt) [Version 1.70]
-#       Fixed bug in %ifdef whereby :undef vars were considered defined.
-#       Implemented %exec template operator (can also use back-tick syntax).
-#       Add :clrifndef op.  Add %pragma update.
-#  05-Jan-2009 (russt) [Version 1.71]
-#       Correct copyright and version headers.
-#       Allow %undef patterns to be wrapped with /match/ or /^match$/.
-#       No longer truncate postfix op processing at :undef, so we can operate on undefined values (:clrifndef).
-#       Fix bug in template expansion - macros alone on lines and resolving to non-empty strings
-#       were reducing newline, and lines at EOF without EOL were adding newline.
-#       Fix bug in template expansion of lines containing "%s" sequences.
-#       The %pragma statement was not expanding the rhs pragma expression.
-#       Emit WARNING and ignore setting for simple boolean %pragma's, unless passed numeric value
-#       Add pragmas clrifndef and trim_multiline_rnewline.
-#       Add :pragmavalue op.
-#       Add :factorShSubs, :factorShVars, and :factorCshVars postfix ops.
-#       Add :eolsqeeze op.
-#       Add :substituteliteral (alias :sl) op.
-#       Add %return -e -s <status> options.
-#       Add %eval * (recursive) statement.
-#       TODO:  Add recursive (*) option to %evaltemplate statement.
-#       Add doc for %halt, %return, %if*, and other missing doc (trim ops, etc.)
-#  09-Jan-2009 (russt) [Version 1.72]
-#       Fix bug in :factorShSubs - was not using shsub_*_ref macro in subroutine() name declaration.
-#       Fix bug in %pop/%shift and :stacksize.  Was not handling empty-string elements correctly.
-#       Issue warning if :substituteliteral contains too many separators, and guess where separators belong.
-#       Add test #36 to check %while/%whiledef looping methods using stacks; test handling of empty elements.
-#       Add examples directory and a few examples.
-#  20-Jun-2009 (russt) [Version 1.73]
-#       Add %assign (alias %a) template operator.
-#  22-Jun-2009 (russt) [Version 1.74]
-#       Require whitespace to disambiguate "x=" op, e.g. use "xx x=10" instead of "xxx=10".
-#  20-Feb-2010 (russt) [Version 1.75]
-#       Use :nameof in trim_multiline_rnewline save/restore in :factorShSubs.  Change :pragmavalue to use
-#       :nameof if var is undefined or empty instead of just undefined.
-#  26-Feb-2010 (russt) [Version 1.76]
-#       Fix bug in :factorShVars, :factorCshVars where variables first appearing on rhs
-#       of definition were being omitted.  Also fix more subtle bug whereby variables appearing
-#       in generated rhs values, did not always appear in macrotized form.
-#  16-Mar-2010 (russt) [Version 1.77]
-#       Document perl 5.8.8 on linux bug when copying binary files.  Work-around is "setenv PERLIO stdio".
-#       Parameterize package name so we can run as "cado" as well as "codegen".
-#
+    #printf STDERR "eval_postfix_op:  op='%s' varname='%s' var='%s' fname='%s'\n", $op, $varname, $var, $fname if ($DEBUG);
+#printf STDERR "eval_postfix_op:  op='%s' varname='%s' var='%s' fname='%s'\n", $op, $varname, $var, $fname;
 
-EOF
-%evalmacro CODEGEN_HEADER CODEGEN_HEADER
+    if ( defined(&{$fref}) ) {
+        $var = &{$fref}($var, $varname, $linecnt);
+        printf STDERR "eval_postfix_op:  AFTER var='%s'\n", $var if ($DEBUG);
+#printf STDERR "eval_postfix_op:  AFTER var='%s'\n", $var;
+        return $var;
+    }
+
+    #otherwise, we have an arithmetic op, or external command.
+
+    if ($op =~ /^indent(\d*)$/) {
+        #add n indent levels, as defined by CG_INDENT_STRING
+        if (defined($1) and $1 ne "") {
+            $var = &increase_indent($var, $1) unless ($var eq "");
+        } else {
+            #no indent level supplied - assume 1:
+            $var = &increase_indent($var, 1) unless ($var eq "");
+        }
+    } elsif ($op =~ /^_([^\s]*)$/) {
+        #this is the xml/html wrapper op.  $foo:_p => <p>$foo</p>
+        if (defined($1) and $1 ne "") {
+            my $ee = $1;  #save element name
+
+            #if we have CG_ATTRIBUTE_$ee defined ...
+            if (&var_defined("CG_ATTRIBUTE_$ee")) {
+                $var = sprintf "<%s %s>%s</%s>", $ee, &lookup_def("CG_ATTRIBUTE_$ee"), $var, $ee;
+            } else {
+                $var = sprintf "<%s>%s</%s>", $ee, $var, $ee;
+            }
+        }
+    } elsif ($op =~ /^plus(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var + $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^minus(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var - $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^times(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var * $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^div(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var / $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^rem(\d*)$/) {
+        my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+        $var = sprintf "%.*d", length($tmp), ($var % $1) if (defined($1) and $1 ne "");
+    } elsif ($op =~ /^\s*$/) {
+        #silently ignore empty operators
+    } else {
+        #assume that operator is a valid shell command:
+        printf STDERR "%s [eval_postfix_op]: assuming '%s' is an external command\n", $p, $op if ($VERBOSE);
+        $var = &exec_shell_op($op, $var);
+    }
+
+    printf STDERR "eval_postfix_op:  AFTER var='%s'\n", $var if ($DEBUG);
+    return $var;
 }
+
+sub increase_indent
+#increase the indent level of each line in input 
+{
+    my ($var, $indent_level) = @_;
+    my $leadin = &lookup_def("CG_INDENT_STRING") x $indent_level;
+
+    my $eolpat = "\n";
+    if ($var =~ /\r/) {
+        #set to use dos line endings:
+        $eolpat = "\r\n";
+    }
+    my @tmp = split($eolpat, $var, -1);
+        #-1 => include trailing null fields, i.e., empty lines in this case
+
+#printf STDERR "increase_indent: leadin='%s' tmp=(%s)\n", $leadin, join(',', @tmp);
+
+    #this is much faster than a for loop:
+    grep ((!/^\s*$/) && ($_ = "$leadin$_"), @tmp);
+
+    return join("\n", @tmp);
+}
+
+sub exec_shell_op
+#open a command processor as a pipe, and feed <var> as stdin.
+#returns <var> unmodified if there is an error creating the pipe,
+#otherwise, the output from the command.
+{
+    my ($cmdname, $var) = @_;
+
+    #write $var to a tmp file:
+    my $tmpfile = &os'TempFile;
+    if (!open(TMPFILE, ">$tmpfile")) {
+        printf STDERR "%s [exec_shell_op]: ERROR: cannot open '%s' for write: %s\n", $p, $tmpfile, $!;
+        ++ $GLOBAL_ERROR_COUNT;
+        # var is unmodified
+    } else {
+        #make sure that input to pipe has at least one EOL.
+        #otherwise, mks won't read the pipe.
+        chomp $var;
+        printf TMPFILE "%s\n", $var;
+        close TMPFILE;
+
+        #check for command line arguments:
+        my $cmdargs = "";
+        $cmdargs = (" " .  &lookup_def('CG_SHELL_COMMAND_ARGS')) if (&var_defined('CG_SHELL_COMMAND_ARGS'));
+
+        #execute command in current shell directory:
+        my $cmd = sprintf("%s%s%s", &get_shell_cd_cmd(), $cmdname, $cmdargs);
+
+        #now open pipe to command:
+        $CG_USER_VARS{'CG_SHELL_STATUS'} = 255;    #unless shell sets status, we assume bad
+        if (!open(CMDPIPE, "sh -c '$cmd' <$tmpfile|")) {
+            printf STDERR "%s [exec_shell_op]: ERROR: cannot open pipe to command '%s': %s\n", $p, $cmd, $!;
+            ++ $GLOBAL_ERROR_COUNT;
+        } else {
+            #read stdout of pipe back into var:
+            my @var = <CMDPIPE>;
+            close CMDPIPE;
+            $CG_USER_VARS{'CG_SHELL_STATUS'} = $?;
+            #sh adds an extra newline, trim it:
+            $var = join("",@var);
+            chomp $var;
+        }
+    }
+
+    return $var;
+}
+
+sub is_number
+#true if <var> is a number (integer or decimal).
+{
+    my ($var) = @_;
+    my $result = ( ($var =~ /^\s*[-+]?\s*\d+(\.\d+)?\s*$/) ? 1 : 0 );
+
+#printf STDERR "is_number: var='%s' result=%d\n", $var, $result;
+
+    return $result;
+}
+
+sub is_integer
+#true if <var> is an integer
+{
+    my ($var) = @_;
+    return ($var =~ /^\s*[-+]?\s*\d+\s*$/);
+}
+
+sub is_java_comment
+{
+    my ($lref) = @_;
+    my (@lines) = @{$lref};
+    my ($ans) = 0;
+
+    while ($#lines >= 0) {
+        if (&is_java_line_comment($lines[0])) {
+            $ans = 1;
+            shift @lines;
+        } elsif (&is_java_block_comment_start($lines[0])) {
+            #loop until we find the end:
+            shift @lines;
+            while ($#lines >= 0 && !($ans = &is_java_block_comment_end($lines[0]))) {
+                shift @lines;
+            }
+            shift @lines if ($ans);
+        } else {
+            last;
+        }
+    }
+
+    #replace original only if we modified it:
+    @{$lref} = @lines if ($ans);
+
+    return $ans;
+}
+
+sub is_java_block_comment_start
+{
+    my ($txt) = @_;
+
+    #look for /*, but not /** ..
+    return 1 if ($txt =~ /^\s*\/\*/ && $txt !~ /^\s*\/\*\*/);
+    return 0;
+}
+
+sub is_java_block_comment_end
+{
+    my ($txt) = @_;
+    return ($txt =~ /\*\//) ? 1 : 0;
+}
+
+sub is_java_line_comment
+{
+    my ($txt) = @_;
+
+    #look for // ...
+    return 1 if ($txt =~ /^\s*\/\//);
+
+    #look for /* ... */, but not /** .. */
+    if ($txt =~ /^\s*\/\*/ && $txt =~ /\*\//) {
+        #we don't count javadoc as part of the header:
+        return 1 unless $txt =~ /^\s*\/\*\*/;
+    }
+
+    return 0;
+}
+
+sub is_wsp
+{
+    my ($lref) = @_;
+    my (@lines) = @{$lref};
+    my ($ans) = 0;
+
+    while ($#lines >= 0 && $lines[0] =~ /^\s*$/) {
+        shift @lines;
+        $ans = 1;
+    }
+
+    #replace original only if we modified it:
+    @{$lref} = @lines if ($ans);
+
+    return $ans;
+}
+
+
+sub rtrim_op
+#process :rtrim postfix op
+{
+    my ($var) = @_;
+    $var =~ s/\s+$//;
+    return $var;
+}
+
+sub trim_op
+#process :trim postfix op
+{
+    my ($var) = @_;
+    $var =~ s/^\s+//;
+    $var =~ s/\s+$//;
+    return $var;
+}
+
+sub undef_op
+#process :undef postfix op
+{
+    my ($var, $varname) = @_;
+    #undefine $varname
+    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    $var = sprintf('${%s:undef}', $varname);   #same as lookup_def returns.
+    return $var;
+}
+
+sub studyclass_op
+#generate CG_ classname variables.
+#return 1 if successful
+{
+    my ($classname) = @_;
+
+    %CLASS_VARS = (); 
+    &gen_classvars(\%CLASS_VARS, $classname);
+
+    return 1;
+}
+
+sub m_op
+#alias for :match
+{
+    return &match_op(@_);
+}
+
+sub match_op
+#process :match postfix op
+#:match or :m - will match against CG_MATCH_SPEC
+#return 1 if match, else 0.
+{
+    my ($var) = @_;
+    my $spec = $CG_USER_VARS{'CG_MATCH_SPEC'};
+
+    return 0 unless (defined($spec));
+
+#printf "expr_match: var='%s' spec='%s'\n", $var, $spec;
+
+    my $ans = eval "\$var =~ $spec";
+
+    if ($@) {
+        printf STDERR "%s[match]: ERROR: line %d: evaluation of CG_MATCH_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, $@;
+        return 0;
+    } elsif (!defined($ans)) {
+        #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
+        printf STDERR "%s[match]: ERROR: line %d: evaluation of CG_MATCH_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, "ERROR in eval" ;
+        return 0;
+    }
+
+    return ($ans eq ""? 0 : 1);
+}
+
+sub pad_op
+#process :pad postfix op
+#pad a number or string as specified by CG_PAD_SPEC
+#Default is to zero-pad integers to width 2.
+#CG_PAD_SPEC is take as an sprintf format spec.
+{
+    my ($var) = @_;
+    my $spec = $CG_USER_VARS{'CG_PAD_SPEC'};
+
+    if (!defined($spec)) {
+        if (&is_integer($var)) {
+            $spec = "%02d";
+        } else {
+            $spec = "%2s";
+        }
+    }
+
+    printf "pad_op: var='%s' spec='%s'\n", $var, $spec if ($DEBUG);
+
+    return sprintf($spec, $var);
+}
+
+sub s_op
+#alias for :substitute
+{
+    return &substitute_op(@_);
+}
+
+sub substitute_op
+#process :substitute postfix op
+#:substitute or :s - will match against CG_SUBSTITUTE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = &lookup_def('CG_SUBSTITUTE_SPEC');
+    return $var unless (&var_defined('CG_SUBSTITUTE_SPEC'));
+
+    my $savevar = $var;
+    my $result = eval "\$var =~ $spec";
+
+    if ($@) {
+        printf STDERR "%s[substitute]: ERROR: line %d: evaluation of CG_SUBSTITUTE_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, $@;
+        return $savevar;
+    } elsif (!defined($result)) {
+        #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
+        printf STDERR "%s[substitute]: ERROR: line %d: evaluation of CG_SUBSTITUTE_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, "ERROR in eval" ;
+        return $savevar;
+    }
+
+    return $var;
+}
+
+sub sl_op
+#alias for :substituteliteral (literal substitute).
+{
+    return(substituteliteral_op(@_));
+}
+
+sub substituteliteral_op
+#process :substituteliteral postfix op (literal substitute).
+{
+    my ($var) = @_;
+
+    my $spec = &lookup_def('CG_SUBSTITUTE_SPEC');
+    return $var unless (&var_defined('CG_SUBSTITUTE_SPEC'));
+
+    my $input_spec = $spec;    #save original for messages.
+    #skip over "s" in substitute spec:
+    $spec =~ s/\s*s\s*//;
+
+    #what is the delimiter?
+    my $sep = substr($spec, 0, 1);
+
+    #eliminate leading delimiter:
+    $spec =~ s/^$sep//;
+
+    #convert non-escaped separators to $;
+    $spec =~ s/\\\\/!#%EsCaPeD_BaCkSlAsHeS%#!/g; #substitute escaped backslashes with special pattern
+    $spec =~ s/$sep/$;/g;                        #convert sep chars to $;
+    $spec =~ s/\\$;/$sep/g;                      #revert escaped sep chars
+    $spec =~ s/!#%EsCaPeD_BaCkSlAsHeS%#!/\\\\/g; #revert escaped backslashes
+
+    my (@tmp) = split($;, $spec, -1);
+    my ($lit, $rep) = ("", "");
+    my $modifiers = "";
+
+    ###
+    #Set subst/replace strings.  try to compensate for some common user errors.
+    ###
+    if ($#tmp == 2) {
+        #case I:  3 elements:  lit/rep/modfiers  (modifiers can be empty)
+        #                      0   1   2
+        ($lit, $rep, $modifiers) = @tmp;
+    } elsif ($#tmp == 1) {
+        #case II:  2 elements:  lit/rep
+        #                       0   1
+        #we assume user forgot to add final separator.
+        ($lit, $rep) = @tmp;
+    } elsif ($#tmp > 2) {
+        #case II:  >2 elements:  lit/rep/modifiers
+        #                        0   $-1
+        #either lit or rep has separators.  we assume lit and issue warning.
+
+        my $nn = $#tmp;
+#printf STDERR "nn=%d tmp=(%s)\n", $nn, join('!', @tmp);
+        ($lit, $rep, $modifiers) = (join($sep, @tmp[0..$nn-2]), $tmp[$nn-1], $tmp[$nn]);
+
+    printf STDERR "%s[substituteliteral]: WARNING: line %d: too many separators in CG_SUBSTITUTE_SPEC (%s) - assuming they belong to lhs.\n",
+            $p, $LINE_CNT, $input_spec unless($QUIET);
+    }
+
+    my $isglobal = 0;
+    $isglobal = 1 if ($modifiers eq "g");  #currently g is the only allowed modifier
+
+#printf STDERR "substituteliteral_op: (sep lit rep modifiers isglobal)=('%s' '%s' '%s' '%s' '%s')\n", $sep, $lit, $rep, $modifiers, $isglobal;
+
+    #return if $lit is the same as $rep - this is a nop and will prevent loop below from terminating.
+    return $var if ($lit eq $rep);
+
+    my ($idx, $len) = (index($var, $lit), length($lit));
+
+#printf STDERR "substituteliteral_op: (idx,len)=(%d,%d)\n", $idx, $len;
+
+    #if literal is found in var, then replace it:
+    if ($idx >= 0) {
+        substr($var, $idx, $len) = $rep;
+
+        #replace all occurances if "g" specified:
+        while ($isglobal && ($idx = index($var, $lit)) >= 0) {
+            substr($var, $idx, $len) = $rep;
+        }
+    }
+
+    return $var;
+}
+
+sub tounix_op
+#convert a string to unix text
+{
+    my ($var) = @_;
+
+    $var =~ s/\r\n/\n/gm;
+    return $var;
+}
+
+sub todos_op
+#convert a string to dos text
+{
+    my ($var) = @_;
+
+    #make sure it is in unix format:
+    $var =~ &tounix_op($var);
+
+    $var =~ s/\n/\r\n/gm;
+    return $var;
+}
+
+sub eq_op
+#process :eq postfix op
+#:eq - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var == $spec) if (&is_number($var) && &is_number($spec));
+    return ($var eq $spec);
+}
+
+sub ne_op
+#process :ne postfix op
+#:ne - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var != $spec) if (&is_number($var) && &is_number($spec));
+    return ($var ne $spec);
+}
+
+sub gt_op
+#process :gt postfix op
+#:gt - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var > $spec) if (&is_number($var) && &is_number($spec));
+    return ($var gt $spec);
+}
+
+sub ge_op
+#process :ge postfix op
+#:ge - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var >= $spec) if (&is_number($var) && &is_number($spec));
+    return ($var ge $spec);
+}
+
+sub lt_op
+#process :lt postfix op
+#:lt - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var < $spec) if (&is_number($var) && &is_number($spec));
+    return ($var lt $spec);
+}
+
+sub le_op
+#process :le postfix op
+#:le - will compare against CG_COMPARE_SPEC
+{
+    my ($var) = @_;
+
+    my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
+    return 0 unless (defined($spec));
+    return ($var <= $spec) if (&is_number($var) && &is_number($spec));
+    return ($var le $spec);
+}
+
+sub basename_op
+#process :basename postfix op
+#return basename of input var
+{
+    my ($var) = @_;
+
+    #if not a path name, then just return simple name:
+    return $var unless ( $var =~ /[\/\\]/ );
+
+    return $1 if ( $var =~ /[\/\\]([^\/\\]*)$/ );
+    return "";
+}
+
+sub dirname_op
+#process :dirname postfix op
+#return dirname of input var
+{
+    my ($var) = @_;
+    $var =~ s/[\/\\][^\/\\]*$//;
+    return $var;
+}
+
+sub suffix_op
+#process :suffix postfix op
+#return suffix of input var
+{
+    my ($var) = @_;
+
+    return $1 if ( $var =~ /\.([^\.\\\/]*)$/ );
+    return "";
+}
+
+sub top_op
+#process :top postfix op
+#:top - return the top (last in) element on the stack
+{
+    my ($var) = @_;
+
+    return $var if (!defined($var) || $var eq "");
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+
+#printf STDERR "top_op: var='%s' #tmp=%d\n", $var, $#tmp;
+    return (pop @tmp);
+}
+
+sub car_op
+#alias for :bottom, for lisp affectionados.
+{
+    return &bottom_op(@_);
+}
+
+sub cdr_op
+#process :cdr postfix op, which is the stack minus it's :car.
+{
+    my ($var, $varname) = @_;
+
+    return undef if (!defined($var));
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+    shift @tmp;
+
+    #if stack is now empty, return last element, but undef stack:
+    if ($#tmp < 0) {
+        return sprintf("\${%s:undef}", $varname);
+    } else {
+        return join($;, @tmp);
+    }
+}
+
+sub bottom_op
+#process :bottom postfix op
+#:bottom - return the bottom (first in) element on the stack
+{
+    my ($var) = @_;
+
+    return "" if ($var eq "");
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+
+#printf STDERR "bottom_op: var='%s' #tmp=%d\n", $var, $#tmp;
+    return (shift @tmp);
+}
+
+sub showstack_op
+#display stack as list with $CG_STACK_DELIMITER separating elements.
+{
+    my ($var, $varname) = @_;
+    return &undefname($varname)  unless (defined($var));
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+
+    my $FS = &lookup_def('CG_STACK_DELIMITER');
+
+    return sprintf("%s", join($FS, @tmp));
+}
+
+sub stacksize_op
+#process :stacksize postfix op
+#:stacksize - return the stacksize of a scalar.
+#only variables created by %push will have a stacksize > 1
+#empty string returns a stacksize of 0.
+{
+    my ($var, $varname) = @_;
+
+    return 0 unless (&var_defined($varname));
+
+    #this is because split on an empty string sets length of array incorrectly to -1.
+    return 1 if ($var eq '');
+
+    my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
+
+#printf STDERR "stacksize_op: varname='%s' value='%s' #tmp=%d\n", $varname, $var, $#tmp;
+
+    return $#tmp +1;
+}
+
+sub stackminus_op
+#process :stackminus postfix op
+#:stackminus - subtract the members of CG_STACK_SPEC from current stack.
+{
+    my ($var) = @_;
+
+    return $var if ($var eq "");
+
+    my @thisStack = split($;, $var, -1);
+#printf STDERR "thisStack=(%s)\n", join(",", @thisStack);
+    my $specStack = $CG_USER_VARS{'CG_STACK_SPEC'};
+    return $var unless (defined($specStack));
+
+    my @specStack = split($;, $specStack, -1);
+#printf STDERR "specStack=(%s)\n", join(",", @specStack);
+
+    my @new = &MINUS(\@thisStack, \@specStack);
+#printf STDERR "new=(%s)\n", join(",", @new);
+
+    return join($;, @new);
+}
+
+sub pv_op
+#alias for pragmavalue_op.
+{
+    return &pragmavalue_op(@_);
+}
+
+sub pragmavalue_op
+#retrieve the value of the pragma named by the contents of a variable, or of
+#the variable name if the contents are undefined.
+{
+    my ($var, $varname, $linecnt) = @_;
+    #use varname if contents is undefined:
+    my $pragma_name = ( (&isUndefinedVarnameValue($varname,$var) || $var eq "") ? $varname : $var);
+
+#printf STDERR "pragmavalue_op A: varname='%s' var='%s' pragma_name='%s'\n", $varname, $var, $pragma_name;
+#printf STDERR "%s='%s'\n", "pragma_preserve_multiline_lnewline", $pragma_preserve_multiline_lnewline;
+#printf STDERR "%s='%s'\n", "pragma_trim_multiline_rnewline", $pragma_trim_multiline_rnewline;
+#printf STDERR "%s='%s'\n", "pragma_copy", $pragma_copy;
+#printf STDERR "%s='%s'\n", "pragma_update", $pragma_update;
+#printf STDERR "%s='%s'\n", "pragma_echo_expands", $pragma_echo_expands;
+#printf STDERR "%s='%s'\n", "pragma_require", $pragma_require;
+#printf STDERR "%s='%s'\n", "pragma_debug", $pragma_debug;
+#printf STDERR "%s='%s'\n", "pragma_ddebug", $pragma_ddebug;
+#printf STDERR "%s='%s'\n", "pragma_quiet", $pragma_quiet;
+#printf STDERR "%s='%s'\n", "pragma_verbose", $pragma_verbose;
+#printf STDERR "%s='%s'\n", "pragma_filegen_notices_to_stdout", $pragma_filegen_notices_to_stdout;
+#printf STDERR "%s='%s'\n", "pragma_clrifndef", $pragma_clrifndef;
+
+
+    if ( !defined($PRAGMAS{$pragma_name}) ) {
+        printf STDERR "%s: WARNING: '%s' is not a recognized pragma in :pragmavalue expression, line %d\n",
+             $p, $pragma_name, $linecnt, join(", ", sort keys %PRAGMAS) unless ($QUIET);
+        return "";
+    }
+
+    #####
+    #look up value of pragma:
+    #####
+
+    if ($pragma_name eq 'reset_stack_delimiter') {
+        #special case - no real value so just return what we would set it to:
+        return "\t";
+    }
+
+    my $pragma_var = "pragma_" . $pragma_name;    #this is the variable we set internally.
+
+    no strict "refs";
+    my $pragma_ref = \${$pragma_var};
+    use strict "refs";
+
+    my $pragma_val = $$pragma_ref;
+
+#printf STDERR "pragmavalue_op: pragma_var='%s' pragma_val='%s'\n", $pragma_var, defined($pragma_val)? $pragma_val : "undef";
+
+    return $pragma_val;
+}
+
+sub openfile_op
+#process :openfile postfix op
+#open a file if it is open. return error string or empty if no error.
+{
+    my ($fn, $varname) = @_;
+
+    my $fhref = $CG_OPEN_FILE_DESCRIPTORS{$fn};
+    my $fhidx = -1;
+
+    if (defined($fhref)) {
+        #then close before re-open:
+        close $fhref;
+        $fhidx = $CG_OPEN_FILE_FD_INDEXES{$fn};
+    } else {
+        #get the next file reference:
+        $fhidx = &get_avaliable_filehandle("open_fileop");
+
+        if ($fhidx < 0) {
+            return sprintf("%s: ERROR: out of file descriptors (max is %d).", $p, $LAST_TEMPLATE_FD_KEY+1);
+        }
+
+        $fhref = $TEMPLATE_FD_REFS[$fhidx];
+    }
+
+
+    if (!open($fhref, $fn)) {
+        &free_filehandle($fhidx, "open_fileop") if ($fhidx >= 0);   #free if we allocated filehandle
+        my $errtxt = sprintf("%s", $!);
+        return $errtxt unless ($errtxt eq "");
+        return "UNKNOWN ERROR";
+    }
+
+
+    #init line contents, count for newly opened file:
+    $CG_OFD_CURRENTLINE{$fn} = "";
+    $CG_OFD_CURRENTLINECOUNT{$fn} = 0;
+
+    #save file-handle:
+    $CG_OPEN_FILE_DESCRIPTORS{$fn} = $fhref;
+    $CG_OPEN_FILE_FD_INDEXES{$fn} = $fhidx;
+
+    return "";
+}
+
+sub getnextline_op
+#process :getnextline postfix op
+#get the next line of a file if it is open.
+#return varname if line is defined, otherwise, return "".
+#undefine varname if file is not open or we have read past the end.
+{
+    my ($fn, $varname) = @_;
+
+    if ($fn eq "-" || $fn =~ /stdin/i) {
+        my $line = <>;
+        if (!defined($line)) {
+            delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+            return "";
+        }
+        chomp $line;
+        $CG_OPEN_FILE_DESCRIPTORS{'<STDIN>'} = '<STDIN>';
+        $CG_OFD_CURRENTLINE{'<STDIN>'} = $line;
+        ++$CG_OFD_CURRENTLINECOUNT{'<STDIN>'};    #this keeps a tally of how many lines read from stdin
+
+        #we read a line from stdin.
+        $CG_USER_VARS{$varname} = '<STDIN>';  #normalize name of stdin
+        return $varname;
+    }
+
+    my $fhref = $CG_OPEN_FILE_DESCRIPTORS{$fn};
+    my $line = <$fhref> if (defined($fhref));
+
+    if (!defined($fhref) || !defined($line)) {
+        delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+        return "";
+    }
+
+    #otherwise, make a copy of current line, and increment line count:
+    if (defined($line)) {
+        chomp $line;
+        $CG_OFD_CURRENTLINE{$fn} = $line;
+        ++$CG_OFD_CURRENTLINECOUNT{$fn};
+    }
+
+    printf "getnextline_fileop: varname=%s fn=%s line='%s'\n", $varname, $fn, $line if ($DEBUG);
+
+    #return the name of the input variable, for use in %whiledef loops:
+    return $varname;
+}
+
+sub currentline_op
+#process :currentline postfix op
+#return the current input line of a file, or undef varname if file is closed
+{
+    my ($fn, $varname) = @_;
+
+    return $CG_OFD_CURRENTLINE{$fn} if (defined($CG_OFD_CURRENTLINE{$fn}));
+
+    #otherwise, undefine the caller's variable:
+    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    #otherwise, undefine the caller's variable:
+    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    return sprintf('${%s}', $varname);   #same as lookup_def returns.
+}
+
+sub currentlinenumber_op
+#process :currentlinenumber postfix op
+#(1..nlines), 0 => file closed
+{
+    my ($fn, $varname) = @_;
+
+    return $CG_OFD_CURRENTLINECOUNT{$fn} if (defined($CG_OFD_CURRENTLINECOUNT{$fn}));
+
+    return 0;    #allows %ifnot to detect that file is not open
+}
+
+sub closefile_op
+#process :closefile postfix op
+#close a file if it is open. set $var to error or empty if no error.
+{
+    my ($fn, $varname) = @_;
+    my $fhref = $CG_OPEN_FILE_DESCRIPTORS{$fn};
+
+    if (defined($fhref)) {
+        #then close:
+        close $fhref;
+
+        #clear variables related to this file:
+        delete $CG_OPEN_FILE_DESCRIPTORS{$fn} if (defined($CG_OPEN_FILE_DESCRIPTORS{$fn}));
+        delete $CG_OFD_CURRENTLINE{$fn} if (defined($CG_OFD_CURRENTLINE{$fn}));
+        delete $CG_OFD_CURRENTLINECOUNT{$fn} if (defined($CG_OFD_CURRENTLINECOUNT{$fn}));
+
+        if (defined($CG_OPEN_FILE_FD_INDEXES{$fn})) {
+            &free_filehandle($CG_OPEN_FILE_FD_INDEXES{$fn}, "close_fileop");
+            delete $CG_OPEN_FILE_FD_INDEXES{$fn};
+        }
+    }
+
+    #we don't return any errors for now...
+
+    return "";
+}
+
+sub eoltrim_op
+#trim whitespace preceeding newlines
+{
+    my ($var) = @_;
+    $var =~ s/[ \t]+\n/\n/g;
+    return $var;
+}
+
+sub eolsqueeze_op
+#compress multiple empty lines into a single empty line.
+{
+    my ($var) = @_;
+
+    $var =~ s/\n\n\n+/\n\n/g;
+
+    return $var;
+}
+
+sub lspace_op
+#process :lspace postfix op
+#add one space to beginning of string iff it is a non-empty string:
+{
+    my ($var) = @_;
+    $var = " $var" unless ($var eq "");
+    return $var;
+}
+
+sub rspace_op
+#process :rspace postfix op
+{
+    my ($var) = @_;
+    #add one space to end of string iff it is a non-empty string:
+    $var = "$var " unless ($var eq "");
+    return $var;
+}
+
+sub space_op
+#process :space postfix op
+#use this to add spaces to empty string.
+{
+    my ($var) = @_;
+    return $var = $var . " ";
+}
+
+sub rnewline_op
+#append trailing (right) newline iff non-empty string.
+{
+    my ($var) = @_;
+    #add one newline to end of string iff it is a non-empty string:
+    $var = "$var\n" unless ($var eq "");
+    return $var;
+}
+
+sub lnewline_op
+#process :lnewline postfix op
+#insert leading (left) newline iff non-empty string.
+{
+    my ($var) = @_;
+    $var = "\n$var" unless ($var eq "");
+    return $var;
+}
+
+sub newline_op
+#append trailing newline unconditionally.
+{
+    my ($var) = @_;
+    $var = "$var\n";
+    return $var;
+}
+
+sub fixeol_op
+#force at most one newline at the end of the string
+{
+    my ($var) = @_;
+
+    #ignore empty strings or strings that already have a newline:
+    return $var if ($var eq "" || $var =~ /\n$/);
+
+    $var = "$var\n";
+    return $var;
+}
+
+sub oneline_op
+#process :oneline postfix op
+#replace \s*EOL\s* sequences with a single space, and trim result:
+{
+    my ($var) = @_;
+
+    $var =~ s/\s*(\r\n)+\s*/ /g;
+    $var =~ s/\s*(\n\r)+\s*/ /g;
+    $var =~ s/\s*\n+\s*/ /g;
+    $var =~ s/\s*\r+\s*/ /g;
+
+    #trim:
+    $var =~ s/^\s+//;
+    $var =~ s/\s+$//;
+
+    return $var;
+}
+
+sub rangelb_op
+#process :rangelb postfix op
+#Interpret m..n as a range value.
+#    :rangelb => m..n => m
+#    :rangeub => m..n => n
+#    common behavior
+#        strings are trimmed
+#        if missing range operator "..", then reflect original value
+#        "" => 0
+#        m => m
+{
+    my ($var) = @_;
+
+    #trim leading/trailing whitespace:
+    $var = $1 if ($var =~ /^\s*([^\s]+)\s*$/);
+
+    return 0 if ($var eq "");
+
+    my @lbub  = split(/\.\./, $var, 2);
+
+    return $lbub[0] if ($#lbub >= 0);
+
+    return $var;
+}
+
+sub rangeub_op
+#process :rangeub postfix op
+#Interpret m..n as a range value.
+#    :rangelb => m..n => m
+#    :rangeub => m..n => n
+#    common behavior
+#        strings are trimmed
+#        if missing range operator "..", then reflect original value
+#        "" => 0
+#        m => m
+{
+    my ($var) = @_;
+
+    #trim leading/trailing whitespace:
+    $var = $1 if ($var =~ /^\s*([^\s]+)\s*$/);
+
+    return 0 if ($var eq "");
+
+    my @lbub  = split(/\.\./, $var, 2);
+
+    return $lbub[0] if ($#lbub == 0);
+    return $lbub[1] if ($#lbub == 1);
+
+    return $var;
+}
+
+sub isint_op
+#process :isint postfix op
+#returns 1 if <val> is a positive integer, else zero.
+{
+    my ($var) = @_;
+
+    return 1 if ( $var =~ /^\s*\d+\s*$/ );
+    return 0;
+}
+
+sub split_op
+#process :split postfix op
+#splits variable into a push/pop reference
+#default split pattern is /[\t,]/
+{
+    my ($var) = @_;
+
+    #this variable should always be defined:
+    my $spat = $CG_USER_VARS{'CG_SPLIT_PATTERN'};
+
+    #we are going to make a STACK var out of our var, so we are really just doing
+    #a substitute op:
+    my $savevar = $var;
+    my $result = 0;
+
+#printf STDERR "SPLIT BEFORE spat='%s' var='%s'\n", $spat, $var;
+    
+    if ($spat =~ /^\/.*\/$/ ) {
+        #split spec has slashes.
+        eval "\$var =~ s${spat}$;/g";
+    } else {
+        #split spec has no slashes.
+        eval "\$var =~ s/${spat}/$;/g";
+    }
+
+#my @rec = split(/$;/, $var, -1);
+#printf STDERR "SPLIT AFTER spat='%s' var='%s' rec=(%s) cnt=%d\n", $spat, $var, join(',', @rec), $#rec;
+
+    if ($@) {
+        printf STDERR "%s[split]: ERROR: line %d: evaluation of CG_SPLIT_PATTERN (%s) failed for var '%s': %s\n",
+            $p, $LINE_CNT, $spat, $var, $@;
+        return $savevar;
+    } elsif (!defined($result)) {
+        #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
+        printf STDERR "%s[split]: ERROR: line %d: evaluation of CG_SPLIT_PATTERN (%s) failed for var '%s': %s\n",
+            $p, $LINE_CNT, $spat, $var, "ERROR in eval" ;
+        return $savevar;
+    }
+
+    return $var;
+}
+
+sub onecol_op
+#process :onecol postfix op
+{
+    my ($var) = @_;
+
+    #trim, then replace \s+ sequences with newlines:
+    $var =~ s/^\s+//;
+    $var =~ s/\s+$//;
+    #Q: should I use \r\n on DOS?
+    $var =~ s/\s+/\n/g;
+
+    return $var;
+}
+
+sub method2rec_op
+#process :method2rec postfix op
+#convert a java method signature to a tab separated record:
+#parse a line containing a java method signature declaration, and output
+#a tab-separated record containing:
+#    (method attributes, return type, name(parmeters), exceptions thrown) 
+{
+    my ($var) = @_;
+
+    #make input easier to parse:
+    $var = &oneline_op($var);
+
+    #get rid of any tabs:
+    $var =~ s/\t//g;
+
+    #get rid of any terminating semi-colons:
+    $var =~ s/\s*;.*$//;
+
+    #get rid of any open-brace expressions:
+    $var =~ s/\s*{.*$//; #}
+
+    #pull out throws clause:
+    my $throws = "";
+    #WARNING: we localize the scope of $1 from the match, as perl leaves the
+    #most recent match defined until it is overriden, which means defined($1) is always
+    #true after the first match.  not what we want...
+    {
+        $var =~ s/\s+throws\s+(.*)//;
+        $throws = $1 if (defined($1));
+    }
+
+#printf STDERR "method2rec: var='%s' throws='%s'\n", $var, $throws;
+
+    #pull out methodname(args...):
+    my $name = "";
+    {
+        #get formal parameters:
+        $var =~ s/\s*(\(.*)$//;
+        $name = $1 if (defined($1));
+        #get method name:
+        $var =~ s/\s+(\S+)$//;
+        $name = "$1$name" if (defined($1));
+    }
+
+#printf STDERR "method2rec: var='%s' name='%s'\n", $var, $name;
+
+    #pull out return type:
+    my $returns = "";
+    #get array brackets if present:
+    {
+        $var =~ s/\s*(\[.*)$//;
+        $returns = $1 if (defined($1));
+        #get return type name
+        #note that pattern can start at beginning of line if interface
+        #with no attributes, because access attribute (public,private...)  is optional:
+        $var =~ s/\s*(\S+)$//;
+        $returns = "$1$returns" if (defined($1));
+    }
+
+#printf STDERR "method2rec: var='%s' returns='%s'\n", $var, $returns;
+
+    #whatever is left are the method attributes:
+    my $attributes = $var;
+
+#printf STDERR "method2rec: var='%s' attributes='%s'\n", $var, $attributes;
+
+    #return tab-separated record:
+    return join("\t", $attributes, $returns, $name, $throws);
+}
+
+sub ltrim_op
+#process :ltrim postfix op
+{
+    my ($var, $varname, $linecnt) = @_;
+    $var =~ s/^\s+//;
+    return $var;
+}
+
+sub antvar_op
+#process :antvar postfix op
+#convert to an ant variable reference:
+{
+    my ($var) = @_;
+    return '$' . "{$var}";
+}
+
+sub xmlcommentblock_op
+#process :xmlcommentblock postfix op
+#wrap $var in multi-line xml comment:
+#wrap the input string in an xml comment
+{
+    my ($var) = @_;
+
+    my $eolpat = "\n";
+    if ($var =~ /\r/) {
+        #set to use dos line endings:
+        $eolpat = "\r\n";
+    }
+
+    my @tmp = split($eolpat, $var);
+
+    $var = sprintf("<!--\n # %s\n-->", join("\n # ", @tmp));
+
+#    <!--
+#     # this
+#     # is a comment
+#    -->
+
+    return $var;
+}
+
+sub xmlcomment_op
+#process :xmlcomment postfix op
+#wrap $var in xml comment:
+{
+    my ($var) = @_;
+    return sprintf("<!-- %s -->", $var);
+}
+
+sub tab_op
+#process :tab postfix op
+#use this to add tabs to empty string.
+{
+    my ($var) = @_;
+    return $var . "\t";
+}
+
+sub tolower_op
+#process :tolower postfix op
+{
+    my ($var) = @_;
+    $var =~ tr/[A-Z]/[a-z]/;
+    return $var;
+}
+
+sub toupper_op
+#process :toupper postfix op
+{
+    my ($var) = @_;
+    $var =~ tr/[a-z]/[A-Z]/;
+    return $var;
+}
+
+sub cap_op
+#process :cap postfix op
+#this op capitalizes the first letter of a string.
+{
+    my ($var) = @_;
+    #ignore leading spaces:
+    $var =~ s/^(\s*)([a-z])(.*)$/$1\u$2$3/;
+    return $var;
+}
+
+sub uncap_op
+#process :uncap postfix op
+#this op uncapitalizes the first letter of a string.
+{
+    my ($var) = @_;
+    #ignore leading spaces:
+    $var =~ s/^(\s*)([A-Z])(.*)$/$1\l$2$3/;
+    return $var;
+}
+
+sub i_op
+#alias for :incr
+{
+    return &incr_op(@_);
+}
+
+sub incr_op
+#process :incr postfix op
+{
+    my ($var) = @_;
+
+    #we do fixed-width increment, e.g., 001, 002, ... 999
+    my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+    $var = sprintf "%.*d", length($tmp), $var+1;
+
+    return $var;
+}
+
+sub decr_op
+#process :decr postfix op
+{
+    my ($var) = @_;
+
+    #we do fixed-width decrement, e.g., 999, 998, ... 000;
+    my $tmp = $var; $tmp =~ s/^\s*[-+]\s*//;
+    $var = sprintf "%.*d", length($tmp), $var-1;
+
+    return $var;
+}
+
+sub env_op
+#process :env postfix op
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    #use varname if contents is undefined:
+    my $env_name = (&isUndefinedVarnameValue($varname,$var) ? $varname : $var);
+
+    if (defined($ENV{$env_name})) {
+        $var = $ENV{$env_name};
+    } else {
+        printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $env_name, "env" unless ($QUIET);
+        $var = "";
+    }
+
+    return $var;
+}
+
+sub freq_op
+#process :freq postfix op
+#get the frequency of each line, and ouput in the form:
+#  <cnt><tab><unique_lines>
+#where <unique_lines> is the original data with leading/trailing whitespace trimmed
+{
+    my ($var) = @_;
+    my $eolpat = "\n";
+    if ($var =~ /\r/) {
+        #set to use dos line endings:
+        $eolpat = "\r\n";
+    }
+    my @tmp = split($eolpat, $var);
+
+#printf STDERR "freq: tmp=(%s)\n", join(',', @tmp);
+
+    #this is much faster than a for loop:
+    @tmp = grep (s/^\s*//, @tmp);
+    @tmp = grep (s/\s*$//, @tmp);
+
+    #now count unique occurances:
+    my %FREQ = ();
+    grep (++$FREQ{$_}, @tmp);
+
+#printf "keys FREQ=(%s)\n", join(",", sort keys %FREQ);
+#printf "values FREQ=(%s)\n", join(",", sort values %FREQ);
+
+    @tmp = grep($_ = "$FREQ{$_}\t$_", sort keys %FREQ);
+
+    return join("\n", @tmp);
+}
+
+sub nameof_op
+#process :nameof postfix op
+{
+    my ($var, $varname) = @_;
+    return $varname;
+}
+
+sub valueof_op
+#process :valueof postfix op
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    #show the value of the variable named by $var:
+    if (&var_defined($var)) {
+        $var = $CG_USER_VARS{$var};
+    } else {
+        printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $var, "valueof" unless ($QUIET);
+        $var = sprintf("\${%s:undef}", $varname);;
+    }
+
+    return $var;
+}
+
+sub a_op
+#alias for :assign
+{
+    return &assign_op(@_);
+}
+
+sub assign_op
+#process :assign postfix op
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    #update the value of $var:
+    $CG_USER_VARS{$varname} = $var;
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+
+    return $var;
+}
+
+sub clr_op
+#set a variable to empty string.
+{
+    my ($var, $varname, $linecnt) = @_;
+    return &assign_op("", $varname, $linecnt);
+}
+
+sub clrifndef_op
+#clear variable if it is not defined
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    if (!defined($CG_USER_VARS{$varname})) {
+        return &assign_op("", $varname, $linecnt);
+    }
+
+    return $var;
+}
+
+sub zero_op
+#set a variable to zero.
+{
+    my ($var, $varname, $linecnt) = @_;
+    return &assign_op(0, $varname, $linecnt);
+}
+
+my @RCS_KEYWORDS = (
+        "Author",
+        "Date",
+        "Header",
+        "Id",
+        "Locker",
+        "Log",
+        "Name",
+        "RCSfile",
+        "Revision",
+        "Source",
+        "State",
+    );
+
+sub stripRcsKeywords_op
+#strip all RCS keywords from the string
+{
+    my ($var) = @_;
+
+    #optimization - don't look at strings unless there is at
+    #least one possible rcs keyword sequence:
+    return $var unless ($var =~ /\$[A-Z][a-z]/ );
+
+    for my $kw (@RCS_KEYWORDS) {
+        #this will only strip keywords that are properly terminated.
+        #for example, $Id .. <EOL>  will not be touched,
+        #but $Id ... $ will be deleted.
+        $var =~ s/\$$kw[^\$\n]*\$//g
+    }
+
+    return $var;
+}
+
+sub crcfile_op
+#return the crc of the file named by the string.
+#open the file directly, and if that fails, look in CG_ROOT.
+#return zero if file is not readable, otherwise,
+#hex number representing the crc.
+{
+    my ($fn) = @_;
+    my $crc = "0";
+
+    #if we can read file directly...
+    if ( -r $fn ) {
+        $crc =  sprintf("%x", &pcrc::CalculateFileCRC($fn));
+        return "$crc";
+    } else {
+        #otherwise, look in CG_ROOT:
+        my ($cgfn) = &path::mkpathname($CG_USER_VARS{'CG_ROOT'}, $fn);
+
+        if ( -r $cgfn ) {
+            $crc =  sprintf("%x", &pcrc::CalculateFileCRC($cgfn));
+            return "$crc";
+        }
+    }
+
+    return "0";    #return zero if we cannot open file
+}
+
+sub crcstr_op
+#return the crc of the contents of a string
+{
+    my ($var) = @_;
+
+    my $tmpfile_fullpath = &write_string_to_cg_tmp_file($var);
+    if ($tmpfile_fullpath eq "NULL") {
+        #we treat this as an internal error (as opposed to a user error):
+        printf STDERR "%s[%s]: ERROR: line %d: cannot create temp file.\n",
+            $p, "crcstr_op", $LINE_CNT unless ($QUIET);
+        ++ $GLOBAL_ERROR_COUNT;
+        return "0";    #return zero if we cannot open file
+    }
+
+    #return crc of temp file containing string:
+    my $crc = &crcfile_op($tmpfile_fullpath);
+    unlink $tmpfile_fullpath;
+    return $crc;
+}
+
+sub crc_op
+#return crcfile, and if that fails, crcstr.
+#use explicit ops if you want to force it one way or the other.
+{
+    my ($var) = @_;
+    my $crc = 0;
+
+    $crc =  &crcfile_op($var);
+    return $crc if ( $crc ne "0" );
+
+    #otherwise, return crc of string:
+    return &crcstr_op($var);
+}
+
+
+sub r_op
+#return non-zero if file is readable.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-r $fn)? 1 : 0;
+}
+
+sub w_op
+#return non-zero if file is writable.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-w $fn)? 1 : 0;
+}
+
+sub x_op
+#return non-zero if file is executable.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-x $fn)? 1 : 0;
+}
+
+sub e_op
+#return non-zero if file is exists.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-e $fn)? 1 : 0;
+}
+
+sub z_op
+#return non-zero if file is zero length.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-z $fn)? 1 : 0;
+}
+
+sub sz_op
+#return non-zero if file is non-zero size (returns size).
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-s $fn)? 1 : 0;
+}
+
+sub f_op
+#return non-zero if file is plain file.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-f $fn)? 1 : 0;
+}
+
+sub d_op
+#return non-zero if file is directory.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-d $fn)? 1 : 0;
+}
+
+sub l_op
+#return non-zero if file is symlink.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-l $fn)? 1 : 0;
+}
+
+sub T_op
+#return non-zero if file is Text file.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-T $fn)? 1 : 0;
+}
+
+sub B_op
+#return non-zero if file is Binary file.
+{
+    my ($fn) = @_;
+    return 0 if (!defined($fn) || $fn eq "");
+    return (-B $fn)? 1 : 0;
+}
+
+
+sub factorCshVars_op
+{
+    my ($var, $varname, $linecnt) = @_;
+    my $prefix = "cshvar_";
+    my $xpat = "";
+    my $ipat = "";
+
+    #output intermediate variables:
+    my $shvardeftxt = "";
+    my (@shvars) = ();
+    my (@cgshvars) = ();
+    my (@shvarvals) = ();
+
+    if ( &var_defined_non_empty("CG_CSHVAR_PREFIX") ) {
+        $prefix = $CG_USER_VARS{'CG_CSHVAR_PREFIX'}          
+    } else {
+        #otherwise, initialize prefix to the default so user can retrieve it:
+        &assign_op($prefix, 'CG_CSHVAR_PREFIX', $linecnt);
+    }
+
+    $xpat =   $CG_USER_VARS{'CG_CSHVAR_EXCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_CSHVAR_EXCLUDE_PATTERN") );
+    $ipat =   $CG_USER_VARS{'CG_CSHVAR_INCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_CSHVAR_INCLUDE_PATTERN") );
+
+    #remove leading/trailing slashes if necessary:
+    ($xpat =~ s|^/|| && $xpat =~ s|/$||) unless ($xpat eq "");
+    ($ipat =~ s|^/|| && $ipat =~ s|/$||) unless ($ipat eq "");
+
+    #clear output variables:
+    &assign_op("", 'CG_CSHVAR_DEFS', $linecnt);
+    &assign_op("", 'CG_CSHVAR_LIST', $linecnt);
+    &assign_op("", 'CG_CSHVARVAL_LIST', $linecnt);
+
+    #variable reference forms for csh:
+    #    set foo = (xx yy zz)
+    #    echo form1=$?foo
+    #    echo form2=${?foo}
+    #    echo form3=$#foo
+    #    echo form4=${#foo}
+    #    echo form5=$foo[2]
+    #    echo form6=${foo[2]}
+    
+    #####
+    #LOOP 1 - find variable initializations and save them:
+    #####
+
+    ##########
+    #eliminate continuation lines, and split variable text.
+    #RE patterns used below are line-by-line based, and do not handle continuation lines.
+    #TODO:  handle multi-line statements.  this is currently handled poorly.
+    ##########
+    $var =~ s/\\\n//sg;
+    my (@var) = split("\n", $var, -1);
+
+    my $set_def = 'set\s+([a-z_A-Z]\w*)\s*=';
+    my $env_def = 'setenv\s+([a-z_A-Z]\w*)(\s|$)';
+    my $re_ref = '\$\{?[#?]?([a-z_A-Z]\w*)';
+
+    my $vptr = "";
+    foreach $vptr (@var) {
+        my $line = $vptr;  #make a copy otherwise will rewrite input
+
+        #skip comments, empty lines:
+        next if ($line =~ /^\s*#/ || $line =~ /^\s*$/);
+
+        while ($line =~ /$set_def/ || $line =~ /$env_def/ || $line =~ /$re_ref/) {
+            my $shvname = $1;
+            $line =~ s/$shvname//;
+
+            #ignore if we are excluding this variable name:
+            next if ( &sh_name_is_excluded($shvname, $ipat, $xpat) );
+
+            #otherwise, we have a var - add to list:
+            push @shvars, $shvname;
+        }
+    }
+
+    #eliminate duplicates, preserving order:
+    my %VARVALS = ();
+    my (@tmp) = ();
+    for (@shvars) {
+        next if (defined($VARVALS{$_}));
+        $VARVALS{$_} = 0;   #later used to generate macro names for values assigned to this var.
+        push @tmp, $_;
+    }
+    @shvars = @tmp;
+
+    #create output array for CG_CSHVAR_LIST
+    @cgshvars = @shvars;
+    grep($_ =~ s/^/${prefix}/, @cgshvars);
+
+#printf STDERR "cgshvars=(%s)\n", join(",", @cgshvars);
+
+    #####
+    #LOOP 2 - foreach var def, substitute in macro name:
+    #####
+
+    #sort backwards so longest variable names are applied first:
+    my $shvar = "";
+    foreach $shvar (sort { $b cmp $a } @shvars) {
+        my $cg_shvar = "$prefix$shvar";
+        my $macroref = "{##$cg_shvar##}";    #use temp delimiters for macro brackets
+
+        my $re_def = '(set\s+)' . $shvar . '(\s*=)';
+        my $re_ref = '(\$\{?[#?]?)' . $shvar;
+        my $re_iden = '(\s|#)' . $shvar . '($|\s|[\-\.,;&|])';
+
+        #do substitutions for defs & refs:
+        grep($_ =~ s/$re_def/$1${macroref}$2/g, @var);
+        grep($_ =~ s/$re_ref/$1${macroref}/g, @var);
+        grep(/^\s*(setenv\s|unsetenv\s|unset\s|#)/ && $_ =~ s/$re_iden/$1${macroref}$2/g, @var);
+    }
+
+    #####
+    #LOOP 3 - foreach var def, create uniquely numbered rhs value definitions
+    #####
+
+    #sort backwards so longest variable names are applied first:
+    $shvar = "";
+    foreach $shvar (sort { $b cmp $a } @shvars) {
+        my $cg_shvar = "$prefix$shvar";
+        my $macroref = "{##$cg_shvar##}";    #use temp delimiters for macro brackets
+
+        #generate variable definition:
+        $shvardeftxt .= sprintf("\n%s := %s\n", $cg_shvar, $shvar);
+
+        #for each definitional instance, create value variables:
+        my ($varvaltxt, $lref, $cg_varval, $varval_macro, $issetenv);
+        for (@var) {
+            $lref = \$_;
+            if ($$lref =~ /setenv[ \t]+(${macroref})[ \t]+(.*)$/) {
+                $varvaltxt = $2;
+                $issetenv = 1;
+            } elsif ($$lref =~ /set[ \t]+(${macroref})[ \t]*=[ \t]*(.*)$/) {
+                $varvaltxt = $2;
+                $issetenv = 0;
+            } else {
+                #line does not contain set or setenv pattern:
+                next;
+            }
+
+            $varvaltxt  =~ s/{##/{=/g;
+            $varvaltxt  =~ s/##}/=}/g;
+#printf "line='%s' 1='%s' 2='%s' varvaltxt='%s'\n", $$lref, $1, $2, $varvaltxt;
+
+            $cg_varval = sprintf("%s_val%02d", $cg_shvar, ++$VARVALS{$shvar});
+            push(@shvarvals, $cg_varval);
+            $varval_macro = "{##$cg_varval##}";
+
+            #this only does first substitution - does not work on multi-statement lines
+            #or assignments with continuation lines:
+            if ($issetenv) {
+                $$lref =~ s/(setenv[ \t]+${macroref}[ \t]+)(.*)$/$1${varval_macro}/;
+            } else {
+                $$lref =~ s/(set[ \t]+${macroref}[ \t]*=[ \t]*)(.*)$/$1${varval_macro}/;
+            }
+
+            #add var-value definition:
+            $shvardeftxt .= sprintf("%s := %s\n", $cg_varval, $varvaltxt);
+        }
+    }
+
+    #substitute in correct macro brackets:
+    grep($_ =~ s/{##/{=/g, @var);
+    grep($_ =~ s/##}/=}/g, @var);
+
+    ######
+    #write variable text instrumented with macros:
+    ######
+    $var = join("\n", @var);
+
+    ######
+    #write results to user vars:
+    ######
+    my $FS = &lookup_def('CG_STACK_DELIMITER');
+
+    #overwrite results if we had any:
+    &assign_op($shvardeftxt, 'CG_CSHVAR_DEFS', $linecnt)          if ($shvardeftxt ne "");;
+    &assign_op(join($FS, @cgshvars), 'CG_CSHVAR_LIST', $linecnt)     if ($#cgshvars >= 0);
+    &assign_op(join($FS, @shvarvals), 'CG_CSHVARVAL_LIST', $linecnt) if ($#shvarvals >= 0);
+
+    return $var;
+}
+
+sub factorShVars_op
+{
+    my ($var, $varname, $linecnt) = @_;
+    my $prefix = "shvar_";
+    my $xpat = "";
+    my $ipat = "";
+
+    #output intermediate variables:
+    my $shvardeftxt = "";
+    my (@shvars) = ();
+    my (@cgshvars) = ();
+    my (@shvarvals) = ();
+
+    if ( &var_defined_non_empty("CG_SHVAR_PREFIX") ) {
+        $prefix = $CG_USER_VARS{'CG_SHVAR_PREFIX'}          
+    } else {
+        #otherwise, initialize prefix to the default so user can retrieve it:
+        &assign_op($prefix, 'CG_SHVAR_PREFIX', $linecnt);
+    }
+
+    $xpat =   $CG_USER_VARS{'CG_SHVAR_EXCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHVAR_EXCLUDE_PATTERN") );
+    $ipat =   $CG_USER_VARS{'CG_SHVAR_INCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHVAR_INCLUDE_PATTERN") );
+
+    #remove leading/trailing slashes if necessary:
+    ($xpat =~ s|^/|| && $xpat =~ s|/$||) unless ($xpat eq "");
+    ($ipat =~ s|^/|| && $ipat =~ s|/$||) unless ($ipat eq "");
+
+    #clear output variables:
+    &assign_op("", 'CG_SHVAR_DEFS', $linecnt);
+    &assign_op("", 'CG_SHVAR_LIST', $linecnt);
+    &assign_op("", 'CG_SHVARVAL_LIST', $linecnt);
+
+    #
+    #Q:  what about when an equals appears in a string?  i.e., "foo=$foo" or 'foo=$foo'
+    #Q:  what an equals appears in an echo or printf statement?
+    #Q:  what if the equals is backslash escaped to the next line?  i.e.:
+    #    foo\
+    #    =xxx
+    #
+
+    #####
+    #LOOP 1 - find variable initializations and save them:
+    #####
+
+    ##########
+    #eliminate continuation lines, and split variable text.
+    #RE patterns used below are line-by-line based, and do not handle continuation lines.
+    #TODO:  handle multi statement lines (delimited by ; etc).  this is currently not handled.
+    ##########
+    $var =~ s/\\\n//sg;
+    my (@var) = split("\n", $var, -1);
+
+    #init regular expressions defining sh variable defs and refs:
+    my $re_def = '([a-z_A-Z]\w*)=';
+    my $re_ref = '\$\{?([a-z_A-Z]\w*)';
+
+    my $vptr = "";
+    foreach $vptr (@var) {
+        my $line = $vptr;  #make a copy otherwise will rewrite input
+        #skip comments, empty lines:
+        next if ($line =~ /^\s*#/ || $line =~ /^\s*$/);
+
+        while ($line =~ /$re_def/ || $line =~ /$re_ref/) {
+            my $shvname = $1;
+            $line =~ s/$shvname//;
+
+            #ignore if we are excluding this variable name:
+            next if ( &sh_name_is_excluded($shvname, $ipat, $xpat) );
+
+            #otherwise, we have a var - add to list:
+            push @shvars, $shvname;
+        }
+    }
+
+    #eliminate duplicates, preserving order:
+    my %VARVALS = ();
+    my (@tmp) = ();
+    for (@shvars) {
+        next if (defined($VARVALS{$_}));
+        $VARVALS{$_} = 0;   #later used to generate macro names for values assigned to this var.
+        push @tmp, $_;
+    }
+    @shvars = @tmp;
+
+    #create output array for CG_SHVAR_LIST
+    @cgshvars = @shvars;
+    grep($_ =~ s/^/${prefix}/, @cgshvars);
+
+#printf STDERR "cgshvars=(%s)\n", join(",", @cgshvars);
+
+    #####
+    #LOOP 2 - foreach var def, substitute in macro name:
+    #####
+
+    #sort backwards so longest variable names are applied first:
+    my $shvar = "";
+    foreach $shvar (sort { $b cmp $a } @shvars) {
+        my $cg_shvar = "$prefix$shvar";
+        my $macroref = "{##$cg_shvar##}";    #use temp delimiters for macro brackets
+
+        my $re_def = '(^|\s|[;&|])' . $shvar . '(=)';
+        my $re_ref = '(\$\{?)' . $shvar;
+        my $re_iden = '(\s|#)' . $shvar . '($|\s|[\-\.,;&|])';
+
+
+#printf "processing shvar '%s' re_ref='%s'\n", $cg_shvar, $re_ref;
+
+        #do substitutions for defs & refs:
+        grep($_ =~ s/$re_def/$1${macroref}$2/g, @var);
+        grep($_ =~ s/$re_ref/$1${macroref}/g, @var);
+        grep(/^\s*(export\s|unset\s|#)/ && $_ =~ s/$re_iden/$1${macroref}$2/g, @var);
+    }
+
+    #####
+    #LOOP 3 - foreach var def, create uniquely numbered rhs value definitions
+    #####
+
+    $shvar = "";
+    foreach $shvar (sort { $b cmp $a } @shvars) {
+        my $cg_shvar = "$prefix$shvar";
+        my $macroref = "{##$cg_shvar##}";    #use temp delimiters for macro brackets
+
+        #generate variable definition:
+        $shvardeftxt .= sprintf("\n%s := %s\n", $cg_shvar, $shvar);
+
+        #for each definitional instance, create value variables:
+        my ($varvaltxt, $lref, $cg_varval, $varval_macro);
+        for (@var) {
+            $lref = \$_;
+            next unless ($$lref =~ /(${macroref})=(.*)$/);
+            $varvaltxt = $2;
+#printf "line='%s' 1='%s' 2='%s' varvaltxt='%s'\n", $$lref, $1, $2, $varvaltxt;
+            $varvaltxt  =~ s/{##/{=/g;
+            $varvaltxt  =~ s/##}/=}/g;
+
+            $cg_varval = sprintf("%s_val%02d", $cg_shvar, ++$VARVALS{$shvar});
+            push(@shvarvals, $cg_varval);
+            $varval_macro = "{##$cg_varval##}";
+
+            #this only does first substitution - does not work on multi-statement lines
+            #or assignments with continuation lines:
+            $$lref =~ s/(${macroref})=(.*$)/$1=${varval_macro}/;
+
+            #add var-value definition:
+            $shvardeftxt .= sprintf("%s := %s\n", $cg_varval, $varvaltxt);
+        }
+    }
+
+    #substitute in correct macro brackets:
+    grep($_ =~ s/{##/{=/g, @var);
+    grep($_ =~ s/##}/=}/g, @var);
+
+    ######
+    #write variable text instrumented with macros:
+    ######
+    $var = join("\n", @var);
+
+    ######
+    #write results to user vars:
+    ######
+    my $FS = &lookup_def('CG_STACK_DELIMITER');
+
+    #overwrite results if we had any:
+    &assign_op($shvardeftxt, 'CG_SHVAR_DEFS', $linecnt)          if ($shvardeftxt ne "");;
+    &assign_op(join($FS, @cgshvars), 'CG_SHVAR_LIST', $linecnt)     if ($#cgshvars >= 0);
+    &assign_op(join($FS, @shvarvals), 'CG_SHVARVAL_LIST', $linecnt) if ($#shvarvals >= 0);
+
+    return $var;
+}
+
+sub factorShSubs_op
+{
+    my ($var, $varname, $linecnt) = @_;
+    my $prefix = "shsub_";
+    my $xpat = "";
+    my $ipat = "";
+
+    if ( &var_defined_non_empty("CG_SHSUB_PREFIX") ) {
+        $prefix = $CG_USER_VARS{'CG_SHSUB_PREFIX'}          
+    } else {
+        #otherwise, initialize prefix to the default so user can retrieve it:
+        &assign_op($prefix, 'CG_SHSUB_PREFIX', $linecnt);
+    }
+
+    $xpat =   $CG_USER_VARS{'CG_SHSUB_EXCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHSUB_EXCLUDE_PATTERN") );
+    $ipat =   $CG_USER_VARS{'CG_SHSUB_INCLUDE_PATTERN'} if ( &var_defined_non_empty("CG_SHSUB_INCLUDE_PATTERN") );
+
+    #remove leading/trailing slashes if necessary:
+    ($xpat =~ s|^/|| && $xpat =~ s|/$||) unless ($xpat eq "");
+    ($ipat =~ s|^/|| && $ipat =~ s|/$||) unless ($ipat eq "");
+
+    #clear output variables:
+    &assign_op("", 'CG_SHSUB_DEFS', $linecnt);
+    &assign_op("", 'CG_SHSUB_LIST', $linecnt);
+
+    #INPUT:
+    # a()
+    # {
+    #     echo sub a: $v_1
+    # }
+    # 
+    # b (  ){
+    #     echo sub b: $v2
+    #     }
+    # 
+    # # c() { echo sub c }
+    # 
+    # c()
+    # {
+    # echo sub c: $V3
+    # }
+    #
+    # _123()
+    # {
+    # echo sub _123
+    # a=${v2}
+    # }
+    #
+    #OUTPUT:
+    # {=shsub_a=}
+    # {=shsub_b=}
+    # #c() { echo sub c }
+    # {=shsub_c=}
+    # {=shsub__123=}
+    #
+    #NOTES:
+    # - brackets are only used in var refs & subroutine defs.
+    # - expression below requires at least one newline before each subrouting declaration.
+    #   this means that we will miss subroutines declared in first line of file.
+    # - note the use of .+? in the expression.  this forces the engine to match the first
+    #{  instance of \n\s*} which terminates the subroutine def.  otherwise, it would do
+    #   a "greedy" match, and match the last instance.
+    # - the /so modifiers treat the multi-line string as a single string,
+    #   and compile the pattern only once.
+
+    my %shsub_defs = ();
+    my %shsub_names = ();
+    my @cg_srnames_initial = ();
+    my $re = '\n([\t ]*)([a-z_A-Z]\w*)(\s*\(\s*\)[^{]*\{.+?\n\s*\})(\s*?)\n';
+    #} match bracket
+    my ($cg_srname, $srtxt, $srname, $wsp_leading, $wsp_trailing) = ("", "", "", "", "");
+
+    #####
+    #LOOP 1 - parse subroutines declarations and save them:
+    #####
+
+    #prepend newline to fix bug where subroutine not detected if declared on first line:
+    #later, we will remove it.  fixed in 1.72.  RT 1/7/09
+    $var = "\n" . $var;
+
+    while ($var =~ /$re/so ) {
+        $wsp_leading = $1;
+        $srname = $2;
+        $srtxt = "$2$3";
+        $wsp_trailing = $4;
+        $cg_srname = "$prefix$srname";
+
+#printf "srtxt='%s'\n", $srtxt;
+
+        my $repl = sprintf("\n%s{=%s=}%s\n", $wsp_leading, $cg_srname, $wsp_trailing);
+
+        #replace the subroutine text with the generated cg macro name:
+        $var =~ s/$re/$repl/so;
+
+        #save the name and text of the subroutine:
+        $shsub_defs{$cg_srname} = $srtxt;
+        $shsub_names{$cg_srname} = $srname;
+
+        #push the cg sr name on to preserve order of input:
+        push @cg_srnames_initial, $cg_srname;
+    }
+
+#printf "INTERMEDIATE VAR=,%s,\n", $var;
+
+    my (@srnames) = ();
+    my (@cg_srnames_final) = ();
+
+    #####
+    #LOOP 2  - restore the original text for subroutines we are ignoring.
+    #####
+
+    #####
+    foreach $cg_srname (@cg_srnames_initial) {
+        $srtxt = $shsub_defs{$cg_srname};
+        $srname = $shsub_names{$cg_srname};
+        my $macroref = "{=$cg_srname=}";
+
+        #if this subroutine is excluded by name...
+        if ( &sh_name_is_excluded($srname, $ipat, $xpat) ) {
+            #... then restore original text in the input:
+            $var =~ s/$macroref/$srtxt/s;
+
+            next;   #do not output text or variable if we are excluding
+        }
+
+        #otherwise, append to user variables:  definition text, and subroutine name list:
+        push @srnames, $srname;
+        push @cg_srnames_final, $cg_srname;
+    }
+
+    #####
+    #LOOP 3 - replace references to factored subroutines with macros:
+    #####
+
+    #now it is safe to remove prepended newline:
+    $var =~ s/^\n//;
+
+    #split variable text:
+    my (@var) = split("\n", $var, -1);
+
+    #sort backwards so longest variable names are applied first:
+    foreach $cg_srname (sort { $b cmp $a } @cg_srnames_final) {
+        $srname = $shsub_names{$cg_srname};
+        my $cg_srname_ref = "${cg_srname}_ref";
+        my $macroref = "{=$cg_srname_ref=}";
+
+        #note option to match at ^ or $.
+        my $re   = '(^|[;:|&\s])' . $srname . '($|[;:|&\s])' ;
+
+        grep( $_ !~ /^\s*#/ && s/$re/$1${macroref}$2/g, @var);
+
+        #also perform substitutions for text of each subroutine:
+        my $cg_srname2 = "";
+        foreach $cg_srname2 (@cg_srnames_final) {
+            my (@srtxt) = split("\n", $shsub_defs{$cg_srname2}, -1);
+            if (grep( $_ !~ /^\s*#/ && s/$re/$1${macroref}$2/g, @srtxt)) {
+                $shsub_defs{$cg_srname2} = join("\n", @srtxt);
+            }
+        }
+    }
+
+    #restore variable text:
+    $var = join("\n", @var);
+
+    #definiton PREFIX:
+    #set pragma to trim final newlines in here-now defs we generate for subroutines.
+    #this allows us to substitute macros and restore the spacing of the original text.
+    my $srdeftxt = << "!";
+_save_trim_multiline_rnewline = \$trim_multiline_rnewline:nameof:pragmavalue
+\%pragma trim_multiline_rnewline 1
+
+!
+
+    #####
+    #LOOP 4 - write out definitions:
+    #####
+
+    foreach $cg_srname (@cg_srnames_final) {
+        $srname = $shsub_names{$cg_srname};
+        my $cg_srname_ref = "${cg_srname}_ref";
+        my $cg_srname_ref_macro = "{=$cg_srname_ref=}";
+        $srtxt = $shsub_defs{$cg_srname};
+
+        #change name of sub-routine to use reference:
+        #note:  srtxt retains whitespace in the subroutine declaration line, whereas srname is trimmed.
+        $srtxt =~ s/^(\s*)$srname(\s*\()/$1$cg_srname_ref_macro$2/;
+
+        #output definition:
+        $srdeftxt .= << "!";
+
+##sh subroutine $srname()
+${cg_srname}_ref := $srname
+$cg_srname := << ${prefix}EOF
+$srtxt
+${prefix}EOF
+
+!
+    }
+
+    #POST-SCRIPT:
+    $srdeftxt .= << "!";
+
+#restore normal behavior for here-now defs:
+\%pragma trim_multiline_rnewline \$_save_trim_multiline_rnewline
+
+!
+
+
+    ######
+    #write results to user vars:
+    ######
+    my $FS = &lookup_def('CG_STACK_DELIMITER');
+
+    #overwrite results if we had any:
+    &assign_op($srdeftxt, 'CG_SHSUB_DEFS', $linecnt)          if ($srdeftxt ne "");;
+    &assign_op(join($FS, @srnames), 'CG_SHSUB_LIST', $linecnt) if ($#srnames >= 0);
+
+    return $var;
+}
+
+sub sh_name_is_excluded
+#return 1 if <name> is excluded, 0 otherwise
+#(local  utility).
+{
+    my ($name, $ipat, $xpat) = @_;
+
+    #do not excluded if neither include or exclude pattern was specified:
+    return 0 if ($ipat eq "" && $xpat eq "");
+
+    #exclude if exclude pattern is specified and matches:
+    return 1 if ($xpat ne "" && $name =~ /$xpat/);
+
+    #do not exclude if include pattern was not specified or if it is specified and matches:
+    return 0 if ($ipat eq "" || $name =~ /$ipat/);
+
+    #include pattern was specified, but did not match:
+    return 1;
+}
+
+
+1;

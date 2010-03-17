@@ -1,6 +1,6 @@
 
                     =========================
-                     Codegen Quick Reference
+                    Cado Quick Reference
                     Version {=VERSION=}, {=VERSION_DATE=}
                     =========================
 
@@ -302,7 +302,7 @@ $CG_TEMPLATE_PATH   - All includes are processed relative to directories listed 
 
 $CG_EXIT_STATUS     - The shell exit status returned when the program exits.  An explicit %halt
                       statement will override this value.  WARNING:  defining CG_EXIT_STATUS
-                      will override internally generated codegen errors.
+                      will override internally generated interpreter errors.
 
 $CG_MODE            - Generate files with this mode.  Default is 0664.
 $CG_SHELL_CWD       - The current working directory for shell commands.  If the directory exists,

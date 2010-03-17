@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.76 - 26-Feb-2010
+# @(#)codegen.pl - ver 1.77 - 16-Mar-2010
 #
 # Copyright 2003-2010 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -97,7 +97,7 @@
 #       no longer need to escape % in input (existing scripts using %% have to be updated).
 #       ignore leading space in file spec statements
 #       %exit/%return - ignore exit message if empty string.
-#       add built-in CG_ARGV stack variable, which saves arguments to codegen
+#       add built-in CG_ARGV stack variable, which saves arguments to interpreter
 #       add :basename :dirname :suffix operators
 #       add :stripjavaheader operator
 #  22-Aug-2005 (russt) [Version 1.44]
@@ -141,7 +141,7 @@
 #  04-Oct-2006 (russt) [Version 1.56]
 #       Fix checkforexistingheader -> checkforexistingheader_op when called internally.
 #  14-Dec-2006 (russt) [Version 1.57]
-#       delete signsrc operators (not part of core codegen).  add :fixeol op.
+#       delete signsrc operators (not part of core interpreter).  add :fixeol op.
 #  20-Dec-2006 (russt) [Version 1.58]
 #       add -x -S options to allow "#!/bin/codegen" scripts.
 #       add :crc :crcstr :crcfile ops.  add CG_LINE_NUMBER user variable.
@@ -231,8 +231,12 @@
 #       Use :nameof in trim_multiline_rnewline save/restore in :factorShSubs.  Change :pragmavalue to use
 #       :nameof if var is undefined or empty instead of just undefined.
 #  26-Feb-2010 (russt) [Version 1.76]
-#       Fix bug in :factorShVars, :factorCshVars where variables first appearing on rhs of definition were being omitted.
-#       Also fix more subtle bug whereby variables appearing in generated rhs values, did not always appear in macrotized form.
+#       Fix bug in :factorShVars, :factorCshVars where variables first appearing on rhs
+#       of definition were being omitted.  Also fix more subtle bug whereby variables appearing
+#       in generated rhs values, did not always appear in macrotized form.
+#  16-Mar-2010 (russt) [Version 1.77]
+#       Document perl 5.8.8 on linux bug when copying binary files.  Work-around is "setenv PERLIO stdio".
+#       Parameterize package name so we can run as "cado" as well as "codegen".
 #
 
 
@@ -243,8 +247,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.76",         #VERSION - the program version number.
-    "26-Feb-2010",  #VERSION_DATE - date this version was released.
+    "1.77",         #VERSION - the program version number.
+    "16-Mar-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -615,7 +619,7 @@ sub interpret
     if (defined($CG_USER_VARS{'CG_EXIT_STATUS'})) {
         $status =  $CG_USER_VARS{'CG_EXIT_STATUS'};
     } else {
-        #otherwise, return codegen processing error count:
+        #otherwise, return interpreter processing error count:
         $status =  $errcnt + $GLOBAL_ERROR_COUNT;
     }
 
@@ -1071,7 +1075,7 @@ sub evaltemplate_spec
     #NOTE:  $template_fn is expanded by filespec.
 
     #get a tempfile name:
-    my $tmpfile = sprintf("_codegen.evaltemplate.%d", $$);
+    my $tmpfile = sprintf("_cado.evaltemplate.%d", $$);
     my $tmpfile_fullpath = &get_cg_tmpfile_name($tmpfile);
     unlink $tmpfile_fullpath;    #this filename is not unique, make sure it is gone.
 
@@ -1450,7 +1454,7 @@ sub haltcommand
 sub comment
 #true if comment or blank line
 #comment lines can start with #, {, or }.
-#curly braces are useful for navigating large codegen files.
+#curly braces are useful for navigating large cado.
 {
     my ($line) = @_;
     return ($line =~ /^\s*[#{}]/);
@@ -1547,7 +1551,7 @@ sub filespec
 }
 
 sub gen_classvars
-#INPUT:   a file/class specification, starting at the codegen root.
+#INPUT:   a file/class specification, starting at the cado root.
 #         example:  com.sun.jbi.admin.packaging.unzip
 #OUTPUT:  add vars to <cvar_ref> hash, indexed by the following keys:
 #  (DIRNAME, FILENAME, REL_PKGNAME, FULL_PKGNAME, CLASSNAME, FULL_CLASSNAME)
@@ -2424,7 +2428,7 @@ sub lookup_def
 }
 
 sub var_defined_non_empty
-#return 1 if a codegen variable is defined and is not empty
+#return 1 if a cado variable is defined and is not empty
 {
     my ($varname) = @_;
     my $varval = &lookup_def($varname);
@@ -2433,7 +2437,7 @@ sub var_defined_non_empty
 }
 
 sub var_defined
-#return 1 if a codegen variable is defined
+#return 1 if a cado variable is defined
 {
     my ($varname) = @_;
     my $varval = &lookup_def($varname);
@@ -2443,7 +2447,7 @@ sub var_defined
 }
 
 sub var_defined_strict
-#return 1 if a codegen variable is defined in the strict sense.
+#return 1 if a cado variable is defined in the strict sense.
 #this means the variable does not contain the undefined value of another variable.
 #used only in %ifdef statement
 {
@@ -2521,7 +2525,7 @@ sub gen_sourcefile
     my $msgfh = \*STDERR;
     $msgfh = \*STDOUT if ($pragma_filegen_notices_to_stdout);    #we want messages on stdout
 
-    #get local vars for codegen:
+    #fetch generation context variables:
     my ($dirname) = ${$fvar_ref}{'CG_DIRNAME'};
     my ($filename) = ${$fvar_ref}{'CG_FILENAME'};
     my ($template) = ${$fvar_ref}{'CG_TEMPLATE'};
@@ -2559,7 +2563,7 @@ sub gen_sourcefile
     if (-f $outfile && -r $outfile) {
         if ($is_append) {
             #TODO:  keep track of open appends, and only close and generate in final form
-            #when codegen script ends, or when we see a "close-file" file spec.
+            #when cado script ends, or when we see a "close-file" file spec.
             ;
         } elsif ($FORCE_GEN) {
             if (&os::rmFile($outfile) != 0) {
@@ -2757,11 +2761,25 @@ sub expand_template
         return 1;
     }
 
-    #are we using codegen to copy binary files?
+    #are we using cado to copy binary files?
     if ( $pragma_copy || !(-T $template) ) {
         #we are writing a binary file:
         binmode $tplfd_ref;
         binmode $outfile_ref;
+
+        #########
+        # WARNING:  certain versions of perl have a bug that shows up mainly on linux when using PERLIO
+        # to copy files (which is faster that stdio).  I've only ever seen this with larger binary files.
+        # Work-around is "setenv PERLIO stdio".  I added an minstall processor ( & noperlio) to implement
+        # this in the shell start-up line.  Perl 5.8.8 on redhat 5.3 has this issue, and I've seen it before.
+        #
+        # See the following Bug reports:
+        #    http://rt.perl.org/rt3//Public/Bug/Display.html?id=39060
+        #    https://bugzilla.redhat.com/show_bug.cgi?id=221113
+        #    useful google search:  "perl 5.8.8 linux Bad file descriptor errors"
+        #
+        # RT 3/16/10
+        #########
 
         my $buf = "";
         my $BUFSIZE = 1024*8;
@@ -3360,7 +3378,7 @@ $p grammar:
        non-java output file.  You can use "/foo.out" to force the non-java
        convention in the case where files are being generated to ".".
     3. comments or blank lines - comment lines start with '#', '{', or '}'.
-       Curly brace comments are useful delimiting sections in large codegen files.
+       Curly brace comments are useful delimiting sections in large $p files.
     4. $p \% statements, for example:
         %include filename
 
@@ -3625,8 +3643,8 @@ sub parse_args
         printf STDERR "%s:  WARNING: -u not specified - existing files will not be updated\n", $p;
     }
 
-    #NOTE:  remaining arguments are arguments to codegen script.
-    #the codegen arguments are initialized in init_spec_vars().
+    #NOTE:  remaining arguments are arguments to cado script.
+    #the cado arguments are initialized in init_spec_vars().
 
     return(0);
 }
@@ -3682,7 +3700,7 @@ sub init
 sub init_spec_vars
 #initialize "special" built-in variables.
 {
-    #save arguments passed in to codegen script:
+    #save arguments passed in to cado script:
     if ($#ARGV >= 0) {
         #create a stack variable:
         $CG_USER_VARS{'CG_ARGV'} = join($;, @ARGV);
@@ -3699,7 +3717,7 @@ sub init_spec_vars
 
     #####
     #NOTE - we always inherit CG_TMPDIR and CG_TEMPLATE_PATH from the env.
-    #       you can still override them on the command line or in the codegen source file:
+    #       you can still override them on the command line or in the cado source file:
     #####
 
     if ($CG_TMPDIR eq "NULL") {
@@ -3799,7 +3817,7 @@ sub create_cg_tmpdir
 }
 
 sub get_cg_tmpfile_name
-#return the next available codegen temp-file name.
+#return the next available cado temp-file name.
 #
 #INPUT:  (optional) the leaf filename to use in generating the fullpath of the temp file name
 #OUTPUT: the fullpath of the temp file name
@@ -3810,7 +3828,7 @@ sub get_cg_tmpfile_name
     my ($tmpfile) = @_;
 
     #if caller doesn't supply filename, then generate next available name:
-    $tmpfile = sprintf("_codegen.tmpfile.%d.%d", $$, $CG_TMPFILE_CNT++) unless (defined($tmpfile));
+    $tmpfile = sprintf("_cado.tmpfile.%d.%d", $$, $CG_TMPFILE_CNT++) unless (defined($tmpfile));
 
     if (!&create_cg_tmpdir()) {
         printf STDERR "%s[get_cg_tmpfile_name]: ERROR: line %d: cannot create CG_TMPDIR '%s': %s\n",
