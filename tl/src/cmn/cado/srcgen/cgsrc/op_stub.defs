@@ -810,7 +810,7 @@ sub split_op
 {
     my ($var) = @_;
 
-    #this variable should always be defined:
+    &reset_split_pattern() unless (&var_defined('CG_SPLIT_PATTERN'));
     my $spat = $CG_USER_VARS{'CG_SPLIT_PATTERN'};
 
     #we are going to make a STACK var out of our var, so we are really just doing

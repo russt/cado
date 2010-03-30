@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.77 - 16-Mar-2010
+# @(#)codegen.pl - ver 1.78 - 26-Mar-2010
 #
 # Copyright 2003-2010 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -237,6 +237,9 @@
 #  16-Mar-2010 (russt) [Version 1.77]
 #       Document perl 5.8.8 on linux bug when copying binary files.  Work-around is "setenv PERLIO stdio".
 #       Parameterize package name so we can run as "cado" as well as "codegen".
+#  26-Mar-2010 (russt) [Version 1.78]
+#       Factor out default values for CG_STACK_DELIMITER & CG_SPLIT_PATTERN.
+#       Reset CG_SPLIT_PATTERN during :split if it is undefined.
 #
 
 
@@ -247,8 +250,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.77",         #VERSION - the program version number.
-    "16-Mar-2010",  #VERSION_DATE - date this version was released.
+    "1.78",         #VERSION - the program version number.
+    "26-Mar-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -281,6 +284,8 @@ my (
     $LINE_CNT_REF,
     $STRIPTOSHARPBANG,
     $LOOKINPATH,
+    $CG_STACK_DELIMITER_DEFAULT_VALUE,
+    $CG_SPLIT_PATTERN_DEFAULT_VALUE,
 ) = (
     $main::p,       #program name inherited from prlskel caller.
     0,              #VERBOSE
@@ -306,6 +311,8 @@ my (
     undef,          #LINE_CNT_REF - reference to user-level line count var CG_LINE_NUMBER
     0,              #STRIPTOSHARPBANG -  true if we have a -x option
     0,              #LOOKINPATH - true if we have a -S option
+    "\t",           #CG_STACK_DELIMITER_DEFAULT_VALUE
+    '/[\n\t,]/',    #CG_SPLIT_PATTERN_DEFAULT_VALUE
 );
 
 #these are global variables that we share within the eval context of postfix ops, for example.
@@ -3751,9 +3758,21 @@ sub init_spec_vars
     $CG_USER_VARS{'CG_SHELL_STATUS'} = undef;
     $CG_USER_VARS{'CG_EXIT_STATUS'} = undef;
     $CG_USER_VARS{'CG_LINE_NUMBER'} = 0;
-    $CG_USER_VARS{'CG_STACK_DELIMITER'} = "\t";  #input/output stack display delimiter.
-    $CG_USER_VARS{'CG_SPLIT_PATTERN'} = '/[\t,]/';
+    &reset_stack_delimiter();  #input/output stack display delimiter:
+    &reset_split_pattern();    #split pattern for :split op
     $LINE_CNT_REF = \$CG_USER_VARS{'CG_LINE_NUMBER'};
+}
+
+sub reset_split_pattern
+#split pattern for :split op
+{
+    $CG_USER_VARS{'CG_SPLIT_PATTERN'} = $CG_SPLIT_PATTERN_DEFAULT_VALUE;
+}
+
+sub reset_stack_delimiter
+#input/output stack display delimiter.
+{
+    $CG_USER_VARS{'CG_STACK_DELIMITER'} = $CG_STACK_DELIMITER_DEFAULT_VALUE;
 }
 
 sub get_stack_delimiter
@@ -4914,7 +4933,7 @@ sub split_op
 {
     my ($var) = @_;
 
-    #this variable should always be defined:
+    &reset_split_pattern() unless (&var_defined('CG_SPLIT_PATTERN'));
     my $spat = $CG_USER_VARS{'CG_SPLIT_PATTERN'};
 
     #we are going to make a STACK var out of our var, so we are really just doing
