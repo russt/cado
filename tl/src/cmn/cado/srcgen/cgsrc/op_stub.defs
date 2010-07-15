@@ -405,14 +405,16 @@ sub stacksize_op
 #process :stacksize postfix op
 #:stacksize - return the stacksize of a scalar.
 #only variables created by %push will have a stacksize > 1
-#empty string returns a stacksize of 0.
+#undef stack has zero elements.  however an empty string on the stack is
+#considered to have one element.
 {
     my ($var, $varname) = @_;
 
     return 0 unless (&var_defined($varname));
 
-    #this is because split on an empty string sets length of array incorrectly to -1.
-    return 0 if ($var eq '');
+    #this is a little confusing, but allows for stacks to have empty elements.
+    #i.e., a stack has zero elements only if it is undefined.
+    return 1 if ($var eq '');
 
     my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
 

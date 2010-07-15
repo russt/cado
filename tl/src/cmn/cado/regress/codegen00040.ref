@@ -13,7 +13,7 @@ embeddefs TEST #2 PASSED
 varstack='quotedliteral01 := some real data
 quotedliteral02 := some more real data
 '
-AFTER UNDEF DUMP for /^quotedliteral\d+$/=
+AFTER UNDEF DUMP for /^quotedliteral\d+$/=${vdefs:undef}
 AFTER UNDEF stacksize=0
 
 embeddefs TEST #3 PASSED

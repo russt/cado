@@ -241,7 +241,11 @@
 #       Factor out default values for CG_STACK_DELIMITER & CG_SPLIT_PATTERN.
 #       Reset CG_SPLIT_PATTERN during :split if it is undefined.
 #  14-Jul-2010 (russt) [Version 1.79]
-#       Add :urlencode, :urldecode ops
+#       Add :urlencode, :urldecode, and :cgvar ops.
+#       Make %pushv work like %undef, so that it accepts a variable holding the pattern.
+#       Correct all %push operations so that if evaluation of rhs results in zero elements,
+#       we do not assign anything (leave it undefined.)  (A stack holding an empty string is
+#       considered to have size 1, whereas an undefined stack variable has size 0.)
 #
 
 
@@ -711,20 +715,23 @@ sub pushspec
 #printf STDERR "pushspec T8 delimiter='%s' rhs_contents='%s' \@rhs_contents=(%s)\n", &get_stack_delimiter(), $rhs_contents, join(',', @rhs_contents) ;
     }
 
-    if (defined($lhs_contents)) {
-        if ($lhs_contents ne "" && $push_unique == 1) {
-            my @lhs_contents = split($;, $lhs_contents, -1);
+    #if we generate no elements, then don't do anything:
+    if ($#rhs_contents >= 0) {
+        if (defined($lhs_contents)) {
+            if ($lhs_contents ne "" && $push_unique == 1) {
+                my @lhs_contents = split($;, $lhs_contents, -1);
 
-            #if we are maintaining a unique stack, do not add unless new:
-            my @new = &MINUS(\@rhs_contents, \@lhs_contents);
-            $CG_USER_VARS{$lhs} = join($;, $lhs_contents, @new) if ($#new >= 0);
-        } elsif ($lhs_contents ne "") {
-            $CG_USER_VARS{$lhs} = join($;, $lhs_contents, @rhs_contents);
+                #if we are maintaining a unique stack, do not add unless new:
+                my @new = &MINUS(\@rhs_contents, \@lhs_contents);
+                $CG_USER_VARS{$lhs} = join($;, $lhs_contents, @new) if ($#new >= 0);
+            } elsif ($lhs_contents ne "") {
+                $CG_USER_VARS{$lhs} = join($;, $lhs_contents, @rhs_contents);
+            } else {
+                $CG_USER_VARS{$lhs} = join($;, @rhs_contents);
+            }
         } else {
             $CG_USER_VARS{$lhs} = join($;, @rhs_contents);
         }
-    } else {
-        $CG_USER_VARS{$lhs} = join($;, @rhs_contents);
     }
 
     return 1;
@@ -4545,14 +4552,16 @@ sub stacksize_op
 #process :stacksize postfix op
 #:stacksize - return the stacksize of a scalar.
 #only variables created by %push will have a stacksize > 1
-#empty string returns a stacksize of 0.
+#undef stack has zero elements.  however an empty string on the stack is
+#considered to have one element.
 {
     my ($var, $varname) = @_;
 
     return 0 unless (&var_defined($varname));
 
-    #this is because split on an empty string sets length of array incorrectly to -1.
-    return 0 if ($var eq '');
+    #this is a little confusing, but allows for stacks to have empty elements.
+    #i.e., a stack has zero elements only if it is undefined.
+    return 1 if ($var eq '');
 
     my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
 
