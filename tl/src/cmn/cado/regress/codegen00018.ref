@@ -33,6 +33,16 @@ POSTFIX OPERATOR :suffix TEST #2 PASSED
 foo='/a/b/c/foo.c/' foo:suffix=''
 POSTFIX OPERATOR :suffix TEST #3 PASSED
 
+:root POSTFIX OPERATOR TESTS
+foo='foo.java' foo:root='foo'
+POSTFIX OPERATOR :root TEST #1 PASSED
+foo='/a/b/c/foo.java' foo:root='/a/b/c/foo'
+POSTFIX OPERATOR :root TEST #2 PASSED
+foo='D:\a\b\c\foo.9' foo:root='D:\a\b\c\foo'
+POSTFIX OPERATOR :root TEST #3 PASSED
+foo='/a/b/c/foo.c/' foo:root='/a/b/c/foo.c/'
+POSTFIX OPERATOR :root TEST #4 PASSED
+
 :dirname POSTFIX OPERATOR TESTS
 foo='/a/b/c/foo.java' foo:dirname='/a/b/c'
 POSTFIX OPERATOR :dirname TEST #1 PASSED

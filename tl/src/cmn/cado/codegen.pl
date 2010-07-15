@@ -241,7 +241,7 @@
 #       Factor out default values for CG_STACK_DELIMITER & CG_SPLIT_PATTERN.
 #       Reset CG_SPLIT_PATTERN during :split if it is undefined.
 #  14-Jul-2010 (russt) [Version 1.79]
-#       Add :urlencode, :urldecode, and :cgvar ops.
+#       Add :urlencode, :urldecode, :root, and :cgvar ops.
 #       Make %pushv work like %undef, so that it accepts a variable holding the pattern.
 #       Correct all %push operations so that if evaluation of rhs results in zero elements,
 #       we do not assign anything (leave it undefined.)  (A stack holding an empty string is
@@ -4481,6 +4481,16 @@ sub suffix_op
 
     return $1 if ( $var =~ /\.([^\.\\\/]*)$/ );
     return "";
+}
+
+sub root_op
+#process :root postfix op
+#return root of input var (i.e., var minus suffix).
+{
+    my ($var) = @_;
+
+    return $1 if ( $var =~ /^(.*)\.[^\.\\\/]*$/ );
+    return $var;
 }
 
 sub top_op

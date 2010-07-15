@@ -51,6 +51,7 @@
 :basename           - return basename of input var
 :dirname            - return dirname of input var
 :suffix             - return suffix of input var
+:root               - return root (var without suffix) of input var
 
 :cap                - this op capitalizes the first letter of a string.
 :uncap              - uncapitalize the first letter of a string.

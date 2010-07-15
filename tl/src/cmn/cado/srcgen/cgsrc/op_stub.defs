@@ -336,6 +336,16 @@ sub suffix_op
     return "";
 }
 
+sub root_op
+#process :root postfix op
+#return root of input var (i.e., var minus suffix).
+{
+    my ($var) = @_;
+
+    return $1 if ( $var =~ /^(.*)\.[^\.\\\/]*$/ );
+    return $var;
+}
+
 sub top_op
 #process :top postfix op
 #:top - return the top (last in) element on the stack

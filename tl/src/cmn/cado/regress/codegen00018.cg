@@ -151,7 +151,6 @@ result=FAILED
 CG_COMPARE_SPEC := java
 %if $foo:suffix:eq	result=PASSED
 %echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
-foo = /a/b/c/foo.java
 
 foo = D:\a\b\c\foo.9
 result=FAILED
@@ -164,6 +163,41 @@ foo = /a/b/c/foo.c/
 result=FAILED
 %echo foo='$foo' foo:suffix='$foo:suffix'
 %ifnot $foo:suffix	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+#####  test root operator:
+tname=:root
+tnum = 0
+%echo
+%echo $tname POSTFIX OPERATOR TESTS
+#####
+
+foo = foo.java
+result=FAILED
+%echo foo='$foo' foo:root='$foo:root'
+CG_COMPARE_SPEC := foo
+%if $foo:root:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = /a/b/c/foo.java
+result=FAILED
+%echo foo='$foo' foo:root='$foo:root'
+CG_COMPARE_SPEC := /a/b/c/foo
+%if $foo:root:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = D:\a\b\c\foo.9
+result=FAILED
+%echo foo='$foo' foo:root='$foo:root'
+CG_COMPARE_SPEC := D:\a\b\c\foo
+%if $foo:root:eq	result=PASSED
+%echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
+
+foo = /a/b/c/foo.c/
+result=FAILED
+%echo foo='$foo' foo:root='$foo:root'
+CG_COMPARE_SPEC = $foo
+%if $foo:root:eq	result=PASSED
 %echo POSTFIX OPERATOR $tname TEST #$tnum:incr:a $result
 
 #####  test dirname operator:
