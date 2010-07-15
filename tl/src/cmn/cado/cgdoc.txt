@@ -1,7 +1,7 @@
 
                     =========================
                     Cado Quick Reference
-                    Version 1.78, 26-Mar-2010
+                    Version 1.79, 15-Jul-2010
                     =========================
 
 {
@@ -62,13 +62,13 @@
 :lnewline           - insert leading (left) newline iff non-empty string.
 :rnewline           - append trailing (right) newline iff non-empty string.
 :newline            - append trailing newline unconditionally.
-:fixeol             - force at most one newline at the end of the string
-:eoltrim            - trim whitespace preceding newlines
+:fixeol             - force at most one newline at the end of the string.
+:eoltrim            - trim whitespace preceding newlines.
 :eolsqueeze         - compress multiple empty lines into a single empty line.
 
-:ltrim              - trim leading whitespace (tabs, spaces, and newlines)
-:rtrim              - trim trailing whitespace
-:trim               - trim lead and trailing whitespace
+:ltrim              - trim leading whitespace (tabs, spaces, and newlines).
+:rtrim              - trim trailing whitespace.
+:trim               - trim lead and trailing whitespace.
 
 :substitute         - apply substitute pattern specified by $CG_SUBSTITUTE_SPEC
 :s                  - alias for :substitute
@@ -85,32 +85,36 @@
 :space              - use this to add spaces to empty string.
 :tab                - use this to add tabs to empty string.
 
-:todos              - convert a string to dos text
-:tounix             - convert a string to unix text
+:todos              - convert a string to dos text.
+:tounix             - convert a string to unix text.
 
-:toupper            - capitalize letters in a string
-:tolower            - uncapitalize letters in a string
+:toupper            - capitalize letters in a string.
+:tolower            - uncapitalize letters in a string.
+
+:urlencode          - encode a regular string as a url.
+:urldecode          - decode a url to its string form.
 
                     =====================
                     SPECIALIZED OPERATORS
                     =====================
 :crc                - return crcfile, and if that fails, crcstr.
 :crcfile            - return the crc of the file named by the string.
-:crcstr             - return the crc of the contents of a string
+:crcstr             - return the crc of the contents of a string.
 :freq               - get the frequency of each line.
-:method2rec         - convert a java method signature to a tab separated record
-:studyclass         - generate CG_CLASS variables, just as if we generated a real class file
-:stripRcsKeywords   - strip all RCS keywords from the string
-:antvar             - convert to an ant variable reference:
+:method2rec         - convert a java method signature to a tab separated record.
+:studyclass         - generate CG_CLASS variables, just as if we generated a real class file.
+:stripRcsKeywords   - strip all RCS keywords from the string.
+:antvar             - wrap value as an ant variable reference - e.g., $foo:nameof:antvar -> ${foo}.
+:cgvar              - wrap value as an cado template reference - e.g., $foo:nameof:cgvar -> ${foo:undef}
 
 
                     ==============================================
                     STACK VARIABLES.  See also: STACK MANIPULATION
                     ==============================================
-:top                - return top value of stack (last-in)
-:bottom             - return bottom value of stack (first-in)
+:top                - return top value of stack (last-in).
+:bottom             - return bottom value of stack (first-in).
 :car                - alias for :bottom for lisp aficionados.
-:cdr                - return the stack minus it's :car
+:cdr                - return the stack minus its :car
 :split              - create stack variable by splitting text with $CG_SPLIT_PATTERN.
                       Default split pattern is:  /[\t,]/
 :stacksize          - return the size of a stack created with %push.
@@ -415,7 +419,8 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                     ======================
 %pushv              - push variables whose name matches a pattern onto a new or existing stack.
                       E.g., "%pushv myvarstack /perl RE/".  If RE is missing, push ALL variables onto stack.
-%undef              - eliminates variables. Usage:  %undef [/pattern /]
+                      Pattern can also be a single variable reference, e.g., "%pushv vardefs $vpattern"
+%undef              - eliminates variables. Usage:  %undef [/pattern /] OR $undef $vpattern
 %export             - export a variable to the env.
 %unexport           - delete a variable from the env.
 

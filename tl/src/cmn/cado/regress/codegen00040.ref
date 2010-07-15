@@ -1,0 +1,20 @@
+TESTNAME is codegen00040
+after evalmacro xx='!{=quotedliteral01=}!
+!{=quotedliteral02=}!
+'
+
+last tmp='quotedliteral02'
+quotedliteral01=some real data
+
+VAR DUMP for /^quotedliteral\d+$/=quotedliteral01	quotedliteral02
+
+embeddefs TEST #1 PASSED
+embeddefs TEST #2 PASSED
+varstack='quotedliteral01 := some real data
+quotedliteral02 := some more real data
+'
+AFTER UNDEF DUMP for /^quotedliteral\d+$/=
+AFTER UNDEF stacksize=0
+
+embeddefs TEST #3 PASSED
+AFTER INTERPRET for /^quotedliteral\d+$/=quotedliteral01	quotedliteral02

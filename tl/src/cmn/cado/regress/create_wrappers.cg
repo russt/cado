@@ -26,7 +26,7 @@ EOF
 }
 
 #this is the number of tests:
-TNUM = 38
+TNUM = 40
 %call emit_wrapper
 ###  just emit one test:
 %exit

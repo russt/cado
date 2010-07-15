@@ -1,0 +1,14 @@
+TESTNAME is codegen00039
+originalContent='this is some new content I would like to add.
+what if it has urls like this one?
+http://search.cpan.org/~xeontime/Apache-Sling-0.05/lib/Apache/Sling/URL.pm#urlencode
+'
+
+encodedContent='this%20is%20some%20new%20content%20I%20would%20like%20to%20add%2E%0Awhat%20if%20it%20has%20urls%20like%20this%20one%3F%0Ahttp%3A%2F%2Fsearch%2Ecpan%2Eorg%2F%7Exeontime%2FApache%2DSling%2D0%2E05%2Flib%2FApache%2FSling%2FURL%2Epm%23urlencode%0A'
+
+decodedContent='this is some new content I would like to add.
+what if it has urls like this one?
+http://search.cpan.org/~xeontime/Apache-Sling-0.05/lib/Apache/Sling/URL.pm#urlencode
+'
+
+:urlencode_decode TEST #1 PASSED

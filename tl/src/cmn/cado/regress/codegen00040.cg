@@ -1,0 +1,68 @@
+#
+#this tests more esoteric use of embedded assignment op, pushv, undef
+#
+
+tname= embeddefs
+tnum = 0
+
+ii = 00
+LQ=!
+RQ=!
+DS := $
+
+varprefix = quotedliteral
+foo_template := << EOF
+{=LQ=}{=%a tmp = $varprefix$ii:incr:a=}{=%a $tmp=some real data=}{=$tmp:cgvar=}{=RQ=}
+{=LQ=}{=%a tmp = $varprefix$ii:incr:a=}{=%a $tmp=some more real data=}{=$tmp:cgvar=}{=RQ=}
+EOF
+
+%evalmacro xx foo_template
+%echo after evalmacro xx='$xx'
+%echo
+
+%echo last tmp='$tmp'
+%echo quotedliteral01=$quotedliteral01
+%echo
+
+vpattern = /^${varprefix}\d+$DS/
+%pushv vdefs $vpattern
+%echo VAR DUMP for $vpattern=$vdefs:showstack
+%echo
+
+result=FAILED
+#stack should have 2 items:
+%ifnot $vdefs:stacksize:minus2	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+%foreach var vpattern %push varstack $var := $var:valueof
+
+result=FAILED
+#stack should have 2 items:
+%ifnot $varstack:stacksize:minus2	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+#output definitions into string:
+CG_STACK_DELIMITER = $CG_STACK_DELIMITER:clr:newline
+VARDEFS  = $varstack:showstack:newline
+%pragma reset_stack_delimiter
+
+%echo varstack='$VARDEFS'
+
+#now clear the varpattern:
+%undef $vpattern
+%undef vdefs
+%pushv vdefs $vpattern
+%echo AFTER UNDEF DUMP for $vpattern=$vdefs:showstack
+%echo AFTER UNDEF stacksize=$vdefs:stacksize
+%echo
+
+result=FAILED
+#stack should now have 0 items:
+%ifnot $vdefs:stacksize	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+#now read in our defs:
+%call VARDEFS
+%undef vdefs
+%pushv vdefs $vpattern
+%echo AFTER INTERPRET for $vpattern=$vdefs:showstack

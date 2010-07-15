@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.78 - 26-Mar-2010
+# @(#)cado.pl - ver 1.79 - 15-Jul-2010
 #
 # Copyright 2003-2010 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -240,6 +240,8 @@
 #  26-Mar-2010 (russt) [Version 1.78]
 #       Factor out default values for CG_STACK_DELIMITER & CG_SPLIT_PATTERN.
 #       Reset CG_SPLIT_PATTERN during :split if it is undefined.
+#  14-Jul-2010 (russt) [Version 1.79]
+#       Add :urlencode, :urldecode ops
 #
 
 
@@ -250,8 +252,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.78",         #VERSION - the program version number.
-    "26-Mar-2010",  #VERSION_DATE - date this version was released.
+    "1.79",         #VERSION - the program version number.
+    "15-Jul-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -674,7 +676,22 @@ sub pushspec
         if (!defined($rhs)) {
             @rhs_contents = &get_user_vars();
         } else {
-            #we expect rhs to be a perl RE.  find variable names matching pattern:
+            #if variable is a variable reference (e.g., $fooptr), then test valueof:
+            my $varname = $rhs;
+            $varname = &expand_macros($rhs) if ($rhs =~ /^\$/);
+
+            if ($varname ne $rhs && $varname =~ /^\$/) {
+                printf STDERR "%s: WARNING: line %d: variable reference '%s' in %s statement is INVALID - ignored.\n",
+                    $p, $linecnt, $rhs, $token unless ($QUIET);
+                ++ $GLOBAL_ERROR_COUNT;
+                #we processed an pushv statement, even if there were errors::
+                return 1;
+            } else {
+                #we found a variable reference and expanded it:
+                $rhs = $varname;
+            }
+
+            #we now expect rhs to be a perl RE.  find variable names matching pattern:
             my $pat = $rhs;
             $pat =~ s/^\///;    #strip leading slashes
             $pat =~ s/\/$//;    #strip trailing slashes
@@ -1633,9 +1650,9 @@ sub undefspec
 
     #if variable is a variable reference (e.g., $fooptr), then test valueof:
     my $varname = $varname_in;
-    $varname = &expand_macros($varname_in) if ($varname_in =~ /\$/);
+    $varname = &expand_macros($varname_in) if ($varname_in =~ /^\$/);
 
-    if ($varname ne $varname_in && $varname =~ /\$/) {
+    if ($varname ne $varname_in && $varname =~ /^\$/) {
         printf STDERR "%s: WARNING: line %d: variable reference '%s' in %s statement is INVALID - ignored.\n",
             $p, $linecnt, $varname_in, $token unless ($QUIET);
         ++ $GLOBAL_ERROR_COUNT;
@@ -4535,7 +4552,7 @@ sub stacksize_op
     return 0 unless (&var_defined($varname));
 
     #this is because split on an empty string sets length of array incorrectly to -1.
-    return 1 if ($var eq '');
+    return 0 if ($var eq '');
 
     my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
 
@@ -5063,9 +5080,18 @@ sub ltrim_op
 sub antvar_op
 #process :antvar postfix op
 #convert to an ant variable reference:
+#  $foo:nameof:antvar -> ${foo}.
 {
     my ($var) = @_;
     return '$' . "{$var}";
+}
+
+sub cgvar_op
+#process :cgvar postfix op
+#wrap value as an cado template reference - e.g., $foo:nameof:cgvar -> {=foo=}
+{
+    my ($var) = @_;
+    return '{=' . $var . '=}';
 }
 
 sub xmlcommentblock_op
@@ -5123,6 +5149,29 @@ sub toupper_op
     my ($var) = @_;
     $var =~ tr/[a-z]/[A-Z]/;
     return $var;
+}
+
+sub urlencode_op
+{
+    my ($value) = @_;
+    $value =~ s/([^a-zA-Z_0-9])/"%" . uc(sprintf "%02X" , unpack("C", $1))/egx;
+    $value =~ tr/ /+/;
+    return ($value);
+}
+
+sub urldecode_op
+#process :urldecode postfix op
+#decode a url encoded string to a regular string.
+{
+    my ($url) = @_;
+    return unless $url;
+
+    # Character map
+    my %map = map { sprintf( "%02X", $_ ) => chr($_) } ( 0 ... 255 );
+
+    # Decode percent encoding
+    $url =~ s/%([a-fA-F0-9]{2})/$map{$1}/gx;
+    return $url;
 }
 
 sub cap_op

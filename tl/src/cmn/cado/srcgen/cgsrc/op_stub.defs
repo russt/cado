@@ -412,7 +412,7 @@ sub stacksize_op
     return 0 unless (&var_defined($varname));
 
     #this is because split on an empty string sets length of array incorrectly to -1.
-    return 1 if ($var eq '');
+    return 0 if ($var eq '');
 
     my @tmp = split($;, $var, -1);  #note -1 => don't delete trailing empty fields.
 
@@ -940,9 +940,18 @@ sub ltrim_op
 sub antvar_op
 #process :antvar postfix op
 #convert to an ant variable reference:
+#  $foo:nameof:antvar -> ${foo}.
 {
     my ($var) = @_;
     return '$' . "{$var}";
+}
+
+sub cgvar_op
+#process :cgvar postfix op
+#wrap value as an cado template reference - e.g., $foo:nameof:cgvar -> {=foo=}
+{
+    my ($var) = @_;
+    return '{=' . $var . '=}';
 }
 
 sub xmlcommentblock_op
@@ -1000,6 +1009,29 @@ sub toupper_op
     my ($var) = @_;
     $var =~ tr/[a-z]/[A-Z]/;
     return $var;
+}
+
+sub urlencode_op
+{
+    my ($value) = @_;
+    $value =~ s/([^a-zA-Z_0-9])/"%" . uc(sprintf "%02X" , unpack("C", $1))/egx;
+    $value =~ tr/ /+/;
+    return ($value);
+}
+
+sub urldecode_op
+#process :urldecode postfix op
+#decode a url encoded string to a regular string.
+{
+    my ($url) = @_;
+    return unless $url;
+
+    # Character map
+    my %map = map { sprintf( "%02X", $_ ) => chr($_) } ( 0 ... 255 );
+
+    # Decode percent encoding
+    $url =~ s/%([a-fA-F0-9]{2})/$map{$1}/gx;
+    return $url;
 }
 
 sub cap_op

@@ -1,5 +1,5 @@
-VERSION = 1.78
-VERSION_DATE = 26-Mar-2010
+VERSION = 1.79
+VERSION_DATE = 15-Jul-2010
 COPYRIGHT_RANGE = 2003-2010
 
 {
@@ -441,7 +441,22 @@ sub pushspec
         if (!defined($rhs)) {
             @rhs_contents = &get_user_vars();
         } else {
-            #we expect rhs to be a perl RE.  find variable names matching pattern:
+            #if variable is a variable reference (e.g., $fooptr), then test valueof:
+            my $varname = $rhs;
+            $varname = &expand_macros($rhs) if ($rhs =~ /^\$/);
+
+            if ($varname ne $rhs && $varname =~ /^\$/) {
+                printf STDERR "%s: WARNING: line %d: variable reference '%s' in %s statement is INVALID - ignored.\n",
+                    $p, $linecnt, $rhs, $token unless ($QUIET);
+                ++ $GLOBAL_ERROR_COUNT;
+                #we processed an pushv statement, even if there were errors::
+                return 1;
+            } else {
+                #we found a variable reference and expanded it:
+                $rhs = $varname;
+            }
+
+            #we now expect rhs to be a perl RE.  find variable names matching pattern:
             my $pat = $rhs;
             $pat =~ s/^\///;    #strip leading slashes
             $pat =~ s/\/$//;    #strip trailing slashes
@@ -1400,9 +1415,9 @@ sub undefspec
 
     #if variable is a variable reference (e.g., $fooptr), then test valueof:
     my $varname = $varname_in;
-    $varname = &expand_macros($varname_in) if ($varname_in =~ /\$/);
+    $varname = &expand_macros($varname_in) if ($varname_in =~ /^\$/);
 
-    if ($varname ne $varname_in && $varname =~ /\$/) {
+    if ($varname ne $varname_in && $varname =~ /^\$/) {
         printf STDERR "%s: WARNING: line %d: variable reference '%s' in %s statement is INVALID - ignored.\n",
             $p, $linecnt, $varname_in, $token unless ($QUIET);
         ++ $GLOBAL_ERROR_COUNT;
@@ -3913,6 +3928,8 @@ CODEGEN_HEADER := << EOF
 #  26-Mar-2010 (russt) [Version 1.78]
 #       Factor out default values for CG_STACK_DELIMITER & CG_SPLIT_PATTERN.
 #       Reset CG_SPLIT_PATTERN during :split if it is undefined.
+#  14-Jul-2010 (russt) [Version 1.79]
+#       Add :urlencode, :urldecode ops
 #
 
 EOF
