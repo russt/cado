@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.79 - 15-Jul-2010
+# @(#)cado.pl - ver 1.79 - 16-Jul-2010
 #
 # Copyright 2003-2010 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -240,8 +240,9 @@
 #  26-Mar-2010 (russt) [Version 1.78]
 #       Factor out default values for CG_STACK_DELIMITER & CG_SPLIT_PATTERN.
 #       Reset CG_SPLIT_PATTERN during :split if it is undefined.
-#  14-Jul-2010 (russt) [Version 1.79]
-#       Add :urlencode, :urldecode, :root, and :cgvar ops.
+#  16-Jul-2010 (russt) [Version 1.79]
+#       Add :urlencode, :urldecode, :hexencode, :hexdecode, :q <=> :quote, :dq <=> :dquote,
+#       :echo <=> :print, :eecho <=> :eprint,  :root, and :cgvar ops.
 #       Make %pushv work like %undef, so that it accepts a variable holding the pattern.
 #       Correct all %push operations so that if evaluation of rhs results in zero elements,
 #       we do not assign anything (leave it undefined.)  (A stack holding an empty string is
@@ -257,7 +258,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.79",         #VERSION - the program version number.
-    "15-Jul-2010",  #VERSION_DATE - date this version was released.
+    "16-Jul-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -4493,6 +4494,35 @@ sub root_op
     return $var;
 }
 
+sub echo_op
+#dump current contents of var to stdout (or current default output handle).
+#useful in %void statements to display selected output.
+{
+    my ($var) = @_;
+    print $var;
+    return $var;
+}
+
+sub print_op
+#alias for echo_op
+{
+    return &echo_op(@_);
+}
+
+sub eecho_op
+#dump current contents of var to stderr.
+{
+    my ($var) = @_;
+    print STDERR $var;
+    return $var;
+}
+
+sub eprint_op
+#alias for eecho_op
+{
+    return &eecho_op(@_);
+}
+
 sub top_op
 #process :top postfix op
 #:top - return the top (last in) element on the stack
@@ -5113,6 +5143,32 @@ sub cgvar_op
     return '{=' . $var . '=}';
 }
 
+sub q_op
+#wrap contents of var in single quotes.
+{
+    my ($var) = @_;
+    return "'" . $var . "'";
+}
+
+sub quote_op
+#alias for q_op
+{
+    return &q_op(@_);
+}
+
+sub dq_op
+#wrap contents of var in single quotes.
+{
+    my ($var) = @_;
+    return '"' . $var . '"';
+}
+
+sub dquote_op
+#alias for q_op
+{
+    return &q_op(@_);
+}
+
 sub xmlcommentblock_op
 #process :xmlcommentblock postfix op
 #wrap $var in multi-line xml comment:
@@ -5170,11 +5226,13 @@ sub toupper_op
     return $var;
 }
 
+#init hex decode map:
+my %hex_decode_map = map { sprintf( "%02X", $_ ) => chr($_) } ( 0 ... 255 );
+
 sub urlencode_op
 {
     my ($value) = @_;
-    $value =~ s/([^a-zA-Z_0-9])/"%" . uc(sprintf "%02X" , unpack("C", $1))/egx;
-    $value =~ tr/ /+/;
+    $value =~ s/([^a-zA-Z_0-9])/"%" . uc(sprintf "%02X" , unpack("C", $1))/eg;
     return ($value);
 }
 
@@ -5185,12 +5243,31 @@ sub urldecode_op
     my ($url) = @_;
     return unless $url;
 
-    # Character map
-    my %map = map { sprintf( "%02X", $_ ) => chr($_) } ( 0 ... 255 );
-
     # Decode percent encoding
-    $url =~ s/%([a-fA-F0-9]{2})/$map{$1}/gx;
+    $url =~ s/%([a-fA-F0-9]{2})/$hex_decode_map{$1}/eg;
     return $url;
+}
+
+sub hexencode_op
+#process :hexencode postfix op
+#encode a regular string to hex representation.
+{
+    my ($value) = @_;
+    $value =~ s/(.)/uc(sprintf "%02X" , unpack("C", $1))/eg;
+    return ("HEX_" . $value);
+}
+
+sub hexdecode_op
+#process :hexdecode postfix op
+#decode a hex encoded string to a regular string.
+{
+    my ($hexstr) = @_;
+    return unless $hexstr =~ /^HEX_/;
+
+    $hexstr =~ s/^HEX_//;
+
+    $hexstr =~ s/([A-F0-9]{2})/$hex_decode_map{$1}/eg;
+    return $hexstr;
 }
 
 sub cap_op

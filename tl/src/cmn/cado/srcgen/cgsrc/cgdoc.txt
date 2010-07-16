@@ -25,17 +25,17 @@
                     =======
                     NUMERIC
                     =======
-:decr               - decrement by 1
-:incr               - increment by 1
-:i                  - alias for :incr
+:decr               - decrement by 1, preserving zero-fill.  e.g., 3 2 1 or 03 02 01.
+:incr, :i           - increment by 1, preserving zero-fill.
+
 :isint              - returns 1 if <val> is a positive integer, else zero.
 :pad                - pad a number or string as specified by sprintf CG_PAD_SPEC
 
 :plus<n>            - add <n> to variable. maintains pad setting.  :plus1 <=> :incr
 :minus<n>           - subtract <n> from variable. maintains pad setting.  :minus1 <=> :decr
-:times<n>           - multiply variable times <n>
+:times<n>           - multiply variable times <n>.
 :div<n>             - divide variable by <n> (integer division).
-:rem<n>             - modulo <n> of varible, i.e., $foo:rem2 <=> ($foo % 2)
+:rem<n>             - modulo <n> of varible, i.e., $foo:rem2 <=> ($foo % 2).
 
                     =============
                     XML OPERATORS
@@ -86,14 +86,23 @@
 :space              - use this to add spaces to empty string.
 :tab                - use this to add tabs to empty string.
 
+:antvar             - wrap value as an ant variable reference - e.g., $foo:nameof:antvar -> ${foo}.
+:cgvar              - wrap value as an cado template reference - e.g., $foo:nameof:cgvar -> {=foo=}
+
+:quote,:q           - wrap value in single quotes.
+:dquote,:dq         - wrap value in double quotes.
+
 :todos              - convert a string to dos text.
 :tounix             - convert a string to unix text.
 
 :toupper            - capitalize letters in a string.
 :tolower            - uncapitalize letters in a string.
 
+:hexencode          - encode a regular string as a hex string, prefixed by 'HEX_'.
+:hexdecode          - decode a HEX_ encoded string to its regular form.
+
 :urlencode          - encode a regular string as a url.
-:urldecode          - decode a url to its string form.
+:urldecode          - decode a url to its regular string form.
 
                     =====================
                     SPECIALIZED OPERATORS
@@ -105,8 +114,6 @@
 :method2rec         - convert a java method signature to a tab separated record.
 :studyclass         - generate CG_CLASS variables, just as if we generated a real class file.
 :stripRcsKeywords   - strip all RCS keywords from the string.
-:antvar             - wrap value as an ant variable reference - e.g., $foo:nameof:antvar -> ${foo}.
-:cgvar              - wrap value as an cado template reference - e.g., $foo:nameof:cgvar -> {=foo=}
 
 
                     ==============================================
@@ -406,10 +413,14 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 
 %include            - process include.
 %interpret          - interpret the contents of a variable:  %interpret varname
-%call               - alias for %interpret
+%call               - alias for %interpret.
 
-%echo               - echo text
-%print              - alias for %echo
+%echo               - echo text to stdout.
+%print              - alias for %echo.
+
+%eecho              - echo text to stderr.
+%eprint             - alias for %eecho.
+
 %void               - useful for evaluating postfix ops without assignment.
 
 %shell              - call to the shell, e.g.  "%shell date".  See also $CG_SHELL_CWD setting.

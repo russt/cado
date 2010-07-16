@@ -1,3 +1,6 @@
+tname= :urlencode:urldecode
+tnum = 0
+
 originalContent := << EOF
 this is some new content I would like to add.
 what if it has urls like this one?
@@ -13,17 +16,63 @@ encodedContent = $originalContent:urlencode
 %echo
 
 #now decode it:
-decodedContent = $originalContent:urldecode
+decodedContent = $encodedContent:urldecode
 %echo decodedContent='$decodedContent'
 %echo
-
-tname= :urlencode_decode
-tnum = 0
 
 CG_COMPARE_SPEC = $originalContent
 result=FAILED
 %if $decodedContent:eq	result=PASSED
 %echo $tname TEST #$tnum:incr:a $result
+%echo
+
+tname= :hexencode:hexdecode
+tnum = 0
+
+originalContent := does this "text" = 123?  I think, !not.
+%echo originalContent='$originalContent'
+%echo
+
+#encode it:
+encodedContent = $originalContent:hexencode
+%echo encodedContent='$encodedContent'
+%echo
+
+#now decode it:
+decodedContent = $encodedContent:hexdecode
+%echo decodedContent='$decodedContent'
+%echo
+
+CG_COMPARE_SPEC = $originalContent
+result=FAILED
+%if $decodedContent:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+%echo
+
+foo := http://search.cpan.org/~xeontime/Apache-Sling-0.05/lib/Apache/Sling/URL.pm#urlencode
+foohex = $foo:hexencode
+$foohex = $foohex:hexdecode
+
+%echo foohex='$foohex'
+%echo foohex:valueof = '$foohex:valueof'
+
+CG_COMPARE_SPEC = $foo
+result=FAILED
+%if $foohex:valueof:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+%echo
+
+%void $HEX_4341444F:nameof:hexdecode:assign
+%void $HEX_4341444F4341444F:nameof:hexdecode:assign
+%void $HEX_4341444F20697320434F4F4C21:nameof:hexdecode:assign
+
+%undef mystack
+%pushv mystack /HEX_.*/
+
+%echo HEX_ var list:  '$mystack:showstack'
+
+arange = 01..$mystack:stacksize
+%foreach ii arange %void $ii:tab:echo $mystack:car:quote:tab:echo $mystack:car:valueof:quote:newline:echo $mystack:cdr:a
 
 #REFERENCE:
 # 00 nul   01 soh   02 stx   03 etx   04 eot   05 enq   06 ack   07 bel
