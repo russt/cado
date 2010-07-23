@@ -6,22 +6,24 @@ METHOD_NAME=a1
 METHOD_NAME=a0
 call sh with 'echo c a b | xargs -n 1 | sort -'
 sh SAYS:
-a
+'a
 b
 c
+'
 --------------
 sort -n SAYS:
-3
+'3
 4
 9
 222
+'
 --------------
 -------------- BEFORE interpolation: codegen00010.txt:
 before:  FOO='{=FOO=}'
-after:  FOO='{=$FOO:sort:newline=}'
+after:  FOO='{=$FOO:sort=}'
 
 #note that the date doesn't care about stdin, so $avar can be anything.
-{=$avar:date=}
+'{=$avar:date=}'
 --------------
 -------------- AFTER interpolation: ../bld/cgtstroot/codegen00010.txt
 before:  FOO='222
@@ -36,23 +38,38 @@ after:  FOO='222
 '
 
 #note that the date doesn't care about stdin, so $avar can be anything.
-IGNORE Fri Dec 22 15:05:58 PST 2006
+IGNORE 'Thu Jul 22 16:51:20 PDT 2010
+'
 --------------
 1. call dc with '1 2 + p'
-dc SAYS: 3
+dc SAYS: '3
+'
 2. call dc with '2k
 1
 2 / p
 '
-dc SAYS: .50
+dc SAYS: '.50
+'
 CAT SAYS:
-abc
+'abc
 def
-FOO is CG_ROOT = /tmp/foo
+'
+FOO is 'CG_ROOT = /tmp/foo
 %echo CG_ROOT is $CG_ROOT
-
-codegen SAYS:  CG_ROOT is /tmp/foo
-sh basename /a/b/c/foo.java SAYS:  foo.java
-csh dirname /a/b/c/foo.java SAYS:  /a/b/c
+'
+codegen SAYS:  'CG_ROOT is /tmp/foo
+'
+sh basename /a/b/c/foo.java SAYS:  'foo.java
+'
+csh dirname /a/b/c/foo.java SAYS:  ''
 before dc, somevar=100
-after dc, somevar=200
+after dc, somevar='200
+'
+
+:reflexive-cat operator
+BEFORE cat YES final EOL: FOO=HEX_6F6E650A74776F0A74687265650A
+AFTER cat YES final EOL: FOO=HEX_6F6E650A74776F0A74687265650A
+:reflexive-cat TEST #01 PASSED
+BEFORE cat no final EOL: FOO=HEX_6F6E650A74776F0A7468726565
+AFTER cat no final EOL: FOO=HEX_6F6E650A74776F0A7468726565
+:reflexive-cat TEST #02 PASSED

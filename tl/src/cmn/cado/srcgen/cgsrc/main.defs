@@ -1,5 +1,5 @@
-VERSION = 1.79
-VERSION_DATE = 16-Jul-2010
+VERSION = 1.80
+VERSION_DATE = 22-Jul-2010
 COPYRIGHT_RANGE = 2003-2010
 
 {
@@ -3938,6 +3938,11 @@ CODEGEN_HEADER := << EOF
 #       Correct all %push operations so that if evaluation of rhs results in zero elements,
 #       we do not assign anything (leave it undefined.)  (A stack holding an empty string is
 #       considered to have size 1, whereas an undefined stack variable has size 0.)
+#  22-Jul-2010 (russt) [Version 1.80]
+#       Fix a bug in external shell operators whereby trailing newlines are stripped.
+#       Correct/add tests to not compensate for extra/missing newlines.  Add test to ensure that
+#       FOO = $FOO:cat is identical to original string.
+#       Fix a bug in :hexencode, :urlencode ops - were not encoding newlines.
 #
 
 EOF

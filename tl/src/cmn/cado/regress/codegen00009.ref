@@ -106,6 +106,7 @@ TEST CG_SHELL_CWD with postfix operator
 
 echo -> ../bld/cgtstroot/codegen00009.dir/ls_test/aa
 echo -> ../bld/cgtstroot/codegen00009.dir/ls_test/bb
-aa
+'aa
 bb
+'
 CG_SHELL_CWD TEST #1 PASSED

@@ -4,7 +4,7 @@ sub rtrim_op
 #process :rtrim postfix op
 {
     my ($var) = @_;
-    $var =~ s/\s+$//;
+    $var =~ s/\s+$//s;
     return $var;
 }
 
@@ -13,7 +13,7 @@ sub trim_op
 {
     my ($var) = @_;
     $var =~ s/^\s+//;
-    $var =~ s/\s+$//;
+    $var =~ s/\s+$//s;
     return $var;
 }
 
@@ -1084,7 +1084,7 @@ my %hex_decode_map = map { sprintf( "%02X", $_ ) => chr($_) } ( 0 ... 255 );
 sub urlencode_op
 {
     my ($value) = @_;
-    $value =~ s/([^a-zA-Z_0-9])/"%" . uc(sprintf "%02X" , unpack("C", $1))/eg;
+    $value =~ s/([^a-zA-Z_0-9])/"%" . uc(sprintf "%02X" , unpack("C", $1))/egs;
     return ($value);
 }
 
@@ -1096,7 +1096,7 @@ sub urldecode_op
     return unless $url;
 
     # Decode percent encoding
-    $url =~ s/%([a-fA-F0-9]{2})/$hex_decode_map{$1}/eg;
+    $url =~ s/%([a-fA-F0-9]{2})/$hex_decode_map{$1}/egs;
     return $url;
 }
 
@@ -1105,7 +1105,7 @@ sub hexencode_op
 #encode a regular string to hex representation.
 {
     my ($value) = @_;
-    $value =~ s/(.)/uc(sprintf "%02X" , unpack("C", $1))/eg;
+    $value =~ s/(.)/uc(sprintf "%02X" , unpack("C", $1))/egs;
     return ("HEX_" . $value);
 }
 
@@ -1118,7 +1118,7 @@ sub hexdecode_op
 
     $hexstr =~ s/^HEX_//;
 
-    $hexstr =~ s/([A-F0-9]{2})/$hex_decode_map{$1}/eg;
+    $hexstr =~ s/([A-F0-9]{2})/$hex_decode_map{$1}/egs;
     return $hexstr;
 }
 

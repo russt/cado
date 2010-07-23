@@ -346,13 +346,13 @@ EOF
 #for od:
 CG_SHELL_COMMAND_ARGS = -c
 %echo ------- orig
-%echo $foo:od
+%echo -n $foo:od
 %echo ------- tounix:
-%echo $foo:tounix:od
+%echo -n $foo:tounix:od
 %echo ------- todos:
-%echo $foo:todos:od
+%echo -n $foo:todos:od
 %echo ------- todos:tounix:
-%echo $foo:todos:tounix:od
+%echo -n $foo:todos:tounix:od
 %echo -------
 
 CG_COMPARE_SPEC = $foo
@@ -392,7 +392,7 @@ EOF
 CG_COMPARE_SPEC = $CG_COMPARE_SPEC:trim
 
 foo=
-%echo $foo:ls
+%echo '$foo:ls'
 result=FAILED
 %if $foo:ls:trim:eq	result=PASSED
 %echo $tname TEST #$tnum:incr:a $result

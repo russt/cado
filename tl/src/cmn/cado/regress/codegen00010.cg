@@ -24,6 +24,7 @@
 # @(#)testa.cg - ver 1.1 - 01/04/2006
 #
 # Copyright 2004-2006 Sun Microsystems, Inc. All Rights Reserved.
+# Copyright 2009-2010 Russ Tremain. All Rights Reserved.
 # 
 # END_HEADER - DO NOT EDIT
 #
@@ -33,7 +34,7 @@ CG_ROOT_BASE =     $CG_ROOT
 
 #test external postfix operators
 
-$FOO=$FOO:badcommand
+FOO=$FOO:badcommand
 
 BASE_METHOD_NAME = a
 N = 0
@@ -58,7 +59,7 @@ FOO=echo c a b | xargs -n 1 | sort -
 %echo call sh with '$FOO'
 FOO=$FOO:sh
 %echo sh SAYS:
-%echo $FOO
+%echo '$FOO'
 
 %echo --------------
 FOO = << EOF
@@ -70,7 +71,7 @@ EOF
 
 CG_SHELL_COMMAND_ARGS = -n
 %echo sort -n SAYS:
-%echo $FOO:sort
+%echo '$FOO:sort'
 %echo --------------
 %undef CG_SHELL_COMMAND_ARGS
 #clear this before interprolating codegen00010.txt, which has a date command.
@@ -93,7 +94,7 @@ CG_SHELL_COMMAND_ARGS =
 FOO = 1 2 + p
 %echo 1. call dc with '$FOO'
 FOO=$FOO:dc
-%echo dc SAYS: $FOO
+%echo dc SAYS: '$FOO'
 
 FOO = << EOF
 2k
@@ -103,14 +104,14 @@ EOF
 
 %echo 2. call dc with '$FOO'
 FOO=$FOO:dc
-%echo dc SAYS: $FOO
+%echo dc SAYS: '$FOO'
 
 FOO = << EOF
 abc
 def
 EOF
 %echo CAT SAYS:
-%echo $FOO:cat
+%echo '$FOO:cat'
 
 #run a simple codegen test:
 FOO := << EOF
@@ -119,16 +120,16 @@ CG_ROOT = /tmp/foo
 EOF
 
 CG_SHELL_COMMAND_ARGS =
-%echo FOO is $FOO
-%echo codegen SAYS:  $FOO:codegen
+%echo FOO is '$FOO'
+%echo codegen SAYS:  '$FOO:codegen'
 
 FOO=basename /a/b/c/foo.java
-%echo sh $FOO SAYS:  $FOO:sh
+%echo sh $FOO SAYS:  '$FOO:sh'
 
 CG_SHELL_COMMAND_ARGS = -f
 FOO= dirname /a/b/c/foo.java
 #note - csh requires a newline at the end of the command:
-%echo csh $FOO SAYS:  $FOO:newline:csh
+%echo csh $FOO SAYS:  '$FOO:csh'
 
 #an alternate what to add:
 CG_SHELL_COMMAND_ARGS =
@@ -137,4 +138,40 @@ FOO = $somevar 100 +p
 
 %echo before dc, somevar=$somevar
 somevar = $FOO:dc
-%echo after dc, somevar=$somevar
+%echo after dc, somevar='$somevar'
+
+#####
+tnum = 00
+tname=:reflexive-cat
+%echo
+%echo $tname operator
+#####
+
+FOO := << EOF
+one
+two
+three
+EOF
+
+%echo BEFORE cat YES final EOL: FOO=$FOO:hexencode
+
+#first verify that we do not strip newlines:
+CG_COMPARE_SPEC = $FOO:hexencode
+FOO = $FOO:cat
+%echo AFTER cat YES final EOL: FOO=$FOO:hexencode
+
+result=FAILED
+%if $FOO:hexencode:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result
+
+#next verify that we do not add newlines:
+FOO = $FOO:rtrim
+%echo BEFORE cat no final EOL: FOO=$FOO:hexencode
+
+CG_COMPARE_SPEC = $FOO:hexencode
+FOO = $FOO:cat
+%echo AFTER cat no final EOL: FOO=$FOO:hexencode
+
+result=FAILED
+%if $FOO:hexencode:eq	result=PASSED
+%echo $tname TEST #$tnum:incr:a $result

@@ -29,7 +29,11 @@ result=FAILED
 tname= :hexencode:hexdecode
 tnum = 0
 
-originalContent := does this "text" = 123?  I think, !not.
+originalContent := << EOF
+does this "text" = 123?
+I think, !not.
+EOF
+
 %echo originalContent='$originalContent'
 %echo
 

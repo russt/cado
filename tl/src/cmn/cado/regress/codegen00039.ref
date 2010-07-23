@@ -13,11 +13,15 @@ http://search.cpan.org/~xeontime/Apache-Sling-0.05/lib/Apache/Sling/URL.pm#urlen
 
 :urlencode:urldecode TEST #1 PASSED
 
-originalContent='does this "text" = 123?  I think, !not.'
+originalContent='does this "text" = 123?
+I think, !not.
+'
 
-encodedContent='HEX_646F6573207468697320227465787422203D203132333F202049207468696E6B2C20216E6F742E'
+encodedContent='HEX_646F6573207468697320227465787422203D203132333F0A49207468696E6B2C20216E6F742E0A'
 
-decodedContent='does this "text" = 123?  I think, !not.'
+decodedContent='does this "text" = 123?
+I think, !not.
+'
 
 :hexencode:hexdecode TEST #1 PASSED
 

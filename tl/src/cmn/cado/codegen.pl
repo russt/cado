@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.79 - 16-Jul-2010
+# @(#)codegen.pl - ver 1.80 - 22-Jul-2010
 #
 # Copyright 2003-2010 Sun Microsystems, Inc. All Rights Reserved.
 #
@@ -247,6 +247,11 @@
 #       Correct all %push operations so that if evaluation of rhs results in zero elements,
 #       we do not assign anything (leave it undefined.)  (A stack holding an empty string is
 #       considered to have size 1, whereas an undefined stack variable has size 0.)
+#  22-Jul-2010 (russt) [Version 1.80]
+#       Fix a bug in external shell operators whereby trailing newlines are stripped.
+#       Correct/add tests to not compensate for extra/missing newlines.  Add test to ensure that
+#       FOO = $FOO:cat is identical to original string.
+#       Fix a bug in :hexencode, :urlencode ops - were not encoding newlines.
 #
 
 
@@ -257,8 +262,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.79",         #VERSION - the program version number.
-    "16-Jul-2010",  #VERSION_DATE - date this version was released.
+    "1.80",         #VERSION - the program version number.
+    "22-Jul-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -4013,6 +4018,7 @@ sub exec_shell_op
 #otherwise, the output from the command.
 {
     my ($cmdname, $var) = @_;
+#printf STDERR "exec_shell_op: cmdname='%s' var='%s'\n", $cmdname, $var;
 
     #write $var to a tmp file:
     my $tmpfile = &os'TempFile;
@@ -4020,35 +4026,44 @@ sub exec_shell_op
         printf STDERR "%s [exec_shell_op]: ERROR: cannot open '%s' for write: %s\n", $p, $tmpfile, $!;
         ++ $GLOBAL_ERROR_COUNT;
         # var is unmodified
-    } else {
-        #make sure that input to pipe has at least one EOL.
-        #otherwise, mks won't read the pipe.
-        chomp $var;
-        printf TMPFILE "%s\n", $var;
-        close TMPFILE;
-
-        #check for command line arguments:
-        my $cmdargs = "";
-        $cmdargs = (" " .  &lookup_def('CG_SHELL_COMMAND_ARGS')) if (&var_defined('CG_SHELL_COMMAND_ARGS'));
-
-        #execute command in current shell directory:
-        my $cmd = sprintf("%s%s%s", &get_shell_cd_cmd(), $cmdname, $cmdargs);
-
-        #now open pipe to command:
-        $CG_USER_VARS{'CG_SHELL_STATUS'} = 255;    #unless shell sets status, we assume bad
-        if (!open(CMDPIPE, "sh -c '$cmd' <$tmpfile|")) {
-            printf STDERR "%s [exec_shell_op]: ERROR: cannot open pipe to command '%s': %s\n", $p, $cmd, $!;
-            ++ $GLOBAL_ERROR_COUNT;
-        } else {
-            #read stdout of pipe back into var:
-            my @var = <CMDPIPE>;
-            close CMDPIPE;
-            $CG_USER_VARS{'CG_SHELL_STATUS'} = $?;
-            #sh adds an extra newline, trim it:
-            $var = join("",@var);
-            chomp $var;
-        }
+        return $var;
     }
+    
+    #copy contents of var to tmp file:
+    print TMPFILE $var;
+
+    #make sure that input to pipe has at least one EOL.
+    #otherwise, mks won't read the pipe.
+    #if ($var !~ /\n$/s ) {
+    #    print TMPFILE "\n";
+    #}
+
+    close TMPFILE;
+
+    #check for command line arguments:
+    my $cmdargs = "";
+    $cmdargs = (" " .  &lookup_def('CG_SHELL_COMMAND_ARGS')) if (&var_defined('CG_SHELL_COMMAND_ARGS'));
+
+    #execute command in current shell directory:
+    my $cmd = sprintf("%s%s%s", &get_shell_cd_cmd(), $cmdname, $cmdargs);
+
+    #now open pipe to command:
+    $CG_USER_VARS{'CG_SHELL_STATUS'} = 255;    #unless shell sets status, we assume bad
+    if (!open(CMDPIPE, "sh -c '$cmd' <$tmpfile|")) {
+        printf STDERR "%s [exec_shell_op]: ERROR: cannot open pipe to command '%s': %s\n", $p, $cmd, $!;
+        ++ $GLOBAL_ERROR_COUNT;
+
+        # var is unmodified
+        return $var;
+    }
+    
+    #read stdout of pipe back into var:
+    my @var = <CMDPIPE>;
+    close CMDPIPE;
+    $CG_USER_VARS{'CG_SHELL_STATUS'} = $?;
+
+    #join to produce final string:
+    $var = join("",@var);
 
     return $var;
 }
@@ -4152,7 +4167,7 @@ sub rtrim_op
 #process :rtrim postfix op
 {
     my ($var) = @_;
-    $var =~ s/\s+$//;
+    $var =~ s/\s+$//s;
     return $var;
 }
 
@@ -4161,7 +4176,7 @@ sub trim_op
 {
     my ($var) = @_;
     $var =~ s/^\s+//;
-    $var =~ s/\s+$//;
+    $var =~ s/\s+$//s;
     return $var;
 }
 
@@ -5232,7 +5247,7 @@ my %hex_decode_map = map { sprintf( "%02X", $_ ) => chr($_) } ( 0 ... 255 );
 sub urlencode_op
 {
     my ($value) = @_;
-    $value =~ s/([^a-zA-Z_0-9])/"%" . uc(sprintf "%02X" , unpack("C", $1))/eg;
+    $value =~ s/([^a-zA-Z_0-9])/"%" . uc(sprintf "%02X" , unpack("C", $1))/egs;
     return ($value);
 }
 
@@ -5244,7 +5259,7 @@ sub urldecode_op
     return unless $url;
 
     # Decode percent encoding
-    $url =~ s/%([a-fA-F0-9]{2})/$hex_decode_map{$1}/eg;
+    $url =~ s/%([a-fA-F0-9]{2})/$hex_decode_map{$1}/egs;
     return $url;
 }
 
@@ -5253,7 +5268,7 @@ sub hexencode_op
 #encode a regular string to hex representation.
 {
     my ($value) = @_;
-    $value =~ s/(.)/uc(sprintf "%02X" , unpack("C", $1))/eg;
+    $value =~ s/(.)/uc(sprintf "%02X" , unpack("C", $1))/egs;
     return ("HEX_" . $value);
 }
 
@@ -5266,7 +5281,7 @@ sub hexdecode_op
 
     $hexstr =~ s/^HEX_//;
 
-    $hexstr =~ s/([A-F0-9]{2})/$hex_decode_map{$1}/eg;
+    $hexstr =~ s/([A-F0-9]{2})/$hex_decode_map{$1}/egs;
     return $hexstr;
 }
 
