@@ -21,9 +21,10 @@
 #
 
 #
-# @(#)cado.pl - ver 1.80 - 22-Jul-2010
+# @(#)cado.pl - ver 1.81 - 26-Jul-2010
 #
-# Copyright 2003-2010 Sun Microsystems, Inc. All Rights Reserved.
+# Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
+# Copyright 2009-2010 Russ Tremain.  All Rights Reserved.
 #
 # END_HEADER - DO NOT EDIT
 #
@@ -252,6 +253,9 @@
 #       Correct/add tests to not compensate for extra/missing newlines.  Add test to ensure that
 #       FOO = $FOO:cat is identical to original string.
 #       Fix a bug in :hexencode, :urlencode ops - were not encoding newlines.
+#  25-Jul-2010 (russt) [Version 1.81]
+#       Add :substitute2 (alias :s2) op, which performs :substitute with $CG_SUBSTITUTE_SPEC2.
+#       Change verbosity of :env (only squawk about undefined env. vars if -v is set).
 #
 
 
@@ -262,8 +266,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.80",         #VERSION - the program version number.
-    "22-Jul-2010",  #VERSION_DATE - date this version was released.
+    "1.81",         #VERSION - the program version number.
+    "26-Jul-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -4261,29 +4265,51 @@ sub pad_op
 sub s_op
 #alias for :substitute
 {
-    return &substitute_op(@_);
+    return &dosubstitute('CG_SUBSTITUTE_SPEC', @_);
 }
 
 sub substitute_op
 #process :substitute postfix op
 #:substitute or :s - will match against CG_SUBSTITUTE_SPEC
 {
-    my ($var) = @_;
+    return &dosubstitute('CG_SUBSTITUTE_SPEC', @_);
+}
 
-    my $spec = &lookup_def('CG_SUBSTITUTE_SPEC');
-    return $var unless (&var_defined('CG_SUBSTITUTE_SPEC'));
+sub s2_op
+#alias for :substitute2 postfix op
+#will match against CG_SUBSTITUTE_SPEC2
+{
+    return &dosubstitute('CG_SUBSTITUTE_SPEC2', @_);
+}
+
+sub substitute2_op
+#process :substitute2 postfix op
+#will match against CG_SUBSTITUTE_SPEC2
+{
+    return &dosubstitute('CG_SUBSTITUTE_SPEC2', @_);
+}
+
+sub dosubstitute
+#implement substitution operators.
+{
+    my ($specvar, $var) = @_;
+
+#printf STDERR "dosubstitute var='%s' specvar='%s'\n", $var, $specvar;
+
+    my $spec = &lookup_def($specvar);
+    return $var unless (&var_defined($specvar));
 
     my $savevar = $var;
     my $result = eval "\$var =~ $spec";
 
     if ($@) {
-        printf STDERR "%s[substitute]: ERROR: line %d: evaluation of CG_SUBSTITUTE_SPEC (%s) failed: %s\n",
-            $p, $LINE_CNT, $spec, $@;
+        printf STDERR "%s[substitute]: ERROR: line %d: evaluation of %s (%s) failed: %s\n",
+            $p, $LINE_CNT, $specvar, $spec, $@;
         return $savevar;
     } elsif (!defined($result)) {
         #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
-        printf STDERR "%s[substitute]: ERROR: line %d: evaluation of CG_SUBSTITUTE_SPEC (%s) failed: %s\n",
-            $p, $LINE_CNT, $spec, "ERROR in eval" ;
+        printf STDERR "%s[substitute]: ERROR: line %d: evaluation of %s (%s) failed: %s\n",
+            $p, $LINE_CNT, $specvar, $spec, "ERROR in eval" ;
         return $savevar;
     }
 
@@ -5346,7 +5372,7 @@ sub env_op
     if (defined($ENV{$env_name})) {
         $var = $ENV{$env_name};
     } else {
-        printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $env_name, "env" unless ($QUIET);
+        printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED.\n", $p, $linecnt, $env_name, "env" if ($VERBOSE);
         $var = "";
     }
 

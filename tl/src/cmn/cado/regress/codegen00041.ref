@@ -1,0 +1,19 @@
+TESTNAME is codegen00041
+BEFORE: INPUT=>lq CASE I. rq
+lq
+CASE II
+rq
+lq CASE III
+rq
+lq
+CASE IV rq
+<
+AFTER: INPUT=>lq BASE I. rq
+lq
+BASE II
+rq
+lq BASE III
+rq
+lq
+BASE IV rq
+<

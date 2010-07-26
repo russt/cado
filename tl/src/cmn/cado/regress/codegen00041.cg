@@ -1,0 +1,61 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+#
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+
+#
+# @(#)codegen00041.cg
+# Copyright 2010 Russ Tremain. All Rights Reserved.
+#
+# END_HEADER - DO NOT EDIT
+#
+
+#
+#codegen00041.cg - test nested substitution operations.
+#
+
+UNIVTOK = $HEX_0C:nameof:hexdecode
+#set to ascii BELL (^G):
+UNIVTOK2 = $HEX_07:nameof:hexdecode
+
+DS := $
+
+INPUT = << EOF
+lq CASE I. rq
+lq
+CASE II
+rq
+lq CASE III
+rq
+lq
+CASE IV rq
+EOF
+
+%echo BEFORE: INPUT=>$INPUT<
+
+CG_SUBSTITUTE_SPEC = s/(lq|rq)/$UNIVTOK/gs
+%void $INPUT:s:a
+
+#we define an inner-substitute spec and call the op directly from the replacement expression:
+CG_SUBSTITUTE_SPEC2 = s/CASE/BASE/gs
+CG_SUBSTITUTE_SPEC  = s/$UNIVTOK([^$UNIVTOK]*)$UNIVTOK/sprintf("lq%srq", &s2_op(${DS}1))/egs
+%void $INPUT:s:a
+
+%echo AFTER: INPUT=>$INPUT<

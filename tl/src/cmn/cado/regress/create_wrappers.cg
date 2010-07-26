@@ -7,9 +7,9 @@
 {
 KSH_WRAPPER := << EOF
 #!/bin/sh
-#codegen000{=TNUM=} - comment
+#{=TEST_PREFIX=}000{=TNUM=} - comment
 
-TESTNAME=codegen000{=TNUM=}
+TESTNAME={=TEST_PREFIX=}000{=TNUM=}
 echo TESTNAME is $TESTNAME
 . ./regress_defs.ksh
 
@@ -17,16 +17,17 @@ codegen -u -cgroot $REGRESS_CG_ROOT -DTESTNAME=$TESTNAME $TESTNAME.cg
 EOF
 }
 
-{
 emit_wrapper := << EOF
+{
     #%echo Emitting wrapper $TNUM
     %evalmacro ECHO_TXT KSH_WRAPPER
-    echo	/codegen000${TNUM}.ksh
-EOF
+    echo	/${TEST_PREFIX}000${TNUM}.ksh
 }
+EOF
 
+TEST_PREFIX = codegen
 #this is the number of tests:
-TNUM = 40
+TNUM = 41
 %call emit_wrapper
 ###  just emit one test:
 %exit

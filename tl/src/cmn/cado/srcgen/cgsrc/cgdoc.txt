@@ -73,8 +73,10 @@
 
 :substitute         - apply substitute pattern specified by $CG_SUBSTITUTE_SPEC
 :s                  - alias for :substitute
+:substitute2        - apply substitute pattern specified by $CG_SUBSTITUTE_SPEC2
+:s2                 - alias for :substitute2
 :substituteliteral  - apply substitute specified by $CG_SUBSTITUTE_SPEC, ignoring meta-characters.
-                      For example:  
+                      For example:
                           CG_SUBSTITUTE_SPEC = s/.*(foo)/bloop/g
                           somevar = $somevar:substituteliteral
                       will change all literal occurances of the string '.*(foo)' in the input to 'bloop'.
@@ -241,7 +243,7 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
 :gt                 - :gt - will compare against CG_COMPARE_SPEC
 :le                 - :le - will compare against CG_COMPARE_SPEC
 :lt                 - :lt - will compare against CG_COMPARE_SPEC
-:match              - match against CG_MATCH_SPEC 
+:match              - match against CG_MATCH_SPEC. 1 if match, 0 if no match.
 :m                  - alias for :match
 :rangelb            - :rangelb => m..n => m
 :rangeub            - :rangeub => m..n => n
@@ -274,7 +276,7 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
                     =======
 %pragma require <perl_file>   - read a <perl_file> into the current context.
                                 Can be used to add custom postfix operators.
-%pragma reset_stack_delimiter - restore CG_STACK_DELIMITER to default value. 
+%pragma reset_stack_delimiter - restore CG_STACK_DELIMITER to default value.
 
 %pragma echo_expands [1|0]    - if 1, auto-expand macros in %echo template argument list.
 %pragma maxevaldepth <num>    - if <= 0, max recursion depth for %evalmacro * (recursive) is unbounded.
@@ -331,6 +333,7 @@ $CG_SPLIT_PATTERN   - Split pattern for creating stack variables.  default patte
 
 $CG_MATCH_SPEC      - Specify pattern for :match operator.
 $CG_SUBSTITUTE_SPEC - Specify substitute/replace pattern for :substitute operator.
+$CG_SUBSTITUTE_SPEC2- Specify substitute/replace pattern for secondary substitute (:s2) operator.
 $CG_COMPARE_SPEC    - Specify second value comparison operators.  See COMPARISON & MATCHING operators.
 
 $CG_INDENT_STRING   - indent string for :indent operator.  default is four spaces.
