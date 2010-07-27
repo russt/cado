@@ -73,8 +73,7 @@
 
 :substitute         - apply substitute pattern specified by $CG_SUBSTITUTE_SPEC
 :s                  - alias for :substitute
-:substitute2        - apply substitute pattern specified by $CG_SUBSTITUTE_SPEC2
-:s2                 - alias for :substitute2
+:s2,:s3,:s4,:s5     - apply substitute pattern specified by $CG_SUBSTITUTE_SPEC<n>, for n: {2..5}
 :substituteliteral  - apply substitute specified by $CG_SUBSTITUTE_SPEC, ignoring meta-characters.
                       For example:
                           CG_SUBSTITUTE_SPEC = s/.*(foo)/bloop/g

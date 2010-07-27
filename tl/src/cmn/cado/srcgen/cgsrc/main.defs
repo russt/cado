@@ -1,5 +1,5 @@
 VERSION = 1.81
-VERSION_DATE = 26-Jul-2010
+VERSION_DATE = 27-Jul-2010
 COPYRIGHT_RANGE1 = 2003-2008
 COPYRIGHT_RANGE2 = 2009-2010
 
@@ -3946,7 +3946,7 @@ CODEGEN_HEADER := << EOF
 #       FOO = $FOO:cat is identical to original string.
 #       Fix a bug in :hexencode, :urlencode ops - were not encoding newlines.
 #  25-Jul-2010 (russt) [Version 1.81]
-#       Add :substitute2 (alias :s2) op, which performs :substitute with $CG_SUBSTITUTE_SPEC2.
+#       Add :s2, :s3, :s4, & :s5 ops, which performs :substitute with $CG_SUBSTITUTE_SPEC<n>.
 #       Change verbosity of :env (only squawk about undefined env. vars if -v is set).
 #
 

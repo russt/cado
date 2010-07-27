@@ -108,19 +108,11 @@ sub substitute_op
     return &dosubstitute('CG_SUBSTITUTE_SPEC', @_);
 }
 
-sub s2_op
-#alias for :substitute2 postfix op
-#will match against CG_SUBSTITUTE_SPEC2
-{
-    return &dosubstitute('CG_SUBSTITUTE_SPEC2', @_);
-}
-
-sub substitute2_op
-#process :substitute2 postfix op
-#will match against CG_SUBSTITUTE_SPEC2
-{
-    return &dosubstitute('CG_SUBSTITUTE_SPEC2', @_);
-}
+#additional substitutions for nested substitution expressions:
+sub s2_op { return &dosubstitute('CG_SUBSTITUTE_SPEC2', @_); }
+sub s3_op { return &dosubstitute('CG_SUBSTITUTE_SPEC3', @_); }
+sub s4_op { return &dosubstitute('CG_SUBSTITUTE_SPEC4', @_); }
+sub s5_op { return &dosubstitute('CG_SUBSTITUTE_SPEC5', @_); }
 
 sub dosubstitute
 #implement substitution operators.

@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.81 - 26-Jul-2010
+# @(#)cado.pl - ver 1.81 - 27-Jul-2010
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2010 Russ Tremain.  All Rights Reserved.
@@ -254,7 +254,7 @@
 #       FOO = $FOO:cat is identical to original string.
 #       Fix a bug in :hexencode, :urlencode ops - were not encoding newlines.
 #  25-Jul-2010 (russt) [Version 1.81]
-#       Add :substitute2 (alias :s2) op, which performs :substitute with $CG_SUBSTITUTE_SPEC2.
+#       Add :s2, :s3, :s4, & :s5 ops, which performs :substitute with $CG_SUBSTITUTE_SPEC<n>.
 #       Change verbosity of :env (only squawk about undefined env. vars if -v is set).
 #
 
@@ -267,7 +267,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.81",         #VERSION - the program version number.
-    "26-Jul-2010",  #VERSION_DATE - date this version was released.
+    "27-Jul-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -4275,19 +4275,11 @@ sub substitute_op
     return &dosubstitute('CG_SUBSTITUTE_SPEC', @_);
 }
 
-sub s2_op
-#alias for :substitute2 postfix op
-#will match against CG_SUBSTITUTE_SPEC2
-{
-    return &dosubstitute('CG_SUBSTITUTE_SPEC2', @_);
-}
-
-sub substitute2_op
-#process :substitute2 postfix op
-#will match against CG_SUBSTITUTE_SPEC2
-{
-    return &dosubstitute('CG_SUBSTITUTE_SPEC2', @_);
-}
+#additional substitutions for nested substitution expressions:
+sub s2_op { return &dosubstitute('CG_SUBSTITUTE_SPEC2', @_); }
+sub s3_op { return &dosubstitute('CG_SUBSTITUTE_SPEC3', @_); }
+sub s4_op { return &dosubstitute('CG_SUBSTITUTE_SPEC4', @_); }
+sub s5_op { return &dosubstitute('CG_SUBSTITUTE_SPEC5', @_); }
 
 sub dosubstitute
 #implement substitution operators.
