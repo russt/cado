@@ -1,0 +1,23 @@
+#test the symlink op.
+
+CG_ROOT_BASE = $CG_ROOT
+
+CG_ROOT = $CG_ROOT_BASE/$TESTNAME
+%rm -rf $CG_ROOT
+
+ECHO_TXT = << EOF
+somestuff
+EOF
+
+%pragma filegen_notices_to_stdout 1
+
+echo	/afile
+afile	<- alinktoafile
+
+#do it again now that it is created (should be no output the second time):
+afile	<- alinktoafile
+
+CG_SHELL_CWD = $CG_ROOT
+
+%file -h alinktoafile
+%ls -l

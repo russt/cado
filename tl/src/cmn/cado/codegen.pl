@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.81 - 27-Jul-2010
+# @(#)codegen.pl - ver 1.82 - 30-Jul-2010
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2010 Russ Tremain.  All Rights Reserved.
@@ -256,6 +256,8 @@
 #  25-Jul-2010 (russt) [Version 1.81]
 #       Add :s2, :s3, :s4, & :s5 ops, which performs :substitute with $CG_SUBSTITUTE_SPEC<n>.
 #       Change verbosity of :env (only squawk about undefined env. vars if -v is set).
+#  30-Jul-2010 (russt) [Version 1.82]
+#       Add symlink capability for filespecs:   afile <- alinktoafile
 #
 
 
@@ -266,8 +268,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.81",         #VERSION - the program version number.
-    "27-Jul-2010",  #VERSION_DATE - date this version was released.
+    "1.82",         #VERSION - the program version number.
+    "30-Jul-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -1503,7 +1505,11 @@ sub comment
 
 sub filespec
 #true if line contains a filespec, which is of the form:
+#
 #  template  [>>]full_class_name
+#or, for symlink creation:
+#  linkto  <- path
+#
 #the full_class_name is just a java class name or a file path.
 #if prefixed or delimited by '.', we assume a java class and generate a file with a .java suffix.
 #otherwise, if prefixed or delimited by '/' then user must supply suffix if desired
@@ -1529,8 +1535,14 @@ sub filespec
     #otherwise, proceed...
     my ($template, $filespec) = @tmp;
     my $is_append = 0;
+    my $is_symlink = 0;
 
 #printf STDERR "BEFORE append check template='%s' filespec='%s' is_append=%d\n", $template, $filespec, $is_append;
+
+    if ($filespec =~ /\s*<-\s*/) {
+        $is_symlink = 1;
+        $filespec =~ s/\s*<-//;
+    }
 
     if ($filespec =~ /\s*>>\s*/) {
         $is_append = 1;
@@ -1577,7 +1589,7 @@ sub filespec
             printf STDERR "%s[filespec]: ERROR: line %d: cannot create CG_ROOT, '%s'\n",
                 $p, $linecnt, $CG_USER_VARS{'CG_ROOT'}  unless ($QUIET);
             ++ $GLOBAL_ERROR_COUNT;
-            #we processed an undef statement, even if there were errors::
+            #we processed a file-spec, even if there were errors:
             return 1;
         }
 
@@ -1585,8 +1597,8 @@ sub filespec
         $cgroot = $CG_USER_VARS{'CG_ROOT'};
     }
 
-    #now create the sourcefile from the template:
-    &gen_sourcefile($fvars_ref, $line, $linecnt, $is_append, $cgroot);
+    #now create the sourcefile or symlink from the template:
+    &gen_sourcefile($fvars_ref, $line, $linecnt, $is_append, $is_symlink, $cgroot);
 
     return 1;
 }
@@ -2560,7 +2572,7 @@ sub gen_sourcefile
 #OUTPUT:  a file generated from input template in output location.
 #RETURNS:  zero if no errors, otherwise error count.
 {
-    my ($fvar_ref, $line, $linecnt, $is_append, $cgroot) = @_;
+    my ($fvar_ref, $line, $linecnt, $is_append, $is_symlink, $cgroot) = @_;
 
     #this is the file handle where we send file generation messages:
     my $msgfh = \*STDERR;
@@ -2570,16 +2582,25 @@ sub gen_sourcefile
     my ($dirname) = ${$fvar_ref}{'CG_DIRNAME'};
     my ($filename) = ${$fvar_ref}{'CG_FILENAME'};
     my ($template) = ${$fvar_ref}{'CG_TEMPLATE'};
+    my ($linkto) = "NULL";
+    my ($errcnt) = 0;
+    my ($intemplate) = "";
 
 #printf STDERR "gen_sourcefile: cgroot='%s', dirname='%s' filename='%s' template='%s'\n", $cgroot, $dirname, $filename, $template;
 
-    #exit early if we can't read in the template:
-    my ($intemplate) = &find_template($template);
-    if (! -r $intemplate) {
-        printf STDERR "%s [gen_sourcefile]: ERROR line %d: can't open template file, '%s' (%s)\n", $p, $linecnt, $template, $!;
-        printf STDERR "\tCG_TEMPLATE_PATH='%s'\n", $CG_USER_VARS{'CG_TEMPLATE_PATH'};
-        ++ $GLOBAL_ERROR_COUNT;
-        return 1;
+    if ($is_symlink) {
+        #template is just the contents of the link we are going to create:
+        $linkto = $template;
+    } else {
+        #exit early if we can't read in the template
+
+        $intemplate = &find_template($template);
+        if (! -r $intemplate) {
+            printf STDERR "%s [gen_sourcefile]: ERROR line %d: can't open template file, '%s' (%s)\n", $p, $linecnt, $template, $!;
+            printf STDERR "\tCG_TEMPLATE_PATH='%s'\n", $CG_USER_VARS{'CG_TEMPLATE_PATH'};
+            ++ $GLOBAL_ERROR_COUNT;
+            return 1;
+        }
     }
 
     #install output dir:
@@ -2598,13 +2619,13 @@ sub gen_sourcefile
     my ($original_outfile) = "NULL";
     my ($original_crc) = 0;
 
-#printf STDERR "gen_sourcefile: outfile='%s'is_append=%d\n", $outfile, $is_append;
+#printf STDERR "gen_sourcefile: outfile='%s'is_append=%d is_symlink=%d\n", $outfile, $is_append, $is_symlink;
 
     #if output file already exists, then only re-write if $FORCE_GEN or $UPDATE and different...
-    if (-f $outfile && -r $outfile) {
+    if (-l $outfile || -e $outfile) {
+#printf STDERR "gen_sourcefile: OUTFILE EXISTS\n";
         if ($is_append) {
-            #TODO:  keep track of open appends, and only close and generate in final form
-            #when cado script ends, or when we see a "close-file" file spec.
+            #okay if file exists - do nothing.
             ;
         } elsif ($FORCE_GEN) {
             if (&os::rmFile($outfile) != 0) {
@@ -2613,21 +2634,81 @@ sub gen_sourcefile
                 return 1;
             }
         } elsif ($UPDATE) {
-            #get the crc of the old file, and write to a different file
-            $original_outfile = $outfile;
-            $original_crc =  &pcrc::CalculateFileCRC($original_outfile);
+            if ($is_symlink) {
+#printf STDERR "gen_sourcefile: UPDATE->IS_SYMLINK\n";
+                #if outfile is a symlink, then read its contents and compare to $linkto:
+                if ( -l $outfile ) {
+                    my $linkcontents = "";
+                    if ( defined($linkcontents = readlink($outfile)) ) {
+#printf STDERR "gen_sourcefile: linkcontents='%s' linkto='%s'\n", $linkcontents, $linkto;
+                        if ( $linkcontents eq $linkto ) {
+                            #then we are done.
+                            printf $msgfh "%s <- %s -> update -> link contents unchanged.\n", $template, $original_outfile if ($VERBOSE);
+                            return 0;  #success
+                        } else {
+                            #remove it - it is different from our link-to file:
+                            if (&os::rmFile($outfile) != 0) {
+                                printf STDERR "%s: ERROR: cannot remove symlink '%s' (%s)\n", $p, $outfile, $!;
+                                ++ $GLOBAL_ERROR_COUNT;
+                                return 1;
+                            }
+                        }
+                    } else {
+                        #file is symlink but there was an error reading the contents:
+                        printf STDERR "%s [gen_sourcefile]: ERROR: cannot read contents of symlink '%s': check type & permissions.\n", $p, $outfile, $!;
+                        ++ $GLOBAL_ERROR_COUNT;
+                        return 1;
+                    }
+                } else {
+                    #file exists but is not a symlink. remove it:
+                    if (&os::rmFile($outfile) != 0) {
+                        printf STDERR "%s: ERROR: cannot remove output file '%s' (%s)\n", $p, $outfile, $!;
+                        ++ $GLOBAL_ERROR_COUNT;
+                        return 1;
+                    }
 
-            #create a temporary file in the same dir and write to that:
-            $outfile =  &path::mkpathname($outdir, sprintf("%d_%s", $$, $filename));
+                    #o'wise we removed the file.  create the symlink below.
+                }
+            } else {
+                #generating plain file.
+                if (-f $outfile && -r $outfile) {
+                    #get the crc of the old file, and write to a different file
+                    $original_outfile = $outfile;
+                    $original_crc =  &pcrc::CalculateFileCRC($original_outfile);
+
+                    #create a temporary file in the same dir and write to that:
+                    $outfile =  &path::mkpathname($outdir, sprintf("%d_%s", $$, $filename));
+                } else {
+                    #file exists but is either not a plain file, or we cannot read it
+                    printf STDERR "%s [gen_sourcefile]: ERROR: cannot read file '%s': check type & permissions.\n", $p, $outfile, $!;
+                    ++ $GLOBAL_ERROR_COUNT;
+                    return 1;
+                }
+            }
         } else {
             printf STDERR "%s: INFO: not overwriting output file '%s'\n", $p, $outfile if ($VERBOSE);
             return 0;
         }
-    } elsif (-e $outfile ) {
-        #file exists but is either not a plain file, or we cannot read it
-        printf STDERR "%s [gen_sourcefile]: ERROR: cannot read file '%s': check type & permissions.\n", $p, $outfile, $!;
-        ++ $GLOBAL_ERROR_COUNT;
-        return 1;
+    }
+
+    if ($is_symlink) {
+        #NOTE:  symlink("foo", "blah") creates:  blah@ -> foo
+        #we want:  filespec@ -> linkto.
+
+        #DO IT (this should be inside an eval in case we are on windows!):
+        eval { symlink($linkto, $outfile); };
+
+        #did we create the link?
+        if ( -l $outfile ) {
+            printf $msgfh "%s <- %s\n", $linkto, $outfile unless ($QUIET);
+            $errcnt += &setmode($outfile);
+        } else {
+            printf STDERR "%s [gen_sourcefile]: ERROR: failed to create symlink '%s' - [%s].\n", $p, $outfile, $!;
+            ++ $errcnt;
+        }
+
+        ++ $GLOBAL_ERROR_COUNT if ($errcnt > 0);
+        return $errcnt;
     }
 
     if ($is_append) {
@@ -2645,7 +2726,7 @@ sub gen_sourcefile
 
     #we are ready to expand the template into the ouput file:
 
-    my ($errcnt) = &expand_template(\*OUTFILE, $intemplate);
+    $errcnt = &expand_template(\*OUTFILE, $intemplate);
     close OUTFILE;
 
     #if we are appending...

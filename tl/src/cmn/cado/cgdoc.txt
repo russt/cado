@@ -1,10 +1,22 @@
 
                     =========================
                     Cado Quick Reference
-                    Version 1.81, 27-Jul-2010
+                    Version 1.82, 30-Jul-2010
                     =========================
 
 {
+                    ===============
+                    FILE GENERATION
+                    ===============
+
+                    o all files are generated relative to CG_ROOT.
+                    o templates are looked up in CG_TEMPLATE_PATH, except for symlink directive.
+
+template  com.foo   - generate a java class hierarchy from template file.
+template /a.txt     - generate a plain file (no java).
+template >> afile   - append expansion of template to "afile".
+afile <- alink      - create "alink" file pointing to "afile", which doesn't have to exist.
+
                     ==========================
                     ASSIGNMENT, INITIALIZATION
                     ==========================
@@ -311,7 +323,7 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
                     =============
 $CG_ARGV
 $CG_ROOT            - The root of the output directory.  all files are generated relative to $CG_ROOT
-$CG_TEMPLATE_PATH   - All includes are processed relative to directories listed in $CG_TEMPLATE_PATH,
+$CG_TEMPLATE_PATH   - List of directories to find templates and %include files.
 
 $CG_EXIT_STATUS     - The shell exit status returned when the program exits.  An explicit %halt
                       statement will override this value.  WARNING:  defining CG_EXIT_STATUS
