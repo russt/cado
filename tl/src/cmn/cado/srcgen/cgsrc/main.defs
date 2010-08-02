@@ -2455,7 +2455,8 @@ sub gen_sourcefile
         #did we create the link?
         if ( -l $outfile ) {
             printf $msgfh "%s <- %s\n", $linkto, $outfile unless ($QUIET);
-            $errcnt += &setmode($outfile);
+            #note - do not call setmode - does not work on symlinks.
+            #$errcnt += &setmode($outfile);
         } else {
             printf STDERR "%s [gen_sourcefile]: ERROR: failed to create symlink '%s' - [%s].\n", $p, $outfile, $!;
             ++ $errcnt;

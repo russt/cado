@@ -1,7 +1,8 @@
 TESTNAME is codegen00042
 echo -> ../bld/cgtstroot/codegen00042/afile
 afile <- ../bld/cgtstroot/codegen00042/alinktoafile
-alinktoafile: symbolic link to afile
-IGNORE total 16
-IGNORE -rw-rw-r--  1 russt  staff  10 Jul 30 17:59 afile
-IGNORE lrwxrwxr-x  1 russt  staff   5 Jul 30 17:59 alinktoafile -> afile
+nofile <- ../bld/cgtstroot/codegen00042/alinktoafile
+alinktoafile: broken symbolic link to nofile
+total 16
+-rwxrwxrwx  1 russt  staff  10 Aug  2 15:27 afile
+lrwxrwxr-x  1 russt  staff   6 Aug  2 15:27 alinktoafile -> nofile

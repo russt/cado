@@ -17,6 +17,9 @@ afile	<- alinktoafile
 #do it again now that it is created (should be no output the second time):
 afile	<- alinktoafile
 
+#symlink to something that doesn't exist:
+nofile	<- alinktoafile
+
 CG_SHELL_CWD = $CG_ROOT
 
 %file -h alinktoafile
