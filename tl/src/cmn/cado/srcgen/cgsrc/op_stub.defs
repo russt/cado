@@ -760,11 +760,16 @@ sub lnewline_op
 }
 
 sub newline_op
+#alias for nl_op
+{
+    return &nl_op(@_);
+}
+
+sub nl_op
 #append trailing newline unconditionally.
 {
     my ($var) = @_;
-    $var = "$var\n";
-    return $var;
+    return "$var\n";
 }
 
 sub fixeol_op
@@ -1200,6 +1205,17 @@ sub env_op
         printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED.\n", $p, $linecnt, $env_name, "env" if ($VERBOSE);
         $var = "";
     }
+
+    return $var;
+}
+
+sub pwd_op
+#process :pwd postfix op
+{
+    my ($var) = @_;
+
+    $var = `pwd`;
+    chomp($var);
 
     return $var;
 }

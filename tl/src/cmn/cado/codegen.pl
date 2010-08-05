@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.82 - 30-Jul-2010
+# @(#)codegen.pl - ver 1.83 - 05-Aug-2010
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2010 Russ Tremain.  All Rights Reserved.
@@ -258,8 +258,10 @@
 #       Change verbosity of :env (only squawk about undefined env. vars if -v is set).
 #  30-Jul-2010 (russt) [Version 1.82]
 #       Add symlink capability for filespecs:   afile <- alinktoafile
+#  05-Aug-2010 (russt) [Version 1.83]
+#       Add :nl alias, add builtin :pwd with trim.  Change -u to remove outfiles if they are
+#       symlinks and we are generating a regular file.
 #
-
 
 use strict;
 package codegen;
@@ -268,8 +270,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.82",         #VERSION - the program version number.
-    "30-Jul-2010",  #VERSION_DATE - date this version was released.
+    "1.83",         #VERSION - the program version number.
+    "05-Aug-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -2678,9 +2680,16 @@ sub gen_sourcefile
 
                     #create a temporary file in the same dir and write to that:
                     $outfile =  &path::mkpathname($outdir, sprintf("%d_%s", $$, $filename));
+                } elsif ( -l $outfile ) {
+                    #we are replacing a previously genrated symlink with a regular file - remove it:
+                    if (&os::rmFile($outfile) != 0) {
+                        printf STDERR "%s: ERROR: overwriting output file '%s' (%s)\n", $p, $outfile, $!;
+                        ++ $GLOBAL_ERROR_COUNT;
+                        return 1;
+                    }
                 } else {
-                    #file exists but is either not a plain file, or we cannot read it
-                    printf STDERR "%s [gen_sourcefile]: ERROR: cannot read file '%s': check type & permissions.\n", $p, $outfile, $!;
+                    #file exists but is not a plain file or a symlink, or we cannot read it
+                    printf STDERR "%s [gen_sourcefile]: ERROR: cannot open output file '%s': check type & permissions.\n", $p, $outfile, $!;
                     ++ $GLOBAL_ERROR_COUNT;
                     return 1;
                 }
@@ -4104,7 +4113,7 @@ sub exec_shell_op
 #otherwise, the output from the command.
 {
     my ($cmdname, $var) = @_;
-#printf STDERR "exec_shell_op: cmdname='%s' var='%s'\n", $cmdname, $var;
+printf STDERR "exec_shell_op: cmdname='%s' var='%s'\n", $cmdname, $var;
 
     #write $var to a tmp file:
     my $tmpfile = &os'TempFile;
@@ -5009,11 +5018,16 @@ sub lnewline_op
 }
 
 sub newline_op
+#alias for nl_op
+{
+    return &nl_op(@_);
+}
+
+sub nl_op
 #append trailing newline unconditionally.
 {
     my ($var) = @_;
-    $var = "$var\n";
-    return $var;
+    return "$var\n";
 }
 
 sub fixeol_op
@@ -5449,6 +5463,17 @@ sub env_op
         printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED.\n", $p, $linecnt, $env_name, "env" if ($VERBOSE);
         $var = "";
     }
+
+    return $var;
+}
+
+sub pwd_op
+#process :pwd postfix op
+{
+    my ($var) = @_;
+
+    $var = `pwd`;
+    chomp($var);
 
     return $var;
 }

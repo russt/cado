@@ -4,5 +4,5 @@ afile <- ../bld/cgtstroot/codegen00042/alinktoafile
 nofile <- ../bld/cgtstroot/codegen00042/alinktoafile
 alinktoafile: broken symbolic link to nofile
 total 16
--rwxrwxrwx  1 russt  staff  10 Aug  2 15:27 afile
-lrwxrwxr-x  1 russt  staff   6 Aug  2 15:27 alinktoafile -> nofile
+IGNORE -rwxrwxrwx  1 russt  staff  10 Aug  2 15:27 afile
+IGNORE lrwxrwxr-x  1 russt  staff   6 Aug  2 15:27 alinktoafile -> nofile
