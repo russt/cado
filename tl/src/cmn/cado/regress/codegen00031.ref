@@ -1,5 +1,19 @@
 TESTNAME is codegen00031
 
+preserve_multiline_lnewline=0
+trim_multiline_rnewline=0
+copy=0
+update=1
+echo_expands=0
+environment=1
+require=0
+debug=0
+ddebug=0
+quiet=1
+verbose=0
+filegen_notices_to_stdout=0
+clrifndef=0
+
 run quiet tests with quiet 1
 pragma quiet:pragmavalue is 1
 pragma quiet is 1,1
@@ -11,19 +25,6 @@ pragma quiet:pragmavalue is 0
 pragma quiet is 0,0
 pragma quiet:undef is 0
 pragma using foo=quiet is 0
-
-preserve_multiline_lnewline=0
-trim_multiline_rnewline=0
-copy=0
-update=0
-echo_expands=0
-require=0
-debug=0
-ddebug=0
-quiet=0
-verbose=0
-filegen_notices_to_stdout=0
-clrifndef=0
 
 set test: quiet=1
 reset test: quiet=0

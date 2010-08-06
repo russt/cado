@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.83 - 05-Aug-2010
+# @(#)codegen.pl - ver 1.83 - 06-Aug-2010
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2010 Russ Tremain.  All Rights Reserved.
@@ -258,9 +258,11 @@
 #       Change verbosity of :env (only squawk about undefined env. vars if -v is set).
 #  30-Jul-2010 (russt) [Version 1.82]
 #       Add symlink capability for filespecs:   afile <- alinktoafile
-#  05-Aug-2010 (russt) [Version 1.83]
-#       Add :nl alias, add builtin :pwd with trim.  Change -u to remove outfiles if they are
-#       symlinks and we are generating a regular file.
+#  06-Aug-2010 (russt) [Version 1.83]
+#       Add :nl alias, add builtin :pwd op.  Change -u to remove outfiles if they are
+#       symlinks and we are generating a regular file.  Pragma's are now getting sync'd to
+#       argument settings for: {-u,-q,-v,-ddebug,-debug}.  Quiet now turns off verbose
+#       (last setting wins). Add %pragma environment {0|1}, to temporarily allow env. vars.
 #
 
 use strict;
@@ -271,7 +273,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.83",         #VERSION - the program version number.
-    "05-Aug-2010",  #VERSION_DATE - date this version was released.
+    "06-Aug-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -338,11 +340,13 @@ my (
 #these are global variables that we share within the eval context of postfix ops, for example.
 #note that "my" variables are not entered in the symbol table and therefore cannot be looked up by name.
 our (
+    #note:  don't forget to add new pragmas to %PRAGMA definition below.
     $pragma_preserve_multiline_lnewline,
     $pragma_trim_multiline_rnewline,
     $pragma_copy,
     $pragma_update,
     $pragma_echo_expands,
+    $pragma_environment,
     $pragma_require,
     $pragma_debug,
     $pragma_ddebug,
@@ -357,6 +361,7 @@ our (
     0,              #pragma_copy - generate files without macro interpolation
     0,              #pragma_update - turn $UPDATE option on or off
     0,              #pragma_echo_expands - template %echo expands macros in argument expression.
+    0,              #pragma_environment - use variables from the environment.
     0,              #pragma_require - require a new perl file to allow user to add postfix ops dynamically
     0,              #pragma_debug - set DEBUG option
     0,              #pragma_ddebug - set DDEBUG option
@@ -374,6 +379,7 @@ my %PRAGMAS = (
     'copy', 1,
     'update', 1,
     'echo_expands', 1,
+    'environment', 1,
     'require', 1,
     'debug', 1,
     'ddebug', 1,
@@ -922,6 +928,8 @@ sub pragma_spec
         $VERBOSE = $pragma_verbose;
     } elsif ($pragma_var eq "pragma_update") {
         $UPDATE = $pragma_update;
+    } elsif ($pragma_var eq "pragma_environment") {
+        $ENV_VARS_OKAY = $pragma_environment;
     }
 
     return 1;
@@ -3705,6 +3713,7 @@ sub parse_args
             return(&version(0));
         } elsif ($flag =~ '^-v') {
             $VERBOSE = 1;
+            $QUIET = 0;
         } elsif ($flag =~ '^-q') {
             $QUIET = 1;    #turns off WARNINGS as well
             $VERBOSE = 0;
@@ -3777,6 +3786,14 @@ sub parse_args
 
     #NOTE:  remaining arguments are arguments to cado script.
     #the cado arguments are initialized in init_spec_vars().
+
+    #re-init pragma values based on arguments passed in:
+    $pragma_environment = $ENV_VARS_OKAY;
+    $pragma_debug = $DEBUG;
+    $pragma_ddebug = $DDEBUG;
+    $pragma_quiet = $QUIET;
+    $pragma_update = $UPDATE;
+    $pragma_verbose = $VERBOSE;
 
     return(0);
 }
@@ -5472,8 +5489,9 @@ sub pwd_op
 {
     my ($var) = @_;
 
-    $var = `pwd`;
-    chomp($var);
+    #use the system library since it is more portable:
+    use Cwd;
+    $var = getcwd();
 
     return $var;
 }

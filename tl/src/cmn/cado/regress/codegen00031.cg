@@ -18,6 +18,22 @@ test1 := << EOF
 }
 EOF
 
+#test initial values from command line: -e -q:
+%echo 
+%echo preserve_multiline_lnewline=$preserve_multiline_lnewline:pv
+%echo trim_multiline_rnewline=$trim_multiline_rnewline:pv
+%echo copy=$copy:pv
+%echo update=$update:pv
+%echo echo_expands=$echo_expands:pv
+%echo environment=$environment:pv
+%echo require=$require:pv
+%echo debug=$debug:pv
+%echo ddebug=$ddebug:pv
+%echo quiet=$quiet:pv
+%echo verbose=$verbose:pv
+%echo filegen_notices_to_stdout=$filegen_notices_to_stdout:pv
+%echo clrifndef=$clrifndef:pv
+
 %pragma quiet 1
 %echo
 %echo run quiet tests with quiet $quiet:pv
@@ -27,20 +43,6 @@ EOF
 %echo
 %echo run quiet tests with quiet $quiet:pv
 %call test1
-
-%echo 
-%echo preserve_multiline_lnewline=$preserve_multiline_lnewline:pv
-%echo trim_multiline_rnewline=$trim_multiline_rnewline:pv
-%echo copy=$copy:pv
-%echo update=$update:pv
-%echo echo_expands=$echo_expands:pv
-%echo require=$require:pv
-%echo debug=$debug:pv
-%echo ddebug=$ddebug:pv
-%echo quiet=$quiet:pv
-%echo verbose=$verbose:pv
-%echo filegen_notices_to_stdout=$filegen_notices_to_stdout:pv
-%echo clrifndef=$clrifndef:pv
 
 #test that %pragmas now expand rhs:
 set = 1

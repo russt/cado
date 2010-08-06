@@ -5,4 +5,5 @@ TESTNAME=codegen00031
 echo TESTNAME is $TESTNAME
 . ./regress_defs.ksh
 
-codegen -u -cgroot $REGRESS_CG_ROOT -DTESTNAME=$TESTNAME $TESTNAME.cg
+#add some more flags to test init of pragma values:
+codegen -u -v -q -e -cgroot $REGRESS_CG_ROOT -DTESTNAME=$TESTNAME $TESTNAME.cg

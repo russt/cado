@@ -1214,8 +1214,9 @@ sub pwd_op
 {
     my ($var) = @_;
 
-    $var = `pwd`;
-    chomp($var);
+    #use the system library since it is more portable:
+    use Cwd;
+    $var = getcwd();
 
     return $var;
 }
