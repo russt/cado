@@ -300,6 +300,8 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
 %pragma reset_stack_delimiter - restore CG_STACK_DELIMITER to default value.
 
 %pragma echo_expands [1|0]    - if 1, auto-expand macros in %echo template argument list.
+%pragma environment  [1|0]    - if 1, allow variables from the environment (same as passing -e).
+                                if 0, environment variables references will return the undefined value.
 %pragma maxevaldepth <num>    - if <= 0, max recursion depth for %evalmacro * (recursive) is unbounded.
                                 if >= 1, max recursion depth for %evalmacro * is set to <num>.
                                 (See also:  %evalmacro statement).
