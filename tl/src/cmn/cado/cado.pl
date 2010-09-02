@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.83 - 06-Aug-2010
+# @(#)cado.pl - ver 1.84 - 01-Sep-2010
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2010 Russ Tremain.  All Rights Reserved.
@@ -263,6 +263,8 @@
 #       symlinks and we are generating a regular file.  Pragma's are now getting sync'd to
 #       argument settings for: {-u,-q,-v,-ddebug,-debug}.  Quiet now turns off verbose
 #       (last setting wins). Add %pragma environment {0|1}, to temporarily allow env. vars.
+#  01-Sep-2010 (russt) [Version 1.84]
+#       Comment out debugging in exec_shell_op().
 #
 
 use strict;
@@ -272,8 +274,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.83",         #VERSION - the program version number.
-    "06-Aug-2010",  #VERSION_DATE - date this version was released.
+    "1.84",         #VERSION - the program version number.
+    "01-Sep-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -4130,7 +4132,7 @@ sub exec_shell_op
 #otherwise, the output from the command.
 {
     my ($cmdname, $var) = @_;
-printf STDERR "exec_shell_op: cmdname='%s' var='%s'\n", $cmdname, $var;
+#printf STDERR "exec_shell_op: cmdname='%s' var='%s'\n", $cmdname, $var;
 
     #write $var to a tmp file:
     my $tmpfile = &os'TempFile;

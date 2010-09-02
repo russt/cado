@@ -1,5 +1,5 @@
-VERSION = 1.83
-VERSION_DATE = 06-Aug-2010
+VERSION = 1.84
+VERSION_DATE = 01-Sep-2010
 COPYRIGHT_RANGE1 = 2003-2008
 COPYRIGHT_RANGE2 = 2009-2010
 
@@ -4057,6 +4057,8 @@ CODEGEN_HEADER := << EOF
 #       symlinks and we are generating a regular file.  Pragma's are now getting sync'd to
 #       argument settings for: {-u,-q,-v,-ddebug,-debug}.  Quiet now turns off verbose
 #       (last setting wins). Add %pragma environment {0|1}, to temporarily allow env. vars.
+#  01-Sep-2010 (russt) [Version 1.84]
+#       Comment out debugging in exec_shell_op().
 #
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER
