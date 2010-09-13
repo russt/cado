@@ -52,7 +52,7 @@ sub stripjavaheader_op
         #eat 'em
     }
 
-    return "{=$headervar=}\n" . join($eolpat, @tmp);
+    return "{=$headervar=}" . $eolpat . join($eolpat, @tmp) . $eolpat;
 }
 
 sub nochange_op
@@ -144,14 +144,10 @@ sub striptextheader_op
         $eolpat = "\r\n";
     }
 
-    my $var2 = $var;
-    my $var3 = $var;
+    my ($hasheader) = checkforexistingheader_op($var);
 
-    my ($hasheader) = checkforexistingheader_op($var2);
-
-    if ($hasheader eq "YES")
-    {
-      $var = removeexistingheader_op($var3);
+    if ($hasheader eq "YES") {
+      $var = removeexistingheader_op($var);
     }
 
     my @tmp = split($eolpat, $var);
@@ -159,10 +155,10 @@ sub striptextheader_op
 
     my ($include) = 0;
 
-    my ($tokens) = $#tmp2; 
+    my ($ntokens) = $#tmp; 
     
     my ($i) = 0;
-    for ( $i=0; $i <= $tokens; $i++)
+    for ( $i=0; $i <= $ntokens; $i++)
     {
       my ($current_line) = $tmp2[$i]; 
       if ($current_line =~ /^#!\//) {
@@ -178,10 +174,10 @@ sub striptextheader_op
       {
        $return_text = $return_text . shift(@tmp) . $eolpat;
       }
-      return $return_text . "{=$headervar=}" . $eolpat . join($eolpat, @tmp);
+      return $return_text . "{=$headervar=}" . $eolpat . join($eolpat, @tmp . $eolpat);
     }
 
-    return "{=$headervar=}" . $eolpat . join($eolpat, @tmp);
+    return "{=$headervar=}" . $eolpat . join($eolpat, @tmp) . $eolpat;
 }
 
 sub stripplheader_op
