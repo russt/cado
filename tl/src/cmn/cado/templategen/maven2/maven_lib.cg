@@ -250,6 +250,7 @@ maven_project_parent := << EOF
         %foreach instance_count $_maven_parent_relativePath_rangevar %call maven_parent_relativePath
         ########
     }
+
     ###########
 
     #now generate me:
@@ -333,6 +334,7 @@ maven_project_prerequisites := << EOF
         %foreach instance_count $_maven_prerequisites_maven_rangevar %call maven_prerequisites_maven
         ########
     }
+
     ###########
 
     #now generate me:
@@ -462,6 +464,7 @@ maven_project_issueManagement := << EOF
         %foreach instance_count $_maven_issueManagement_url_rangevar %call maven_issueManagement_url
         ########
     }
+
     ###########
 
     #now generate me:
@@ -821,6 +824,7 @@ maven_ciManagement_notifier := << EOF
         %foreach instance_count $_maven_ciManagement_notifier_configuration_rangevar %call maven_ciManagement_notifier_configuration
         ########
     }
+
     ###########
 
     #now generate me:
@@ -878,6 +882,7 @@ maven_ciManagement_notifiers := << EOF
         %foreach instance_count $_maven_ciManagement_notifier_rangevar %call maven_ciManagement_notifier
         ########
     }
+
     ###########
 
     #now generate me:
@@ -1027,6 +1032,7 @@ maven_project_ciManagement := << EOF
         %foreach instance_count $_maven_ciManagement_notifiers_rangevar %call maven_ciManagement_notifiers
         ########
     }
+
     ###########
 
     #now generate me:
@@ -1340,6 +1346,7 @@ maven_project_mailingList := << EOF
         %foreach instance_count $_maven_mailingList_otherArchives_rangevar %call maven_mailingList_otherArchives
         ########
     }
+
     ###########
 
     #now generate me:
@@ -1397,6 +1404,7 @@ maven_project_mailingLists := << EOF
         %foreach instance_count $_maven_project_mailingList_rangevar %call maven_project_mailingList
         ########
     }
+
     ###########
 
     #now generate me:
@@ -1848,6 +1856,7 @@ maven_developer := << EOF
         %foreach instance_count $_maven_developer_properties_rangevar %call maven_developer_properties
         ########
     }
+
     ###########
 
     #now generate me:
@@ -1905,6 +1914,7 @@ maven_project_developers := << EOF
         %foreach instance_count $_maven_developer_rangevar %call maven_developer
         ########
     }
+
     ###########
 
     #now generate me:
@@ -2310,6 +2320,7 @@ maven_contributor := << EOF
         %foreach instance_count $_maven_contributor_properties_rangevar %call maven_contributor_properties
         ########
     }
+
     ###########
 
     #now generate me:
@@ -2367,6 +2378,7 @@ maven_project_contributors := << EOF
         %foreach instance_count $_maven_contributor_rangevar %call maven_contributor
         ########
     }
+
     ###########
 
     #now generate me:
@@ -2588,6 +2600,7 @@ maven_project_license := << EOF
         %foreach instance_count $_maven_license_comments_rangevar %call maven_license_comments
         ########
     }
+
     ###########
 
     #now generate me:
@@ -2645,6 +2658,7 @@ maven_project_licenses := << EOF
         %foreach instance_count $_maven_project_license_rangevar %call maven_project_license
         ########
     }
+
     ###########
 
     #now generate me:
@@ -2866,6 +2880,7 @@ maven_project_scm := << EOF
         %foreach instance_count $_maven_scm_url_rangevar %call maven_scm_url
         ########
     }
+
     ###########
 
     #now generate me:
@@ -2995,6 +3010,7 @@ maven_project_organization := << EOF
         %foreach instance_count $_maven_organization_url_rangevar %call maven_organization_url
         ########
     }
+
     ###########
 
     #now generate me:
@@ -3170,6 +3186,7 @@ maven_build_extension := << EOF
         %foreach instance_count $_maven_build_extension_version_rangevar %call maven_build_extension_version
         ########
     }
+
     ###########
 
     #now generate me:
@@ -3227,6 +3244,7 @@ maven_build_extensions := << EOF
         %foreach instance_count $_maven_build_extension_rangevar %call maven_build_extension
         ########
     }
+
     ###########
 
     #now generate me:
@@ -3494,6 +3512,7 @@ maven_build_resource := << EOF
         %foreach instance_count $_maven_build_resource_excludes_rangevar %call maven_build_resource_excludes
         ########
     }
+
     ###########
 
     #now generate me:
@@ -3551,6 +3570,7 @@ maven_build_resources := << EOF
         %foreach instance_count $_maven_build_resource_rangevar %call maven_build_resource
         ########
     }
+
     ###########
 
     #now generate me:
@@ -3818,6 +3838,7 @@ maven_build_testResource := << EOF
         %foreach instance_count $_maven_build_testResource_excludes_rangevar %call maven_build_testResource_excludes
         ########
     }
+
     ###########
 
     #now generate me:
@@ -3875,6 +3896,7 @@ maven_build_testResources := << EOF
         %foreach instance_count $_maven_build_testResource_rangevar %call maven_build_testResource
         ########
     }
+
     ###########
 
     #now generate me:
@@ -4142,6 +4164,7 @@ maven_build_pluginManagement_plugin_execution := << EOF
         %foreach instance_count $_maven_build_pluginManagement_plugin_execution_configuration_rangevar %call maven_build_pluginManagement_plugin_execution_configuration
         ########
     }
+
     ###########
 
     #now generate me:
@@ -4199,6 +4222,7 @@ maven_build_pluginManagement_plugin_executions := << EOF
         %foreach instance_count $_maven_build_pluginManagement_plugin_execution_rangevar %call maven_build_pluginManagement_plugin_execution
         ########
     }
+
     ###########
 
     #now generate me:
@@ -4328,6 +4352,7 @@ maven_build_pluginManagement_plugin_dependency_exclusion := << EOF
         %foreach instance_count $_maven_build_pluginManagement_plugin_dependency_exclusion_groupId_rangevar %call maven_build_pluginManagement_plugin_dependency_exclusion_groupId
         ########
     }
+
     ###########
 
     #now generate me:
@@ -4385,6 +4410,7 @@ maven_build_pluginManagement_plugin_dependency_exclusions := << EOF
         %foreach instance_count $_maven_build_pluginManagement_plugin_dependency_exclusion_rangevar %call maven_build_pluginManagement_plugin_dependency_exclusion
         ########
     }
+
     ###########
 
     #now generate me:
@@ -4810,6 +4836,7 @@ maven_build_pluginManagement_plugin_dependency := << EOF
         %foreach instance_count $_maven_build_pluginManagement_plugin_dependency_optional_rangevar %call maven_build_pluginManagement_plugin_dependency_optional
         ########
     }
+
     ###########
 
     #now generate me:
@@ -4867,6 +4894,7 @@ maven_build_pluginManagement_plugin_dependencies := << EOF
         %foreach instance_count $_maven_build_pluginManagement_plugin_dependency_rangevar %call maven_build_pluginManagement_plugin_dependency
         ########
     }
+
     ###########
 
     #now generate me:
@@ -5266,6 +5294,7 @@ maven_build_pluginManagement_plugin := << EOF
         %foreach instance_count $_maven_build_pluginManagement_plugin_configuration_rangevar %call maven_build_pluginManagement_plugin_configuration
         ########
     }
+
     ###########
 
     #now generate me:
@@ -5323,6 +5352,7 @@ maven_build_pluginManagement_plugins := << EOF
         %foreach instance_count $_maven_build_pluginManagement_plugin_rangevar %call maven_build_pluginManagement_plugin
         ########
     }
+
     ###########
 
     #now generate me:
@@ -5380,6 +5410,7 @@ maven_build_pluginManagement := << EOF
         %foreach instance_count $_maven_build_pluginManagement_plugins_rangevar %call maven_build_pluginManagement_plugins
         ########
     }
+
     ###########
 
     #now generate me:
@@ -5647,6 +5678,7 @@ maven_build_plugin_execution := << EOF
         %foreach instance_count $_maven_build_plugin_execution_configuration_rangevar %call maven_build_plugin_execution_configuration
         ########
     }
+
     ###########
 
     #now generate me:
@@ -5704,6 +5736,7 @@ maven_build_plugin_executions := << EOF
         %foreach instance_count $_maven_build_plugin_execution_rangevar %call maven_build_plugin_execution
         ########
     }
+
     ###########
 
     #now generate me:
@@ -5833,6 +5866,7 @@ maven_build_plugin_dependency_exclusion := << EOF
         %foreach instance_count $_maven_build_plugin_dependency_exclusion_groupId_rangevar %call maven_build_plugin_dependency_exclusion_groupId
         ########
     }
+
     ###########
 
     #now generate me:
@@ -5890,6 +5924,7 @@ maven_build_plugin_dependency_exclusions := << EOF
         %foreach instance_count $_maven_build_plugin_dependency_exclusion_rangevar %call maven_build_plugin_dependency_exclusion
         ########
     }
+
     ###########
 
     #now generate me:
@@ -6315,6 +6350,7 @@ maven_build_plugin_dependency := << EOF
         %foreach instance_count $_maven_build_plugin_dependency_optional_rangevar %call maven_build_plugin_dependency_optional
         ########
     }
+
     ###########
 
     #now generate me:
@@ -6372,6 +6408,7 @@ maven_build_plugin_dependencies := << EOF
         %foreach instance_count $_maven_build_plugin_dependency_rangevar %call maven_build_plugin_dependency
         ########
     }
+
     ###########
 
     #now generate me:
@@ -6771,6 +6808,7 @@ maven_build_plugin := << EOF
         %foreach instance_count $_maven_build_plugin_configuration_rangevar %call maven_build_plugin_configuration
         ########
     }
+
     ###########
 
     #now generate me:
@@ -6828,6 +6866,7 @@ maven_build_plugins := << EOF
         %foreach instance_count $_maven_build_plugin_rangevar %call maven_build_plugin
         ########
     }
+
     ###########
 
     #now generate me:
@@ -7379,6 +7418,7 @@ maven_project_build := << EOF
         %foreach instance_count $_maven_build_plugins_rangevar %call maven_build_plugins
         ########
     }
+
     ###########
 
     #now generate me:
@@ -7600,6 +7640,7 @@ maven_profile_activation_os := << EOF
         %foreach instance_count $_maven_profile_activation_os_version_rangevar %call maven_profile_activation_os_version
         ########
     }
+
     ###########
 
     #now generate me:
@@ -7729,6 +7770,7 @@ maven_profile_activation_property := << EOF
         %foreach instance_count $_maven_profile_activation_property_value_rangevar %call maven_profile_activation_property_value
         ########
     }
+
     ###########
 
     #now generate me:
@@ -7858,6 +7900,7 @@ maven_profile_activation_file := << EOF
         %foreach instance_count $_maven_profile_activation_file_exists_rangevar %call maven_profile_activation_file_exists
         ########
     }
+
     ###########
 
     #now generate me:
@@ -8047,6 +8090,7 @@ maven_profile_activation := << EOF
         %foreach instance_count $_maven_profile_activation_file_rangevar %call maven_profile_activation_file
         ########
     }
+
     ###########
 
     #now generate me:
@@ -8314,6 +8358,7 @@ maven_profile_build_resource := << EOF
         %foreach instance_count $_maven_profile_build_resource_excludes_rangevar %call maven_profile_build_resource_excludes
         ########
     }
+
     ###########
 
     #now generate me:
@@ -8371,6 +8416,7 @@ maven_profile_build_resources := << EOF
         %foreach instance_count $_maven_profile_build_resource_rangevar %call maven_profile_build_resource
         ########
     }
+
     ###########
 
     #now generate me:
@@ -8638,6 +8684,7 @@ maven_profile_build_testResource := << EOF
         %foreach instance_count $_maven_profile_build_testResource_excludes_rangevar %call maven_profile_build_testResource_excludes
         ########
     }
+
     ###########
 
     #now generate me:
@@ -8695,6 +8742,7 @@ maven_profile_build_testResources := << EOF
         %foreach instance_count $_maven_profile_build_testResource_rangevar %call maven_profile_build_testResource
         ########
     }
+
     ###########
 
     #now generate me:
@@ -8962,6 +9010,7 @@ maven_profile_build_pluginManagement_plugin_execution := << EOF
         %foreach instance_count $_maven_profile_build_pluginManagement_plugin_execution_configuration_rangevar %call maven_profile_build_pluginManagement_plugin_execution_configuration
         ########
     }
+
     ###########
 
     #now generate me:
@@ -9019,6 +9068,7 @@ maven_profile_build_pluginManagement_plugin_executions := << EOF
         %foreach instance_count $_maven_profile_build_pluginManagement_plugin_execution_rangevar %call maven_profile_build_pluginManagement_plugin_execution
         ########
     }
+
     ###########
 
     #now generate me:
@@ -9148,6 +9198,7 @@ maven_profile_build_pluginManagement_plugin_dependency_exclusion := << EOF
         %foreach instance_count $_maven_profile_build_pluginManagement_plugin_dependency_exclusion_groupId_rangevar %call maven_profile_build_pluginManagement_plugin_dependency_exclusion_groupId
         ########
     }
+
     ###########
 
     #now generate me:
@@ -9205,6 +9256,7 @@ maven_profile_build_pluginManagement_plugin_dependency_exclusions := << EOF
         %foreach instance_count $_maven_profile_build_pluginManagement_plugin_dependency_exclusion_rangevar %call maven_profile_build_pluginManagement_plugin_dependency_exclusion
         ########
     }
+
     ###########
 
     #now generate me:
@@ -9630,6 +9682,7 @@ maven_profile_build_pluginManagement_plugin_dependency := << EOF
         %foreach instance_count $_maven_profile_build_pluginManagement_plugin_dependency_optional_rangevar %call maven_profile_build_pluginManagement_plugin_dependency_optional
         ########
     }
+
     ###########
 
     #now generate me:
@@ -9687,6 +9740,7 @@ maven_profile_build_pluginManagement_plugin_dependencies := << EOF
         %foreach instance_count $_maven_profile_build_pluginManagement_plugin_dependency_rangevar %call maven_profile_build_pluginManagement_plugin_dependency
         ########
     }
+
     ###########
 
     #now generate me:
@@ -10086,6 +10140,7 @@ maven_profile_build_pluginManagement_plugin := << EOF
         %foreach instance_count $_maven_profile_build_pluginManagement_plugin_configuration_rangevar %call maven_profile_build_pluginManagement_plugin_configuration
         ########
     }
+
     ###########
 
     #now generate me:
@@ -10143,6 +10198,7 @@ maven_profile_build_pluginManagement_plugins := << EOF
         %foreach instance_count $_maven_profile_build_pluginManagement_plugin_rangevar %call maven_profile_build_pluginManagement_plugin
         ########
     }
+
     ###########
 
     #now generate me:
@@ -10200,6 +10256,7 @@ maven_profile_build_pluginManagement := << EOF
         %foreach instance_count $_maven_profile_build_pluginManagement_plugins_rangevar %call maven_profile_build_pluginManagement_plugins
         ########
     }
+
     ###########
 
     #now generate me:
@@ -10467,6 +10524,7 @@ maven_profile_build_plugin_execution := << EOF
         %foreach instance_count $_maven_profile_build_plugin_execution_configuration_rangevar %call maven_profile_build_plugin_execution_configuration
         ########
     }
+
     ###########
 
     #now generate me:
@@ -10524,6 +10582,7 @@ maven_profile_build_plugin_executions := << EOF
         %foreach instance_count $_maven_profile_build_plugin_execution_rangevar %call maven_profile_build_plugin_execution
         ########
     }
+
     ###########
 
     #now generate me:
@@ -10653,6 +10712,7 @@ maven_profile_build_plugin_dependency_exclusion := << EOF
         %foreach instance_count $_maven_profile_build_plugin_dependency_exclusion_groupId_rangevar %call maven_profile_build_plugin_dependency_exclusion_groupId
         ########
     }
+
     ###########
 
     #now generate me:
@@ -10710,6 +10770,7 @@ maven_profile_build_plugin_dependency_exclusions := << EOF
         %foreach instance_count $_maven_profile_build_plugin_dependency_exclusion_rangevar %call maven_profile_build_plugin_dependency_exclusion
         ########
     }
+
     ###########
 
     #now generate me:
@@ -11135,6 +11196,7 @@ maven_profile_build_plugin_dependency := << EOF
         %foreach instance_count $_maven_profile_build_plugin_dependency_optional_rangevar %call maven_profile_build_plugin_dependency_optional
         ########
     }
+
     ###########
 
     #now generate me:
@@ -11192,6 +11254,7 @@ maven_profile_build_plugin_dependencies := << EOF
         %foreach instance_count $_maven_profile_build_plugin_dependency_rangevar %call maven_profile_build_plugin_dependency
         ########
     }
+
     ###########
 
     #now generate me:
@@ -11591,6 +11654,7 @@ maven_profile_build_plugin := << EOF
         %foreach instance_count $_maven_profile_build_plugin_configuration_rangevar %call maven_profile_build_plugin_configuration
         ########
     }
+
     ###########
 
     #now generate me:
@@ -11648,6 +11712,7 @@ maven_profile_build_plugins := << EOF
         %foreach instance_count $_maven_profile_build_plugin_rangevar %call maven_profile_build_plugin
         ########
     }
+
     ###########
 
     #now generate me:
@@ -11949,6 +12014,7 @@ maven_profile_build := << EOF
         %foreach instance_count $_maven_profile_build_plugins_rangevar %call maven_profile_build_plugins
         ########
     }
+
     ###########
 
     #now generate me:
@@ -12124,6 +12190,7 @@ maven_profile_repository_releases := << EOF
         %foreach instance_count $_maven_profile_repository_releases_checksumPolicy_rangevar %call maven_profile_repository_releases_checksumPolicy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -12299,6 +12366,7 @@ maven_profile_repository_snapshots := << EOF
         %foreach instance_count $_maven_profile_repository_snapshots_checksumPolicy_rangevar %call maven_profile_repository_snapshots_checksumPolicy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -12560,6 +12628,7 @@ maven_profile_repository := << EOF
         %foreach instance_count $_maven_profile_repository_layout_rangevar %call maven_profile_repository_layout
         ########
     }
+
     ###########
 
     #now generate me:
@@ -12617,6 +12686,7 @@ maven_profile_repositories := << EOF
         %foreach instance_count $_maven_profile_repository_rangevar %call maven_profile_repository
         ########
     }
+
     ###########
 
     #now generate me:
@@ -12792,6 +12862,7 @@ maven_profile_pluginRepository_releases := << EOF
         %foreach instance_count $_maven_profile_pluginRepository_releases_checksumPolicy_rangevar %call maven_profile_pluginRepository_releases_checksumPolicy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -12967,6 +13038,7 @@ maven_profile_pluginRepository_snapshots := << EOF
         %foreach instance_count $_maven_profile_pluginRepository_snapshots_checksumPolicy_rangevar %call maven_profile_pluginRepository_snapshots_checksumPolicy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -13228,6 +13300,7 @@ maven_profile_pluginRepository := << EOF
         %foreach instance_count $_maven_profile_pluginRepository_layout_rangevar %call maven_profile_pluginRepository_layout
         ########
     }
+
     ###########
 
     #now generate me:
@@ -13285,6 +13358,7 @@ maven_profile_pluginRepositories := << EOF
         %foreach instance_count $_maven_profile_pluginRepository_rangevar %call maven_profile_pluginRepository
         ########
     }
+
     ###########
 
     #now generate me:
@@ -13414,6 +13488,7 @@ maven_profile_dependency_exclusion := << EOF
         %foreach instance_count $_maven_profile_dependency_exclusion_groupId_rangevar %call maven_profile_dependency_exclusion_groupId
         ########
     }
+
     ###########
 
     #now generate me:
@@ -13471,6 +13546,7 @@ maven_profile_dependency_exclusions := << EOF
         %foreach instance_count $_maven_profile_dependency_exclusion_rangevar %call maven_profile_dependency_exclusion
         ########
     }
+
     ###########
 
     #now generate me:
@@ -13896,6 +13972,7 @@ maven_profile_dependency := << EOF
         %foreach instance_count $_maven_profile_dependency_optional_rangevar %call maven_profile_dependency_optional
         ########
     }
+
     ###########
 
     #now generate me:
@@ -13953,6 +14030,7 @@ maven_profile_dependencies := << EOF
         %foreach instance_count $_maven_profile_dependency_rangevar %call maven_profile_dependency
         ########
     }
+
     ###########
 
     #now generate me:
@@ -14174,6 +14252,7 @@ maven_profile_reporting_plugin_reportSet := << EOF
         %foreach instance_count $_maven_profile_reporting_plugin_reportSet_reports_rangevar %call maven_profile_reporting_plugin_reportSet_reports
         ########
     }
+
     ###########
 
     #now generate me:
@@ -14231,6 +14310,7 @@ maven_profile_reporting_plugin_reportSets := << EOF
         %foreach instance_count $_maven_profile_reporting_plugin_reportSet_rangevar %call maven_profile_reporting_plugin_reportSet
         ########
     }
+
     ###########
 
     #now generate me:
@@ -14518,6 +14598,7 @@ maven_profile_reporting_plugin := << EOF
         %foreach instance_count $_maven_profile_reporting_plugin_reportSets_rangevar %call maven_profile_reporting_plugin_reportSets
         ########
     }
+
     ###########
 
     #now generate me:
@@ -14575,6 +14656,7 @@ maven_profile_reporting_plugins := << EOF
         %foreach instance_count $_maven_profile_reporting_plugin_rangevar %call maven_profile_reporting_plugin
         ########
     }
+
     ###########
 
     #now generate me:
@@ -14724,6 +14806,7 @@ maven_profile_reporting := << EOF
         %foreach instance_count $_maven_profile_reporting_plugins_rangevar %call maven_profile_reporting_plugins
         ########
     }
+
     ###########
 
     #now generate me:
@@ -14853,6 +14936,7 @@ maven_profile_dependencyManagement_dependency_exclusion := << EOF
         %foreach instance_count $_maven_profile_dependencyManagement_dependency_exclusion_groupId_rangevar %call maven_profile_dependencyManagement_dependency_exclusion_groupId
         ########
     }
+
     ###########
 
     #now generate me:
@@ -14910,6 +14994,7 @@ maven_profile_dependencyManagement_dependency_exclusions := << EOF
         %foreach instance_count $_maven_profile_dependencyManagement_dependency_exclusion_rangevar %call maven_profile_dependencyManagement_dependency_exclusion
         ########
     }
+
     ###########
 
     #now generate me:
@@ -15335,6 +15420,7 @@ maven_profile_dependencyManagement_dependency := << EOF
         %foreach instance_count $_maven_profile_dependencyManagement_dependency_optional_rangevar %call maven_profile_dependencyManagement_dependency_optional
         ########
     }
+
     ###########
 
     #now generate me:
@@ -15392,6 +15478,7 @@ maven_profile_dependencyManagement_dependencies := << EOF
         %foreach instance_count $_maven_profile_dependencyManagement_dependency_rangevar %call maven_profile_dependencyManagement_dependency
         ########
     }
+
     ###########
 
     #now generate me:
@@ -15449,6 +15536,7 @@ maven_profile_dependencyManagement := << EOF
         %foreach instance_count $_maven_profile_dependencyManagement_dependencies_rangevar %call maven_profile_dependencyManagement_dependencies
         ########
     }
+
     ###########
 
     #now generate me:
@@ -15716,6 +15804,7 @@ maven_profile_distributionManagement_repository := << EOF
         %foreach instance_count $_maven_profile_distributionManagement_repository_layout_rangevar %call maven_profile_distributionManagement_repository_layout
         ########
     }
+
     ###########
 
     #now generate me:
@@ -15983,6 +16072,7 @@ maven_profile_distributionManagement_snapshotRepository := << EOF
         %foreach instance_count $_maven_profile_distributionManagement_snapshotRepository_layout_rangevar %call maven_profile_distributionManagement_snapshotRepository_layout
         ########
     }
+
     ###########
 
     #now generate me:
@@ -16158,6 +16248,7 @@ maven_profile_distributionManagement_site := << EOF
         %foreach instance_count $_maven_profile_distributionManagement_site_url_rangevar %call maven_profile_distributionManagement_site_url
         ########
     }
+
     ###########
 
     #now generate me:
@@ -16379,6 +16470,7 @@ maven_profile_distributionManagement_relocation := << EOF
         %foreach instance_count $_maven_profile_distributionManagement_relocation_message_rangevar %call maven_profile_distributionManagement_relocation_message
         ########
     }
+
     ###########
 
     #now generate me:
@@ -16588,6 +16680,7 @@ maven_profile_distributionManagement := << EOF
         %foreach instance_count $_maven_profile_distributionManagement_status_rangevar %call maven_profile_distributionManagement_status
         ########
     }
+
     ###########
 
     #now generate me:
@@ -16969,6 +17062,7 @@ maven_project_profile := << EOF
         %foreach instance_count $_maven_profile_properties_rangevar %call maven_profile_properties
         ########
     }
+
     ###########
 
     #now generate me:
@@ -17026,6 +17120,7 @@ maven_project_profiles := << EOF
         %foreach instance_count $_maven_project_profile_rangevar %call maven_project_profile
         ########
     }
+
     ###########
 
     #now generate me:
@@ -17201,6 +17296,7 @@ maven_project_repository_releases := << EOF
         %foreach instance_count $_maven_project_repository_releases_checksumPolicy_rangevar %call maven_project_repository_releases_checksumPolicy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -17376,6 +17472,7 @@ maven_project_repository_snapshots := << EOF
         %foreach instance_count $_maven_project_repository_snapshots_checksumPolicy_rangevar %call maven_project_repository_snapshots_checksumPolicy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -17637,6 +17734,7 @@ maven_project_repository := << EOF
         %foreach instance_count $_maven_project_repository_layout_rangevar %call maven_project_repository_layout
         ########
     }
+
     ###########
 
     #now generate me:
@@ -17694,6 +17792,7 @@ maven_project_repositories := << EOF
         %foreach instance_count $_maven_project_repository_rangevar %call maven_project_repository
         ########
     }
+
     ###########
 
     #now generate me:
@@ -17869,6 +17968,7 @@ maven_project_pluginRepository_releases := << EOF
         %foreach instance_count $_maven_project_pluginRepository_releases_checksumPolicy_rangevar %call maven_project_pluginRepository_releases_checksumPolicy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -18044,6 +18144,7 @@ maven_project_pluginRepository_snapshots := << EOF
         %foreach instance_count $_maven_project_pluginRepository_snapshots_checksumPolicy_rangevar %call maven_project_pluginRepository_snapshots_checksumPolicy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -18305,6 +18406,7 @@ maven_project_pluginRepository := << EOF
         %foreach instance_count $_maven_project_pluginRepository_layout_rangevar %call maven_project_pluginRepository_layout
         ########
     }
+
     ###########
 
     #now generate me:
@@ -18362,6 +18464,7 @@ maven_project_pluginRepositories := << EOF
         %foreach instance_count $_maven_project_pluginRepository_rangevar %call maven_project_pluginRepository
         ########
     }
+
     ###########
 
     #now generate me:
@@ -18491,6 +18594,7 @@ maven_dependency_exclusion := << EOF
         %foreach instance_count $_maven_dependency_exclusion_groupId_rangevar %call maven_dependency_exclusion_groupId
         ########
     }
+
     ###########
 
     #now generate me:
@@ -18548,6 +18652,7 @@ maven_dependency_exclusions := << EOF
         %foreach instance_count $_maven_dependency_exclusion_rangevar %call maven_dependency_exclusion
         ########
     }
+
     ###########
 
     #now generate me:
@@ -18973,6 +19078,7 @@ maven_dependency := << EOF
         %foreach instance_count $_maven_dependency_optional_rangevar %call maven_dependency_optional
         ########
     }
+
     ###########
 
     #now generate me:
@@ -19030,6 +19136,7 @@ maven_project_dependencies := << EOF
         %foreach instance_count $_maven_dependency_rangevar %call maven_dependency
         ########
     }
+
     ###########
 
     #now generate me:
@@ -19251,6 +19358,7 @@ maven_project_reporting_plugin_reportSet := << EOF
         %foreach instance_count $_maven_project_reporting_plugin_reportSet_reports_rangevar %call maven_project_reporting_plugin_reportSet_reports
         ########
     }
+
     ###########
 
     #now generate me:
@@ -19308,6 +19416,7 @@ maven_project_reporting_plugin_reportSets := << EOF
         %foreach instance_count $_maven_project_reporting_plugin_reportSet_rangevar %call maven_project_reporting_plugin_reportSet
         ########
     }
+
     ###########
 
     #now generate me:
@@ -19595,6 +19704,7 @@ maven_project_reporting_plugin := << EOF
         %foreach instance_count $_maven_project_reporting_plugin_reportSets_rangevar %call maven_project_reporting_plugin_reportSets
         ########
     }
+
     ###########
 
     #now generate me:
@@ -19652,6 +19762,7 @@ maven_project_reporting_plugins := << EOF
         %foreach instance_count $_maven_project_reporting_plugin_rangevar %call maven_project_reporting_plugin
         ########
     }
+
     ###########
 
     #now generate me:
@@ -19801,6 +19912,7 @@ maven_project_reporting := << EOF
         %foreach instance_count $_maven_project_reporting_plugins_rangevar %call maven_project_reporting_plugins
         ########
     }
+
     ###########
 
     #now generate me:
@@ -19930,6 +20042,7 @@ maven_project_dependencyManagement_dependency_exclusion := << EOF
         %foreach instance_count $_maven_project_dependencyManagement_dependency_exclusion_groupId_rangevar %call maven_project_dependencyManagement_dependency_exclusion_groupId
         ########
     }
+
     ###########
 
     #now generate me:
@@ -19987,6 +20100,7 @@ maven_project_dependencyManagement_dependency_exclusions := << EOF
         %foreach instance_count $_maven_project_dependencyManagement_dependency_exclusion_rangevar %call maven_project_dependencyManagement_dependency_exclusion
         ########
     }
+
     ###########
 
     #now generate me:
@@ -20412,6 +20526,7 @@ maven_project_dependencyManagement_dependency := << EOF
         %foreach instance_count $_maven_project_dependencyManagement_dependency_optional_rangevar %call maven_project_dependencyManagement_dependency_optional
         ########
     }
+
     ###########
 
     #now generate me:
@@ -20469,6 +20584,7 @@ maven_project_dependencyManagement_dependencies := << EOF
         %foreach instance_count $_maven_project_dependencyManagement_dependency_rangevar %call maven_project_dependencyManagement_dependency
         ########
     }
+
     ###########
 
     #now generate me:
@@ -20526,6 +20642,7 @@ maven_project_dependencyManagement := << EOF
         %foreach instance_count $_maven_project_dependencyManagement_dependencies_rangevar %call maven_project_dependencyManagement_dependencies
         ########
     }
+
     ###########
 
     #now generate me:
@@ -20793,6 +20910,7 @@ maven_project_distributionManagement_repository := << EOF
         %foreach instance_count $_maven_project_distributionManagement_repository_layout_rangevar %call maven_project_distributionManagement_repository_layout
         ########
     }
+
     ###########
 
     #now generate me:
@@ -21060,6 +21178,7 @@ maven_project_distributionManagement_snapshotRepository := << EOF
         %foreach instance_count $_maven_project_distributionManagement_snapshotRepository_layout_rangevar %call maven_project_distributionManagement_snapshotRepository_layout
         ########
     }
+
     ###########
 
     #now generate me:
@@ -21235,6 +21354,7 @@ maven_project_distributionManagement_site := << EOF
         %foreach instance_count $_maven_project_distributionManagement_site_url_rangevar %call maven_project_distributionManagement_site_url
         ########
     }
+
     ###########
 
     #now generate me:
@@ -21456,6 +21576,7 @@ maven_project_distributionManagement_relocation := << EOF
         %foreach instance_count $_maven_project_distributionManagement_relocation_message_rangevar %call maven_project_distributionManagement_relocation_message
         ########
     }
+
     ###########
 
     #now generate me:
@@ -21665,6 +21786,7 @@ maven_project_distributionManagement := << EOF
         %foreach instance_count $_maven_project_distributionManagement_status_rangevar %call maven_project_distributionManagement_status
         ########
     }
+
     ###########
 
     #now generate me:
@@ -22614,6 +22736,7 @@ maven_project := << EOF
         %foreach instance_count $_maven_project_properties_rangevar %call maven_project_properties
         ########
     }
+
     ###########
 
     #now generate me:
@@ -22766,6 +22889,7 @@ MAVEN_PROJECT_DISTRIBUTIONMANAGEMENT_SITE_COUNT = 01
 MAVEN_PROJECT_DISTRIBUTIONMANAGEMENT_RELOCATION_COUNT = 01
 MAVEN_PROJECT_DISTRIBUTIONMANAGEMENT_COUNT = 01
 MAVEN_PROJECT_COUNT = 01
+
 
 #########
 #terminal elements:
@@ -23139,6 +23263,7 @@ MAVEN_PROJECT_INCEPTIONYEAR =
 MAVEN_PROJECT_MODULES =
 MAVEN_PROJECT_REPORTS =
 MAVEN_PROJECT_PROPERTIES =
+
 EOF2
 
 #show them:
@@ -23611,6 +23736,7 @@ maven_lib_reset := << EOF
 %undef MAVEN_PROJECT_MODULES(_.*)?
 %undef MAVEN_PROJECT_REPORTS(_.*)?
 %undef MAVEN_PROJECT_PROPERTIES(_.*)?
+
 }
 EOF
 

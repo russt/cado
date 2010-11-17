@@ -1,5 +1,5 @@
-VERSION = 1.84
-VERSION_DATE = 01-Sep-2010
+VERSION = 1.85
+VERSION_DATE = 17-Nov-2010
 COPYRIGHT_RANGE1 = 2003-2008
 COPYRIGHT_RANGE2 = 2009-2010
 
@@ -38,6 +38,7 @@ my (
     $ENV_VARS_OKAY,
     $FORCE_GEN,
     $UPDATE,
+    $SHOW_EXTERNS,
     $CG_TEMPLATE_PATH,
     $CG_ROOT,
     $CG_TMPDIR,
@@ -65,6 +66,7 @@ my (
     0,              #ENV_VARS_OKAY - true if we allow environment vars in templates and spec
     0,              #FORCE_GEN - overwrite all output files, even if they already exist
     0,              #UPDATE - update generated files only if different
+    0,              #SHOW_EXTERNS - show use of external operators (:op)
     "NULL",         #CG_TEMPLATE_PATH - semicolon separated search path for template files.
     "NULL",         #CG_ROOT - output code generation root.
     "NULL",         #CG_TMPDIR - directory for temporary files.
@@ -3243,6 +3245,7 @@ Options:
   -S      look for ${p}_program in \$PATH.
   -debug  show debug output
   -ddebug show more debug output
+  -se     show operator (:op) calls to external commands.
   -e      allow environment variable references in <${p}_program>
           file and in any template files referenced in same.
   -f      force regeneration of output files (default is to not overwrite).
@@ -3477,6 +3480,8 @@ sub parse_args
             $DEBUG_FD = 1;
         } elsif ($flag =~ '^-d') {
             $DEBUG = 1;
+        } elsif ($flag =~ '^-se') {
+            $SHOW_EXTERNS = 1;
         } elsif ($flag =~ '^-D') {
             #expect a definition of the form:  -Dvar[=value]
             my $var = "";
@@ -4059,6 +4064,10 @@ CODEGEN_HEADER := << EOF
 #       (last setting wins). Add %pragma environment {0|1}, to temporarily allow env. vars.
 #  01-Sep-2010 (russt) [Version 1.84]
 #       Comment out debugging in exec_shell_op().
+#  17-Nov-2010 (russt) [Version 1.85]
+#       Add -se (show external) option to trace external commands invoked as operators.
+#       Xml library was adding extra newlines due to fix introduced in vers. 1.71 of 11/21/08.
+#       Regenerated maven2 libraries to verify process with current version of cado.
 #
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER

@@ -1,6 +1,10 @@
+#force to use source tree:
+CG_TEMPLATE_PATH = ..;$CG_TEMPLATE_PATH
+
 %include xml/xml_macros.cg
 
-MACRO_DEBUG = true
+#MACRO_DEBUG = 1
+MACRO_DDEBUG = 1
 MACRO_OUTPUT_ACCUMULATOR =	PROJECT_BODY
 
 XML_ELEMENT_NAME=name
@@ -17,6 +21,7 @@ XML_ELEMENT_BODY=$PROJECT_BODY
 %interpret xml_nested_element
 
 %echo -n $PROJECT_SHELL
+%return TESTING TESTING TESTING
 #generates:
 #<project>
 #    <name>open-esb</name>

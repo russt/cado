@@ -60,7 +60,7 @@ sub eval_postfix_op
         #silently ignore empty operators
     } else {
         #assume that operator is a valid shell command:
-        printf STDERR "%s [eval_postfix_op]: assuming '%s' is an external command\n", $p, $op if ($VERBOSE);
+        printf STDERR "%s [eval_postfix_op]: invoking '%s' as external command.\n", $p, $op if ($SHOW_EXTERNS);
         $var = &exec_shell_op($op, $var);
     }
 

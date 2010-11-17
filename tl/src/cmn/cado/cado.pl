@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.84 - 01-Sep-2010
+# @(#)cado.pl - ver 1.85 - 17-Nov-2010
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2010 Russ Tremain.  All Rights Reserved.
@@ -265,6 +265,10 @@
 #       (last setting wins). Add %pragma environment {0|1}, to temporarily allow env. vars.
 #  01-Sep-2010 (russt) [Version 1.84]
 #       Comment out debugging in exec_shell_op().
+#  17-Nov-2010 (russt) [Version 1.85]
+#       Add -se (show external) option to trace external commands invoked as operators.
+#       Xml library was adding extra newlines due to fix introduced in vers. 1.71 of 11/21/08.
+#       Regenerated maven2 libraries to verify process with current version of cado.
 #
 
 use strict;
@@ -274,8 +278,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.84",         #VERSION - the program version number.
-    "01-Sep-2010",  #VERSION_DATE - date this version was released.
+    "1.85",         #VERSION - the program version number.
+    "17-Nov-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -294,6 +298,7 @@ my (
     $ENV_VARS_OKAY,
     $FORCE_GEN,
     $UPDATE,
+    $SHOW_EXTERNS,
     $CG_TEMPLATE_PATH,
     $CG_ROOT,
     $CG_TMPDIR,
@@ -321,6 +326,7 @@ my (
     0,              #ENV_VARS_OKAY - true if we allow environment vars in templates and spec
     0,              #FORCE_GEN - overwrite all output files, even if they already exist
     0,              #UPDATE - update generated files only if different
+    0,              #SHOW_EXTERNS - show use of external operators (:op)
     "NULL",         #CG_TEMPLATE_PATH - semicolon separated search path for template files.
     "NULL",         #CG_ROOT - output code generation root.
     "NULL",         #CG_TMPDIR - directory for temporary files.
@@ -3491,6 +3497,7 @@ Options:
   -S      look for ${p}_program in \$PATH.
   -debug  show debug output
   -ddebug show more debug output
+  -se     show operator (:op) calls to external commands.
   -e      allow environment variable references in <${p}_program>
           file and in any template files referenced in same.
   -f      force regeneration of output files (default is to not overwrite).
@@ -3725,6 +3732,8 @@ sub parse_args
             $DEBUG_FD = 1;
         } elsif ($flag =~ '^-d') {
             $DEBUG = 1;
+        } elsif ($flag =~ '^-se') {
+            $SHOW_EXTERNS = 1;
         } elsif ($flag =~ '^-D') {
             #expect a definition of the form:  -Dvar[=value]
             my $var = "";
@@ -4096,7 +4105,7 @@ sub eval_postfix_op
         #silently ignore empty operators
     } else {
         #assume that operator is a valid shell command:
-        printf STDERR "%s [eval_postfix_op]: assuming '%s' is an external command\n", $p, $op if ($VERBOSE);
+        printf STDERR "%s [eval_postfix_op]: invoking '%s' as external command.\n", $p, $op if ($SHOW_EXTERNS);
         $var = &exec_shell_op($op, $var);
     }
 

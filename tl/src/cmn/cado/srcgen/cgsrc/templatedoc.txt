@@ -1,4 +1,4 @@
-                    ===================
+{                   ===================
                     TEMPLATE EXPANSIONS
                     ===================
 {=#comment=}        - a comment. ignored and eliminated from output.

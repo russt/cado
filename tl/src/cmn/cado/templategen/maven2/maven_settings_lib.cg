@@ -434,6 +434,7 @@ mvnconf_proxy := << EOF
         %foreach instance_count $_mvnconf_proxy_id_rangevar %call mvnconf_proxy_id
         ########
     }
+
     ###########
 
     #now generate me:
@@ -491,6 +492,7 @@ mvnconf_proxies := << EOF
         %foreach instance_count $_mvnconf_proxy_rangevar %call mvnconf_proxy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -896,6 +898,7 @@ mvnconf_server := << EOF
         %foreach instance_count $_mvnconf_server_id_rangevar %call mvnconf_server_id
         ########
     }
+
     ###########
 
     #now generate me:
@@ -953,6 +956,7 @@ mvnconf_servers := << EOF
         %foreach instance_count $_mvnconf_server_rangevar %call mvnconf_server
         ########
     }
+
     ###########
 
     #now generate me:
@@ -1174,6 +1178,7 @@ mvnconf_mirror := << EOF
         %foreach instance_count $_mvnconf_mirror_id_rangevar %call mvnconf_mirror_id
         ########
     }
+
     ###########
 
     #now generate me:
@@ -1231,6 +1236,7 @@ mvnconf_mirrors := << EOF
         %foreach instance_count $_mvnconf_mirror_rangevar %call mvnconf_mirror
         ########
     }
+
     ###########
 
     #now generate me:
@@ -1452,6 +1458,7 @@ mvnconf_profile_activation_o := << EOF
         %foreach instance_count $_mvnconf_profile_activation_o_version_rangevar %call mvnconf_profile_activation_o_version
         ########
     }
+
     ###########
 
     #now generate me:
@@ -1581,6 +1588,7 @@ mvnconf_profile_activation_property := << EOF
         %foreach instance_count $_mvnconf_profile_activation_property_value_rangevar %call mvnconf_profile_activation_property_value
         ########
     }
+
     ###########
 
     #now generate me:
@@ -1710,6 +1718,7 @@ mvnconf_profile_activation_file := << EOF
         %foreach instance_count $_mvnconf_profile_activation_exists_rangevar %call mvnconf_profile_activation_exists
         ########
     }
+
     ###########
 
     #now generate me:
@@ -1899,6 +1908,7 @@ mvnconf_profile_activation := << EOF
         %foreach instance_count $_mvnconf_profile_activation_file_rangevar %call mvnconf_profile_activation_file
         ########
     }
+
     ###########
 
     #now generate me:
@@ -2074,6 +2084,7 @@ mvnconf_profile_repository_release := << EOF
         %foreach instance_count $_mvnconf_profile_repository_release_checksumPolicy_rangevar %call mvnconf_profile_repository_release_checksumPolicy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -2249,6 +2260,7 @@ mvnconf_profile_repository_snapshot := << EOF
         %foreach instance_count $_mvnconf_profile_repository_snapshot_checksumPolicy_rangevar %call mvnconf_profile_repository_snapshot_checksumPolicy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -2510,6 +2522,7 @@ mvnconf_profile_repository := << EOF
         %foreach instance_count $_mvnconf_profile_repository_layout_rangevar %call mvnconf_profile_repository_layout
         ########
     }
+
     ###########
 
     #now generate me:
@@ -2567,6 +2580,7 @@ mvnconf_profile_repositories := << EOF
         %foreach instance_count $_mvnconf_profile_repository_rangevar %call mvnconf_profile_repository
         ########
     }
+
     ###########
 
     #now generate me:
@@ -2742,6 +2756,7 @@ mvnconf_profile_pluginRepository_release := << EOF
         %foreach instance_count $_mvnconf_profile_pluginRepository_release_checksumPolicy_rangevar %call mvnconf_profile_pluginRepository_release_checksumPolicy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -2917,6 +2932,7 @@ mvnconf_profile_pluginRepository_snapshot := << EOF
         %foreach instance_count $_mvnconf_profile_pluginRepository_snapshot_checksumPolicy_rangevar %call mvnconf_profile_pluginRepository_snapshot_checksumPolicy
         ########
     }
+
     ###########
 
     #now generate me:
@@ -3178,6 +3194,7 @@ mvnconf_profile_pluginRepository := << EOF
         %foreach instance_count $_mvnconf_profile_pluginRepository_layout_rangevar %call mvnconf_profile_pluginRepository_layout
         ########
     }
+
     ###########
 
     #now generate me:
@@ -3235,6 +3252,7 @@ mvnconf_profile_pluginRepositories := << EOF
         %foreach instance_count $_mvnconf_profile_pluginRepository_rangevar %call mvnconf_profile_pluginRepository
         ########
     }
+
     ###########
 
     #now generate me:
@@ -3424,6 +3442,7 @@ mvnconf_profile := << EOF
         %foreach instance_count $_mvnconf_profile_id_rangevar %call mvnconf_profile_id
         ########
     }
+
     ###########
 
     #now generate me:
@@ -3481,6 +3500,7 @@ mvnconf_profiles := << EOF
         %foreach instance_count $_mvnconf_profile_rangevar %call mvnconf_profile
         ########
     }
+
     ###########
 
     #now generate me:
@@ -3874,6 +3894,7 @@ mvnconf_settings := << EOF
         %foreach instance_count $_mvnconf_pluginGroups_rangevar %call mvnconf_pluginGroups
         ########
     }
+
     ###########
 
     #now generate me:
@@ -3924,6 +3945,7 @@ MVNCONF_PROFILE_PLUGINREPOSITORIES_COUNT = 01
 MVNCONF_PROFILE_COUNT = 01
 MVNCONF_PROFILES_COUNT = 01
 MVNCONF_SETTINGS_COUNT = 01
+
 
 #########
 #terminal elements:
@@ -4016,6 +4038,7 @@ MVNCONF_USEPLUGINREGISTRY =
 MVNCONF_OFFLINE =
 MVNCONF_ACTIVEPROFILES =
 MVNCONF_PLUGINGROUPS =
+
 EOF2
 
 #show them:
@@ -4105,6 +4128,7 @@ mvnconf_lib_reset := << EOF
 %undef MVNCONF_OFFLINE(_.*)?
 %undef MVNCONF_ACTIVEPROFILES(_.*)?
 %undef MVNCONF_PLUGINGROUPS(_.*)?
+
 }
 EOF
 

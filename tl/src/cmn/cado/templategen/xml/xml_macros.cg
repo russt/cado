@@ -46,7 +46,7 @@ EOF
 
 xml_nested_element_macro := << EOF
 <{=$XML_ELEMENT_NAME=}{=$XML_ATTRIBUTE_LIST:lnewline:indent1=}>
-{=$XML_ELEMENT_BODY:rtrim:rnewline:indent1=}
+{=$XML_ELEMENT_BODY:indent1:rtrim=}
 </{=$XML_ELEMENT_NAME=}>
 EOF
 }

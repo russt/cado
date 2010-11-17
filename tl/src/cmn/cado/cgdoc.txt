@@ -1,7 +1,7 @@
 
                     =========================
                     Cado Quick Reference
-                    Version 1.84, 01-Sep-2010
+                    Version 1.85, 17-Nov-2010
                     =========================
 
 {
@@ -277,19 +277,6 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
 :getnextline        - get the next line of a file if it is open.
 :currentline        - return the current input line of a file, or undef varname if file is closed
 :currentlinenumber  - (1..nlines), 0 => file closed
-
-                    ================
-                    PRAGMA OPERATORS
-                    ================
-:pv                 - alias for :pragmavalue.
-:pragmavalue        - return the value of the named pragma, or empty string if no such pragma.
-                      For example:
-                          %pragma quiet 1
-                          %echo pragma quiet=$quiet:nameof:pragmavalue
-                      will display "pragma quiet=1"
-                      Note that $quiet:pragmavalue is shorthand for $quiet:nameof:pragmavalue
-                      iff $quiet:valueof is undefined or empty.
-
 }
 
 {                   =======
@@ -323,8 +310,19 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
 %pragma trim_multiline_rnewline [1|0]
                               - if 1, trim the final newline in a here-now document (normally added).
 
-}
 
+                    ================
+                    PRAGMA OPERATORS
+                    ================
+:pv                 - alias for :pragmavalue.
+:pragmavalue        - return the value of the named pragma, or empty string if no such pragma.
+                      For example:
+                          %pragma quiet 1
+                          %echo pragma quiet=$quiet:nameof:pragmavalue
+                      will display "pragma quiet=1"
+                      Note that $quiet:pragmavalue is shorthand for $quiet:nameof:pragmavalue
+                      iff $quiet:valueof is undefined or empty.
+}
 
 {                   ==================
                     RESERVED VARIABLES
@@ -508,18 +506,9 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %halt   [status]    - exit program with numeric <status>, or zero if <status> is not provided.
                       See also: $CG_EXIT_STATUS reserved variable
 %abort  [status]    - alias for %halt
+}
 
-
-
-
-
-
-
-
-
-
-
-                    ===================
+{                   ===================
                     TEMPLATE EXPANSIONS
                     ===================
 {=#comment=}        - a comment. ignored and eliminated from output.
