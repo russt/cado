@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.85 - 17-Nov-2010
+# @(#)codegen.pl - ver 1.86 - 24-Nov-2010
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2010 Russ Tremain.  All Rights Reserved.
@@ -269,6 +269,8 @@
 #       Add -se (show external) option to trace external commands invoked as operators.
 #       Xml library was adding extra newlines due to fix introduced in vers. 1.71 of 11/21/08.
 #       Regenerated maven2 libraries to verify process with current version of cado.
+#  24-Nov-2010 (russt) [Version 1.86]
+#       add :append assignment op.
 #
 
 use strict;
@@ -278,8 +280,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.85",         #VERSION - the program version number.
-    "17-Nov-2010",  #VERSION_DATE - date this version was released.
+    "1.86",         #VERSION - the program version number.
+    "24-Nov-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -5575,6 +5577,31 @@ sub assign_op
 
     #update the value of $var:
     $CG_USER_VARS{$varname} = $var;
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+
+    return $var;
+}
+
+sub append_op
+#process :append postfix op - append a value to a variable.
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    $CG_USER_VARS{$varname} = "" unless (defined($CG_USER_VARS{$varname}));
+    $CG_USER_VARS{$varname} .= $var;
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+
+    return $var;
+}
+
+sub insert_op
+#process :insert postfix op - prepend a value to a variable.
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    $CG_USER_VARS{$varname} = "" unless (defined($CG_USER_VARS{$varname}));
+    $CG_USER_VARS{$varname} = $var . $CG_USER_VARS{$varname};
+
     printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
 
     return $var;

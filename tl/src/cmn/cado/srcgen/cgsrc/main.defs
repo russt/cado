@@ -1,5 +1,5 @@
-VERSION = 1.85
-VERSION_DATE = 17-Nov-2010
+VERSION = 1.86
+VERSION_DATE = 24-Nov-2010
 COPYRIGHT_RANGE1 = 2003-2008
 COPYRIGHT_RANGE2 = 2009-2010
 
@@ -4068,6 +4068,8 @@ CODEGEN_HEADER := << EOF
 #       Add -se (show external) option to trace external commands invoked as operators.
 #       Xml library was adding extra newlines due to fix introduced in vers. 1.71 of 11/21/08.
 #       Regenerated maven2 libraries to verify process with current version of cado.
+#  24-Nov-2010 (russt) [Version 1.86]
+#       add :append assignment op.
 #
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER

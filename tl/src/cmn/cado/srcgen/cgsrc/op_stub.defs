@@ -1294,6 +1294,31 @@ sub assign_op
     return $var;
 }
 
+sub append_op
+#process :append postfix op - append a value to a variable.
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    $CG_USER_VARS{$varname} = "" unless (defined($CG_USER_VARS{$varname}));
+    $CG_USER_VARS{$varname} .= $var;
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+
+    return $var;
+}
+
+sub insert_op
+#process :insert postfix op - prepend a value to a variable.
+{
+    my ($var, $varname, $linecnt) = @_;
+
+    $CG_USER_VARS{$varname} = "" unless (defined($CG_USER_VARS{$varname}));
+    $CG_USER_VARS{$varname} = $var . $CG_USER_VARS{$varname};
+
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+
+    return $var;
+}
+
 sub clr_op
 #set a variable to empty string.
 {

@@ -22,6 +22,9 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
                     ==========================
 :assign, :a         - assign current value of variable to the named variable
                       see also:  '=', ':=' assignment statements.
+:append             - append contents of a variable to itself
+                      see also:  '.=' assignment operator.
+:insert             - prepend contents of a variable to itself
 :nameof             - substitute the name of the variable
 :undef              - return undefined value
 :valueof            - return the value of a variable
