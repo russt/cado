@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.86 - 24-Nov-2010
+# @(#)cado.pl - ver 1.87 - 11-Dec-2010
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2010 Russ Tremain.  All Rights Reserved.
@@ -271,6 +271,10 @@
 #       Regenerated maven2 libraries to verify process with current version of cado.
 #  24-Nov-2010 (russt) [Version 1.86]
 #       add :append assignment op.
+#  11-Dec-2010 (russt) [Version 1.87]
+#       add :unique stack op.  "%upush foostk $value" was not resulting in unique values.
+#       add :parse_antprops and associated operators.
+#       add tests for new ant ops, :unique.  update %upush tests.
 #
 
 use strict;
@@ -280,8 +284,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.86",         #VERSION - the program version number.
-    "24-Nov-2010",  #VERSION_DATE - date this version was released.
+    "1.87",         #VERSION - the program version number.
+    "11-Dec-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -748,13 +752,7 @@ sub pushspec
     #if we generate no elements, then don't do anything:
     if ($#rhs_contents >= 0) {
         if (defined($lhs_contents)) {
-            if ($lhs_contents ne "" && $push_unique == 1) {
-                my @lhs_contents = split($;, $lhs_contents, -1);
-
-                #if we are maintaining a unique stack, do not add unless new:
-                my @new = &MINUS(\@rhs_contents, \@lhs_contents);
-                $CG_USER_VARS{$lhs} = join($;, $lhs_contents, @new) if ($#new >= 0);
-            } elsif ($lhs_contents ne "") {
+            if ($lhs_contents ne "") {
                 $CG_USER_VARS{$lhs} = join($;, $lhs_contents, @rhs_contents);
             } else {
                 $CG_USER_VARS{$lhs} = join($;, @rhs_contents);
@@ -762,6 +760,9 @@ sub pushspec
         } else {
             $CG_USER_VARS{$lhs} = join($;, @rhs_contents);
         }
+
+        #make stack unique if we had a %upush:
+        $CG_USER_VARS{$lhs} = &unique_op($CG_USER_VARS{$lhs}) if ($push_unique == 1);
     }
 
     return 1;
@@ -4786,6 +4787,31 @@ sub stackminus_op
     return join($;, @new);
 }
 
+sub unique_op
+#process :unique postfix op
+#:unique - eliminate duplicate values from a stack, preserving original order
+{
+    my ($var) = @_;
+
+    return $var if ($var eq "");
+
+    my @thisStack = split($;, $var, -1);
+
+    my (%mark);
+    for (@thisStack) { $mark{$_}++;}
+
+    my @new = ();
+    for (@thisStack) {
+        push(@new, $_) if ($mark{$_});
+        $mark{$_} = 0;
+    }
+
+#printf STDERR "thisStack=(%s)\n", join(",", @thisStack);
+#printf STDERR "new=(%s)\n", join(",", @new);
+
+    return join($;, @new);
+}
+
 sub pv_op
 #alias for pragmavalue_op.
 {
@@ -5361,6 +5387,17 @@ sub xmlcomment_op
     return sprintf("<!-- %s -->", $var);
 }
 
+sub stripxmlcomments_op
+#INPUT:  string containing xml snippet
+#OUTPUT: string with xml comments stripped out.
+{
+    my ($varvalue) = @_;
+
+    $varvalue =~ s/<!--.*?-->//gs;
+
+    return $varvalue;
+}
+
 sub tab_op
 #process :tab postfix op
 #use this to add tabs to empty string.
@@ -5813,6 +5850,231 @@ sub B_op
     my ($fn) = @_;
     return 0 if (!defined($fn) || $fn eq "");
     return (-B $fn)? 1 : 0;
+}
+
+
+#
+#ant_ops.pl - operate on ant files
+#
+
+#this is a global hash for storing all ant properties.
+my %ANTPROPS = ();
+
+sub expand_antrefs_op
+#look-up all ant var references in input.  if we have a defnition, then substitute
+#reference with its definition.  one pass only.
+{
+    my ($varvalue) = @_;
+
+    $varvalue =~ s/(\${[^}]*?})/&lookup_ant_ref($1)/ge;
+
+    return $varvalue;
+}
+
+sub expand_antprops_op
+#retrieve the ant properties and expand any variable references that are defined
+#INPUT:   %ANTPROPS (must be initialized via :parse_antprops)
+#OUTPUT:  the stack of ant property names.
+{
+    my ($varvalue) = @_;
+
+    my ($lasthash) = "0";
+    my ($keyhash) = &antpropnames_op($varvalue);
+
+    #the return value is the full stack, which we will now proceed to expand:
+    $varvalue = $keyhash;
+
+#printf STDERR "\nkeyhash=(%s) lasthash=(%s)\n", join(",", split($;, $keyhash)), join(",", split($;, $lasthash));
+    #while more variables to expand ...
+    while (($keyhash = &getunexpanded_antvars($keyhash)) ne $lasthash) {
+#printf STDERR "\nLOOP:\tkeyhash=(%s) lasthash=(%s)\n", join(",", split($;, $keyhash)), join(",", split($;, $lasthash));
+        $lasthash = $keyhash;
+    }
+
+    return $varvalue;
+}
+
+sub getunexpanded_antvars
+#pass through list of ant props supplied, expanding prop value having ant var refs.
+{
+    my ($keyhash) = @_;
+
+    return "" if (!defined($keyhash) || $keyhash eq "");
+
+    my (@listin) = split($;, $keyhash);
+    my (@listout) = ();
+
+#printf STDERR "\nEXPAND:\tlistin=(%s)\n", join(",", @listin);
+
+    foreach my $kk (@listin) {
+        my ($vv);
+        if (defined($vv = $ANTPROPS{$kk}) && &has_ant_var_refs($vv)) {
+            my ($tmp) = &expand_antrefs_op($vv);
+#printf STDERR "\nEXPAND LOOP:\tkk='%s' vv='%s' tmp='%s'\n", $kk, $vv, $tmp;
+
+            #if expanded var has more refs, then refs are either undefined are not yet fully expanded:
+            push(@listout, $kk) if (&has_ant_var_refs($vv));
+
+            $ANTPROPS{$kk} = $tmp;
+        }
+    }
+
+    return "" if ($#listout < 0);
+
+    return join($;, @listout);
+}
+
+sub has_ant_var_refs
+#true if input has ant variable refs, e.g. ${foo}
+{
+    my ($txt) = @_;
+
+    return 1 if ($txt =~ /\${([^}]*?)}/);
+
+    return 0;
+}
+
+sub lookup_ant_ref
+#look up the value of an ant reference.  if not found,
+#return the input.
+{
+    my ($varref) = @_;
+
+    if ($varref =~ /^\${([^}]*?)}/) {
+        return &antpropvalue_op($1);
+    } else {
+        #ERROR
+        printf STDERR "lookup_ant_ref: PARSE ERROR FOR INPUT '%s'\n", $varref;
+    }
+
+    return $varref;
+}
+
+
+sub antpropvalue_op
+#look up the value of an ant property.
+#INPUT:  name of ant prop
+#OUPUT:  value of ant prop
+{
+    my ($varvalue) = @_;
+
+    return $ANTPROPS{$varvalue} if (defined($ANTPROPS{$varvalue}));
+
+    #otherwise return an undefined var like ant would:
+    return &antvar_op($varvalue);
+}
+
+sub antpropnames_op
+#return all the ant property names as a cado stack.
+{
+    my ($varvalue) = @_;
+
+    #note - cado stacks use $; as separator:
+    $varvalue = join($;, sort keys %ANTPROPS);
+
+    return $varvalue;
+}
+
+sub clear_antprops_op
+#clear the global ANTPROPS storage
+{
+    my ($varvalue) = @_;
+
+    %ANTPROPS = ();
+
+    return $varvalue;
+}
+
+sub parse_antprops_op
+#INPUT:  string containing ant project xml (or snippet)
+#OUTPUT: <property> elements with cado legal vars; references also translated
+#SIDE EFFECT:  populates global ANTPROPS hash with all ant properties.
+#e.g:
+#   <property name="foo.com-one" value="one,two,three"  />
+#   <echo>foo.com-one=${foo.com-one}</echo>
+#results in:
+#   <property name="foo_com_one" value="one,two,three"  />
+#   <echo>foo.com-one=${foo_com_one}</echo>
+#and creates cado var:
+#   _antVar_foo_com_one  = one,two,three
+#
+#does not handle collisions in vars that hash to the same cado variable name,
+# e.g. ${foo.com} and ${foo-com}  will both map to:  $_antVar_foo_com
+{
+    my ($varvalue, $varname, $linecnt) = @_;
+
+    #note:  varvalue contains the ant script.
+
+    #strip comments:
+    my ($str) = stripxmlcomments_op($varvalue);
+
+    #iterate through the string and store the properties in our array:
+    $str =~ s/<property\s+name="([^"]*)"\s+(value|refid)="([^"]*)"\s*[^\/]*\/>/&store_antprop($1, $2, $3)/ge;
+
+    #return input for futher ops:
+    return $varvalue;
+}
+
+sub store_antprop
+#store an ant property in our global ANTPROPS hash
+{
+    my ($name, $type, $value) = @_;
+
+#printf STDERR "\nstore_antprop:  name='%s' type='%s' value='%s'\n", $name, $type, $value;
+
+    #note - we don't store refid's because we don't have the code to interprolate them:
+    $ANTPROPS{$name} = $value if ($type eq "value");
+
+    #return a normalized form for the substitution op:
+    return sprintf("<property name=\"%s\" %s=\"%s\"/>\n",$name, $type, $value);
+}
+
+sub property_match
+#internal function to parse ant <property> elements.
+#DEPRECATED - not used
+{
+    my ($antprops, $str) = @_;
+
+    return "" unless ($str =~ /<property/);
+    $str =~ s/^.*?<property/<property/s;
+
+#printf STDERR "property_match:  str='%s'\n", $str;
+
+    if ($str =~  /^<property\s+name="([^"]*)"\s+(value|refid)="([^"]*)"\s*[^\/]*\/>/s ) {
+        my ($name, $type, $value) = ($1, $2, $3);
+        $str =~ s/^<property\s+name="([^"]*)"\s+(value|refid)="([^"]*)"\s*[^\/]*\/>//s;
+
+#printf STDERR "property_match:  name='%s' value='%s'\n", $name, $value;
+
+        #note - we don't store refid's because they are not usable:
+        $$antprops{$name} = $value if ($type eq "value");
+        return $str;
+    }
+
+    printf STDERR "property_match:  ERROR:  parse failed\n";
+    return "";
+}
+
+sub showantvars_op
+#dump the ant properties
+{
+    my ($varvalue) = @_;
+
+    $varvalue = "";
+    foreach my $kk (sort keys %ANTPROPS) {
+        $varvalue .= sprintf("<property name=\"%s\" value=\"%s\"/>\n", $kk, $ANTPROPS{$kk});
+    }
+
+    return $varvalue;
+}
+
+sub isantprop_op
+#return 1 if input is the name of an ant property, otherwise 0.
+{
+    my ($varvalue) = @_;
+
+    return 1 if ( defined($ANTPROPS{$varvalue}) );
+    return 0;
 }
 
 

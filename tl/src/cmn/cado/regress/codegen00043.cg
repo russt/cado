@@ -1,0 +1,108 @@
+#create a setting for basedir we will add after initial parse:
+setbasedir := <property name="basedir" value="/tmp/foo" />
+
+createlibstr := << EOF
+  <createlib name="lib">
+    <dirset dir="shared/libs">
+      <include name="acegi/1.0.3" />
+      <include name="hibernate/hibernate/${lib.version.hibernate}" />
+      <include name="mysql/3.1.12" />
+      <include name="spring/${lib.version.spring}" />
+      <include name="tapestry/${lib.version.tapestry}" />
+      <include name="log4j/1.2.14" />
+      <include name="tacos/${lib.version.tacos}" />
+    </dirset>
+ </createlib>
+EOF
+}
+
+{
+teststr := << EOF
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+
+<!--  a very important -- comment!  -->
+
+<project name="someproject" basedir="../../.." default="sometarget">
+  <property name="lib.version.hibernate" value="3.2.2" />
+  <property name="lib.version.spring" value="2.0.7" />
+  <property name="lib.version.tapestry" value="4.0.2" />
+  <property name="lib.version.tacos" value="4.0.1" />
+  <property name="webapp" value="somewebapp" />
+  <property name="urlpath" value="/somepath/somewebapp" />
+  <property name="webappname" value="somewebapp" />
+  <property name="parentapp" value="admin" />
+  <property name="webapp.dir" value="${parentapp}/${webapp}" />
+
+<!--<property name="webapp.source"
+            value="${basedir}/webapps/${webapp.dir}/WEB-INF/source" />-->
+
+  <property name="webapp.parent"
+            value="${basedir}/webapps/${parentapp}" />
+
+  <property name="webapp.build"
+            value="${basedir}/build/unpack/${webapp}" />
+
+  <property name="webapp.webinf"
+            value="${basedir}/build/unpack/${webapp}/WEB-INF" />
+  <property name="build.output" value="${webapp.webinf}" />
+  <property name="module.list" value="logging,security,xmlrecord/client" />
+  <property name="webapp.classpath" refid="ref.classpath" />
+
+</project>
+EOF
+}
+
+showavalue := << //
+#get a value:
+{
+    kk = webapp.build
+    vv = $kk:antpropvalue
+
+    %echo
+    %echo $kk=$vv
+}
+//
+
+##################################### MAIN #####################################
+
+nocomments = $teststr:stripxmlcomments
+%echo nocomments='$nocomments'
+
+%void $teststr:parse_antprops
+#%echo newstr='$newstr'
+%echo AFTER PARSE:
+%echo $dummy:showantvars
+
+#get the ant props:
+antpropstk = $antpropstk:antpropnames
+
+#dump the ant props:
+%echo
+%echo size=$antpropstk:stacksize STACK=$antpropstk:showstack
+
+%call showavalue
+
+#expand ant props and return a new stack:
+%echo
+%echo EXPANDING VALUES
+antpropstk = $antpropstk:expand_antprops
+%echo size=$antpropstk:stacksize $antpropstk:showstack
+
+%call showavalue
+
+%echo AFTER EXPAND:
+%echo $dummy:showantvars
+
+#now add basedir setting:
+%void $setbasedir:parse_antprops
+
+%echo AFTER BASEDIR DEF:
+antpropstk = $dummy:expand_antprops
+%echo $dummy:showantvars
+
+
+#okay, now we can expand the createlib string:
+%echo
+%echo EXPANDED CREATELIB ELEMENT:
+%echo $createlibstr:expand_antrefs

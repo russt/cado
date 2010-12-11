@@ -1,7 +1,7 @@
 
                     =========================
                     Cado Quick Reference
-                    Version 1.86, 24-Nov-2010
+                    Version 1.87, 11-Dec-2010
                     =========================
 
 {
@@ -68,6 +68,7 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
 :xmlcomment         - wrap $var in xml comment:
 :xmlcommentblock    - wrap $var in multi-line xml comment: #wrap the input string in an xml comment
 :_<element_name>    - wrap $var in <element_name>, adding CG_ATTRIBUTE_<element_name> attributes, if defined.
+:stripxmlcomments   - strip xml comments from input
 
                     ================
                     STRING OPERATORS
@@ -112,7 +113,6 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
 :space              - use this to add spaces to empty string.
 :tab                - use this to add tabs to empty string.
 
-:antvar             - wrap value as an ant variable reference - e.g., $foo:nameof:antvar -> ${foo}.
 :cgvar              - wrap value as an cado template reference - e.g., $foo:nameof:cgvar -> ${foo:undef}
 
 :quote,:q           - wrap value in single quotes.
@@ -154,6 +154,23 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
 :stacksize          - return the size of a stack created with %push.
 :stackminus         - subtract the members of CG_STACK_SPEC from current stack (as in set subtraction).
 :showstack          - display stack as list $CG_STACK_DELIMITER separating elements.
+:unique             - eliminate duplicate elements on a stack, preserving order.
+
+                    =============
+                    ANT OPERATORS
+                    =============
+:antvar             - wrap value as an ant variable reference - e.g., $foo:nameof:antvar -> ${foo}.
+
+:parse_antprops     - builds table of ant properties from input ant script or snippet.
+:clear_antprops     - clears table built by :parse_antprops.
+:expand_antprops    - expand all variable references in internal ant property table.
+:showantvars        - display all ant properties as ant <property ...> statements.
+
+# the following operate on the :parse_antprops table:
+:expand_antrefs     - expand ant property variable references in input string.
+:antpropvalue       - return the value of the named ant property.
+:antpropnames       - input: stack of ant property names.  output: stack of corresponding values.
+:isantprop          - 1 if value is an ant property, 0 otherwise.
 
                     ==================
                     SH/CSH REFACTORING

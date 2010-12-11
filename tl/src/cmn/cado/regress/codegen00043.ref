@@ -1,0 +1,105 @@
+TESTNAME is codegen00043
+nocomments='<?xml version="1.0" encoding="ISO-8859-1"?>
+
+
+
+
+<project name="someproject" basedir="../../.." default="sometarget">
+  <property name="lib.version.hibernate" value="3.2.2" />
+  <property name="lib.version.spring" value="2.0.7" />
+  <property name="lib.version.tapestry" value="4.0.2" />
+  <property name="lib.version.tacos" value="4.0.1" />
+  <property name="webapp" value="somewebapp" />
+  <property name="urlpath" value="/somepath/somewebapp" />
+  <property name="webappname" value="somewebapp" />
+  <property name="parentapp" value="admin" />
+  <property name="webapp.dir" value="${parentapp}/${webapp}" />
+
+
+
+  <property name="webapp.parent"
+            value="${basedir}/webapps/${parentapp}" />
+
+  <property name="webapp.build"
+            value="${basedir}/build/unpack/${webapp}" />
+
+  <property name="webapp.webinf"
+            value="${basedir}/build/unpack/${webapp}/WEB-INF" />
+  <property name="build.output" value="${webapp.webinf}" />
+  <property name="module.list" value="logging,security,xmlrecord/client" />
+  <property name="webapp.classpath" refid="ref.classpath" />
+
+</project>
+'
+AFTER PARSE:
+<property name="build.output" value="${webapp.webinf}"/>
+<property name="lib.version.hibernate" value="3.2.2"/>
+<property name="lib.version.spring" value="2.0.7"/>
+<property name="lib.version.tacos" value="4.0.1"/>
+<property name="lib.version.tapestry" value="4.0.2"/>
+<property name="module.list" value="logging,security,xmlrecord/client"/>
+<property name="parentapp" value="admin"/>
+<property name="urlpath" value="/somepath/somewebapp"/>
+<property name="webapp" value="somewebapp"/>
+<property name="webapp.build" value="${basedir}/build/unpack/${webapp}"/>
+<property name="webapp.dir" value="${parentapp}/${webapp}"/>
+<property name="webapp.parent" value="${basedir}/webapps/${parentapp}"/>
+<property name="webapp.webinf" value="${basedir}/build/unpack/${webapp}/WEB-INF"/>
+<property name="webappname" value="somewebapp"/>
+
+
+size=14 STACK=build.output	lib.version.hibernate	lib.version.spring	lib.version.tacos	lib.version.tapestry	module.list	parentapp	urlpath	webapp	webapp.build	webapp.dir	webapp.parent	webapp.webinf	webappname
+
+webapp.build=${basedir}/build/unpack/${webapp}
+
+EXPANDING VALUES
+size=14 build.output	lib.version.hibernate	lib.version.spring	lib.version.tacos	lib.version.tapestry	module.list	parentapp	urlpath	webapp	webapp.build	webapp.dir	webapp.parent	webapp.webinf	webappname
+
+webapp.build=${basedir}/build/unpack/somewebapp
+AFTER EXPAND:
+<property name="build.output" value="${basedir}/build/unpack/somewebapp/WEB-INF"/>
+<property name="lib.version.hibernate" value="3.2.2"/>
+<property name="lib.version.spring" value="2.0.7"/>
+<property name="lib.version.tacos" value="4.0.1"/>
+<property name="lib.version.tapestry" value="4.0.2"/>
+<property name="module.list" value="logging,security,xmlrecord/client"/>
+<property name="parentapp" value="admin"/>
+<property name="urlpath" value="/somepath/somewebapp"/>
+<property name="webapp" value="somewebapp"/>
+<property name="webapp.build" value="${basedir}/build/unpack/somewebapp"/>
+<property name="webapp.dir" value="admin/somewebapp"/>
+<property name="webapp.parent" value="${basedir}/webapps/admin"/>
+<property name="webapp.webinf" value="${basedir}/build/unpack/somewebapp/WEB-INF"/>
+<property name="webappname" value="somewebapp"/>
+
+AFTER BASEDIR DEF:
+<property name="basedir" value="/tmp/foo"/>
+<property name="build.output" value="/tmp/foo/build/unpack/somewebapp/WEB-INF"/>
+<property name="lib.version.hibernate" value="3.2.2"/>
+<property name="lib.version.spring" value="2.0.7"/>
+<property name="lib.version.tacos" value="4.0.1"/>
+<property name="lib.version.tapestry" value="4.0.2"/>
+<property name="module.list" value="logging,security,xmlrecord/client"/>
+<property name="parentapp" value="admin"/>
+<property name="urlpath" value="/somepath/somewebapp"/>
+<property name="webapp" value="somewebapp"/>
+<property name="webapp.build" value="/tmp/foo/build/unpack/somewebapp"/>
+<property name="webapp.dir" value="admin/somewebapp"/>
+<property name="webapp.parent" value="/tmp/foo/webapps/admin"/>
+<property name="webapp.webinf" value="/tmp/foo/build/unpack/somewebapp/WEB-INF"/>
+<property name="webappname" value="somewebapp"/>
+
+
+EXPANDED CREATELIB ELEMENT:
+  <createlib name="lib">
+    <dirset dir="shared/libs">
+      <include name="acegi/1.0.3" />
+      <include name="hibernate/hibernate/3.2.2" />
+      <include name="mysql/3.1.12" />
+      <include name="spring/2.0.7" />
+      <include name="tapestry/4.0.2" />
+      <include name="log4j/1.2.14" />
+      <include name="tacos/4.0.1" />
+    </dirset>
+ </createlib>
+

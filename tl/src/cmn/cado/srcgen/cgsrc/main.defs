@@ -1,5 +1,5 @@
-VERSION = 1.86
-VERSION_DATE = 24-Nov-2010
+VERSION = 1.87
+VERSION_DATE = 11-Dec-2010
 COPYRIGHT_RANGE1 = 2003-2008
 COPYRIGHT_RANGE2 = 2009-2010
 
@@ -486,13 +486,7 @@ sub pushspec
     #if we generate no elements, then don't do anything:
     if ($#rhs_contents >= 0) {
         if (defined($lhs_contents)) {
-            if ($lhs_contents ne "" && $push_unique == 1) {
-                my @lhs_contents = split($;, $lhs_contents, -1);
-
-                #if we are maintaining a unique stack, do not add unless new:
-                my @new = &MINUS(\@rhs_contents, \@lhs_contents);
-                $CG_USER_VARS{$lhs} = join($;, $lhs_contents, @new) if ($#new >= 0);
-            } elsif ($lhs_contents ne "") {
+            if ($lhs_contents ne "") {
                 $CG_USER_VARS{$lhs} = join($;, $lhs_contents, @rhs_contents);
             } else {
                 $CG_USER_VARS{$lhs} = join($;, @rhs_contents);
@@ -500,6 +494,9 @@ sub pushspec
         } else {
             $CG_USER_VARS{$lhs} = join($;, @rhs_contents);
         }
+
+        #make stack unique if we had a %upush:
+        $CG_USER_VARS{$lhs} = &unique_op($CG_USER_VARS{$lhs}) if ($push_unique == 1);
     }
 
     return 1;
@@ -4070,6 +4067,10 @@ CODEGEN_HEADER := << EOF
 #       Regenerated maven2 libraries to verify process with current version of cado.
 #  24-Nov-2010 (russt) [Version 1.86]
 #       add :append assignment op.
+#  11-Dec-2010 (russt) [Version 1.87]
+#       add :unique stack op.  "%upush foostk $value" was not resulting in unique values.
+#       add :parse_antprops and associated operators.
+#       add tests for new ant ops, :unique.  update %upush tests.
 #
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER

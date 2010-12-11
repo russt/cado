@@ -15,18 +15,24 @@ TESTNAME is codegen00019
 %push/%pop test 4 foo='trailing   spaces   ' MYSTACK:stacksize=0
 %push/%pop test 4 PASSED
 %push/%pop test 5 PASSED (missing rhs)
-MYSTACK=${rhs:undef} size=1
+MYSTACK: 1 "${rhs:undef}"
 %push/%pop test 6 PASSED (undef rhs)
 size=2
 %push/%pop test 7 PASSED (good + undef rhs)
 
 %upush STATEMENT TESTS
-MYSTACK=ab size=2
+MYSTACK: 2 "a	b"
 %upush test 1 PASSED
-MYSTACK=abc size=3
+MYSTACK: 3 "a	b	c"
 %upush test 2 PASSED
-MYSTACK=abcdef size=6
+MYSTACK: 6 "a	b	c	d	e	f"
 %upush test 3 PASSED
+MYSTACK: 3 "a	b	c"
+%upush test 4 PASSED
+
+:unique OP TESTS
+MYSTACK: 3 "a	b	c"
+:unique test 1 PASSED
 
 %push CG_STACK_DELIMITER STATEMENT TESTS
 %push CG_STACK_DELIMITER test 1 PASSED
@@ -72,4 +78,4 @@ elem='SI_080808_08'
 elem='SI_090909_09'
 elem='SI_101010_10'
 PASS BAD REGULAR EXPRESSION TO %pushv:
-if we get here program did not exit
+if we get here test completed successfully

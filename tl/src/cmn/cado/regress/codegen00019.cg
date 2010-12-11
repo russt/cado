@@ -92,7 +92,7 @@ result=FAILED
 %undef MYSTACK
 %undef rhs
 %push MYSTACK $rhs
-%echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
+%echo MYSTACK: $MYSTACK:stacksize "$MYSTACK:showstack"
 %ifnot $MYSTACK:stacksize:minus1	result=PASSED
 %echo $tname test $tnum:i:a $result (undef rhs)
 
@@ -122,7 +122,7 @@ tnum = $tnum:incr
 %upush MYSTACK a
 %upush MYSTACK b
 %upush MYSTACK
-%echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
+%echo MYSTACK: $MYSTACK:stacksize "$MYSTACK:showstack"
 %ifnot $MYSTACK:stacksize:minus2	result=PASSED
 %echo $tname test $tnum $result
 
@@ -131,7 +131,7 @@ tnum = $tnum:incr
 %undef MYSTACK
 %upush MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %upush MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
-%echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
+%echo MYSTACK: $MYSTACK:stacksize "$MYSTACK:showstack"
 %ifnot $MYSTACK:stacksize:minus3	result=PASSED
 %echo $tname test $tnum $result
 
@@ -140,8 +140,36 @@ tnum = $tnum:incr
 %undef MYSTACK
 %upush MYSTACK a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
 %upush MYSTACK d${CG_STACK_DELIMITER}e${CG_STACK_DELIMITER}f
-%echo MYSTACK=$MYSTACK size=$MYSTACK:stacksize
+%echo MYSTACK: $MYSTACK:stacksize "$MYSTACK:showstack"
 %ifnot $MYSTACK:stacksize:minus6	result=PASSED
+%echo $tname test $tnum $result
+
+result=FAILED
+tnum = $tnum:incr
+%undef MYSTACK
+VALUES = a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+VALUES .= ${CG_STACK_DELIMITER}$VALUES
+%upush MYSTACK $VALUES
+%echo MYSTACK: $MYSTACK:stacksize "$MYSTACK:showstack"
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
+%echo $tname test $tnum $result
+
+#####
+tname=:unique
+tnum = 0
+%echo
+%echo $tname OP TESTS
+#####
+
+result=FAILED
+tnum = $tnum:incr
+%undef MYSTACK
+VALUES = a${CG_STACK_DELIMITER}b${CG_STACK_DELIMITER}c
+VALUES .= ${CG_STACK_DELIMITER}$VALUES
+%push MYSTACK $VALUES
+MYSTACK = $MYSTACK:unique
+%echo MYSTACK: $MYSTACK:stacksize "$MYSTACK:showstack"
+%ifnot $MYSTACK:stacksize:minus3	result=PASSED
 %echo $tname test $tnum $result
 
 #####
@@ -323,5 +351,5 @@ CG_COMPARE_SPEC := SI_101010_10
 
 %echo  PASS BAD REGULAR EXPRESSION TO %pushv:
 %pushv foo *
-%echo  if we get here program did not exit
+%echo  if we get here test completed successfully
 

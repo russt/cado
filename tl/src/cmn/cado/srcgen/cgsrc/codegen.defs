@@ -6,3 +6,4 @@
 %include cgsrc/postfix.defs
 %include cgsrc/op_stub.defs
 %include cgsrc/sh_op.defs
+%include cgsrc/ant_op.defs

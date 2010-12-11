@@ -498,6 +498,31 @@ sub stackminus_op
     return join($;, @new);
 }
 
+sub unique_op
+#process :unique postfix op
+#:unique - eliminate duplicate values from a stack, preserving original order
+{
+    my ($var) = @_;
+
+    return $var if ($var eq "");
+
+    my @thisStack = split($;, $var, -1);
+
+    my (%mark);
+    for (@thisStack) { $mark{$_}++;}
+
+    my @new = ();
+    for (@thisStack) {
+        push(@new, $_) if ($mark{$_});
+        $mark{$_} = 0;
+    }
+
+#printf STDERR "thisStack=(%s)\n", join(",", @thisStack);
+#printf STDERR "new=(%s)\n", join(",", @new);
+
+    return join($;, @new);
+}
+
 sub pv_op
 #alias for pragmavalue_op.
 {
@@ -1071,6 +1096,17 @@ sub xmlcomment_op
 {
     my ($var) = @_;
     return sprintf("<!-- %s -->", $var);
+}
+
+sub stripxmlcomments_op
+#INPUT:  string containing xml snippet
+#OUTPUT: string with xml comments stripped out.
+{
+    my ($varvalue) = @_;
+
+    $varvalue =~ s/<!--.*?-->//gs;
+
+    return $varvalue;
 }
 
 sub tab_op
