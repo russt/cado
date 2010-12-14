@@ -1,6 +1,7 @@
 cgsrc/main.defs
 cgsrc/cgdoc.txt
 cgsrc/op_stub.defs
+cgsrc/ant_op.defs
 cgsrc/sh_op.defs
 cgsrc/filetest_op.defs
 cgsrc/postfix.defs

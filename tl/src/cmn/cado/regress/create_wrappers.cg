@@ -27,7 +27,7 @@ EOF
 
 TEST_PREFIX = codegen
 #this is the number of tests:
-TNUM = 43
+TNUM = 44
 %call emit_wrapper
 ###  just emit one test:
 %exit

@@ -1,0 +1,12 @@
+TESTNAME is codegen00044
+===============
+a='one
+two
+three
+'
+===============
+test inline call
+a='one two three'
+===============
+testing %ifndef %call with expansion:  foo=${foo:undef}
+testing %ifndef %call without expansion:  foo=fooiscool

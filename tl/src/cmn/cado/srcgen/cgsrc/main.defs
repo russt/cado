@@ -1,5 +1,5 @@
-VERSION = 1.87
-VERSION_DATE = 11-Dec-2010
+VERSION = 1.88
+VERSION_DATE = 14-Dec-2010
 COPYRIGHT_RANGE1 = 2003-2008
 COPYRIGHT_RANGE2 = 2009-2010
 
@@ -293,9 +293,6 @@ sub interpret
         ++$linecnt; chomp $line; ++$LINE_CNT; ++$$LINE_CNT_REF;
         printf STDERR "line[%d] (%s)='%s'\n", $linecnt, $infile, $line if ($DEBUG);
 
-        #definitions can extend over multiple lines:
-        my ($lhs, $rhs, $is_multiline, $eoi_tok) = ("", "", 0, "");
-
         my ($dointerpret) = 1;  #used by %ifdef/ifndef
 
         while ($dointerpret) {
@@ -305,7 +302,7 @@ sub interpret
                 ;       #comment or blank:  SKIP
             } elsif (&includespec($line, $linecnt)) {
                 ;       #process the named include file.
-            } elsif (&interpretspec($line, $linecnt)) {
+            } elsif (&interpretspec($line, \$linecnt, $use_stdin, $fhref, $infile)) {
                 ;       #create an include file from a variable and include it.
             } elsif (&echospec($line, $linecnt)) {
                 ;       #echo some text to stdout
@@ -348,26 +345,8 @@ sub interpret
                 #exit to shell:
                 $exit_early = 1;
                 $halt_program = 1;
-            } elsif (&definition($line, $linecnt, \$lhs, \$rhs, \$is_multiline, \$eoi_tok, \$is_raw, \$is_append, \$numop)) {
-                #if we have a here-now doc...
-                if ($is_multiline) {
-                    $line = $use_stdin? <STDIN> : <$fhref>;   #get next line
-                    $rhs = "\n" if ($pragma_preserve_multiline_lnewline && defined($line)); #preserve left newline
-                    while (defined($line)) {
-                        ++$linecnt; chomp $line; ++$LINE_CNT; ++$$LINE_CNT_REF;
-                        printf STDERR "<< %s line[%d] (%s)='%s'\n", $eoi_tok, $linecnt, $infile, $line if ($DDEBUG);
-
-                        if ($line eq $eoi_tok) {
-                            #then close up this definition:
-                            chomp $rhs if ($pragma_trim_multiline_rnewline); #trim final newline if requested
-                            &add_definition($lhs, $rhs, $linecnt, $is_raw, $is_append, $numop);  #this does variable expansion
-                            last;   #DONE
-                        } else {
-                            $rhs .= "$line\n";    #put the newline back
-                            $line = $use_stdin? <STDIN> : <$fhref>;   #get next line
-                        }
-                    }
-                }
+            } elsif (&definition($line, \$linecnt, $use_stdin, $fhref, $infile)) {
+                ;  #note that definitions() can advance the linecnt.
             } elsif (&extern_cmd($line, $linecnt)) {
                 ;
             } elsif (&filespec($line, $linecnt)) {
@@ -967,28 +946,57 @@ sub interpretspec
 #create an include file from a variable and include it.
 #returns true if we have an %interpret <varname> spec
 {
-    my ($line, $linecnt) = @_;
+    my ($line, $linecnt, $use_stdin, $fhref, $infile) = @_;
+        #note:  $linecnt is a reference.
+
+#printf STDERR "interpretspec: line='%s'\n", $line;
+
     return 0 unless ($line =~ /^\s*%call/ || $line =~ /^\s*%interpret/);
 
     my $token = '%interpret';
     $token = '%call' if ($line =~ /^\s*%call/);
 
     $line =~ s/^\s*$token\s+//;
-    #trim trailing spaces too:
-    $line =~ s/\s*$//;
 
     my ($input_var)  = $line;
+    my ($tmpvarname)  = "";
+
+    #check for here-now doc:
+    if ($line =~ /=\s*<</) {
+        #add a tmp varname in front of assignment:
+        $tmpvarname = &newtmpvarname();
+        $line = sprintf("%s %s\n", $tmpvarname, $line);
+        $input_var  = $tmpvarname;
+
+#printf STDERR "interpretspec: line='%s'\n", $line;
+
+        if (&definition($line, $linecnt, $use_stdin, $fhref, $infile)) {
+            ;
+        } else {
+            #processing for rhs of assignment failed:
+            printf STDERR "%s[%s]: failed to parse here-now definition: '%s'\n", $p, $token, $line;
+            ++ $GLOBAL_ERROR_COUNT;
+            &undef_tmpvar($tmpvarname);
+            return 1;   #return true because we parsed an interpretspec
+        }
+    } else {
+        #not a here-now - trim trailing spaces:
+        $line =~ s/\s*$//;
+    }
 
     #expand varible refs in statement:
     my $input_var_ref = &expand_macros($input_var);
 
-    printf "%s: input_var='%s' input_var_ref='%s'\n", $token, $input_var, $input_var_ref if ($DEBUG);
+#printf STDERR "%s: input_var='%s' input_var_ref='%s' tmpvarname{%s}='%s'\n", $token, $input_var, $input_var_ref, $tmpvarname, $CG_USER_VARS{$tmpvarname};
+
+    printf STDERR "%s: input_var='%s' input_var_ref='%s'\n", $token, $input_var, $input_var_ref if ($DEBUG);
 
     #ensure that our variable reference is defined.
     if (!defined($CG_USER_VARS{$input_var_ref})) {
         printf STDERR "%s[%s]: variable '%s'->'%s' is undefined.\n", $p, $token, $input_var, $input_var_ref;
         ++ $GLOBAL_ERROR_COUNT;
-        return 1;   #return true because we parsed a evalmacro_spec
+        &undef_tmpvar($tmpvarname);
+        return 1;   #return true because we parsed an interpretspec
     }
 
     #write contents of our <input_var> into a tmp file:
@@ -996,8 +1004,9 @@ sub interpretspec
     my $tmpfile_fullpath = &write_string_to_cg_tmp_file($input_var_contents);
     if ($tmpfile_fullpath eq "NULL") {
         printf STDERR "%s[%s]: ERROR: line %d: cannot create temp file.\n",
-            $p, $token, $linecnt unless ($QUIET);
+            $p, $token, $$linecnt unless ($QUIET);
         ++ $GLOBAL_ERROR_COUNT;
+        &undef_tmpvar($tmpvarname);
         return 1;   #return true because we parsed a evalmacro_spec
     }
 
@@ -1006,7 +1015,8 @@ sub interpretspec
     ##########
     ++$GLOBAL_ERROR_COUNT unless (&interpret($tmpfile_fullpath) == 0);
 
-    #delete the tmp file:
+    #clean up tmp file, tmpvar:
+    &undef_tmpvar($tmpvarname);
     unlink $tmpfile_fullpath;
 
     return 1;
@@ -1993,17 +2003,9 @@ sub istrueExpr
 
 sub definition
 #true if we see a definition.  add definition to global hash.
+# USAGE:  definition($line, \$linecnt, $use_stdin, $fhref, $infile)
 {
-    my ($line, $linecnt, $_lhs, $_rhs, $_is_multiline, $_eoi_tok, $_raw_assign, $_append_assign, $_numop) = @_;
-
-    #set results:
-    ${$_lhs} = "";
-    ${$_rhs} = "";
-    ${$_is_multiline} = 0;
-    ${$_eoi_tok} = $; ;    #almost guaranteed to never match any input
-
-    #set result parameters:
-    ${$_raw_assign} = ${$_append_assign} = ${$_numop} = 0;
+    my ($line, $linecnt, $use_stdin, $fhref, $infile) = @_;
 
     #return early if this cannot be a definition:
     return 0 unless ($line =~  /=/);
@@ -2043,33 +2045,43 @@ sub definition
     }
 
 #printf STDERR "T6 lhs='%s'numop=%d  rhs='%s'\n", $lhs, $numop, $rhs;
-    #reset result parameters:
-    ${$_raw_assign}    = $is_raw;
-    ${$_append_assign} = $is_append;
-    ${$_numop}         = $numop;
 
-    #check for here-now token:
-    my (@tmp, $xx);
+    my (@tmp, $xx, $eoi_tok);
+
+    #if we have a here-now doc...
     if ($rhs =~ /<</) {
-        #save eoi_tok, set is_multiline, etc:
-        ${$_is_multiline} = 1;
-        ${$_lhs} = $lhs;
-
         @tmp = split('<<', $rhs);
         if ($#tmp >= 0) {
             $xx = $tmp[$#tmp];
             $xx =~ s/\s//g;    #remove any white-space in eoi-tok
-            ${$_eoi_tok} = $xx;
+            $eoi_tok = $xx;
+            $rhs = "";   #clear rhs
         } else {
-            printf STDERR "%s: ERROR: run-away here-now string starting on line %d!\n", $p, $linecnt;
+            printf STDERR "%s: ERROR: run-away here-now string starting on line %d!\n", $p, $$linecnt;
             ++ $GLOBAL_ERROR_COUNT;
+            return 1;
         }
 
-        #we always return true, which will eat up the remaining input if no eoi_tok:
-        return 1;
+        $line = $use_stdin? <STDIN> : <$fhref>;   #get next line
+        $rhs = "\n" if ($pragma_preserve_multiline_lnewline && defined($line)); #preserve left newline
+        while (defined($line)) {
+            ++${$linecnt}; chomp $line; ++$LINE_CNT; ++$$LINE_CNT_REF;
+#printf STDERR "%s << %s line[%d] (%s)='%s'\n", $lhs, $eoi_tok, $$linecnt, $infile, $line;
+            printf STDERR "<< %s line[%d] (%s)='%s'\n", $eoi_tok, $$linecnt, $infile, $line if ($DDEBUG);
+
+            if ($line eq $eoi_tok) {
+                #then close up this definition:
+                chomp $rhs if ($pragma_trim_multiline_rnewline); #trim final newline if requested
+                last;   #DONE
+            } else {
+                $rhs .= "$line\n";    #put the newline back
+                $line = $use_stdin? <STDIN> : <$fhref>;   #get next line
+            }
+        }
     }
 
-    return &add_definition($lhs, $rhs, $linecnt, $is_raw, $is_append, $numop);
+    #note - add_definition() does variable expansion:
+    return &add_definition($lhs, $rhs, $$linecnt, $is_raw, $is_append, $numop);
 }
 
 sub add_definition
@@ -3733,6 +3745,29 @@ sub create_cg_tmpdir
     return 1;    #true if dir is there or we created.
 }
 
+my $TMPVAR_CNT = 0;
+
+sub newtmpvarname
+#return the next available cado tmp varname
+{
+    return sprintf("CG_TMPVAR_%04d", ++$TMPVAR_CNT);
+}
+
+sub undef_tmpvar
+{
+    my ($tmpvarname) = @_;
+    return unless $tmpvarname =~ /^CG_TMPVAR_(\d+)$/;
+
+    #we had a match - save tmpvar counter
+    my $cnt = $1;
+
+    #decrement the counter if we are freeing the last allocated:
+    --$TMPVAR_CNT if ($cnt = $TMPVAR_CNT);
+
+    #delete the variable:
+    delete $CG_USER_VARS{$tmpvarname};
+}
+
 sub get_cg_tmpfile_name
 #return the next available cado temp-file name.
 #
@@ -4071,6 +4106,8 @@ CODEGEN_HEADER := << EOF
 #       add :unique stack op.  "%upush foostk $value" was not resulting in unique values.
 #       add :parse_antprops and associated operators.
 #       add tests for new ant ops, :unique.  update %upush tests.
+#  14-Dec-2010 (russt) [Version 1.88]
+#       allow inline definitions for %call, %if, %foreach, %while, and variants.
 #
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER
