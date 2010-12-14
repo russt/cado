@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.87 - 11-Dec-2010
+# @(#)codegen.pl - ver 1.88 - 14-Dec-2010
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2010 Russ Tremain.  All Rights Reserved.
@@ -275,6 +275,8 @@
 #       add :unique stack op.  "%upush foostk $value" was not resulting in unique values.
 #       add :parse_antprops and associated operators.
 #       add tests for new ant ops, :unique.  update %upush tests.
+#  14-Dec-2010 (russt) [Version 1.88]
+#       allow inline definitions for %call, %if, %foreach, %while, and variants.
 #
 
 use strict;
@@ -284,8 +286,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.87",         #VERSION - the program version number.
-    "11-Dec-2010",  #VERSION_DATE - date this version was released.
+    "1.88",         #VERSION - the program version number.
+    "14-Dec-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -568,7 +570,7 @@ sub interpret
                 ;       #comment or blank:  SKIP
             } elsif (&includespec($line, $linecnt)) {
                 ;       #process the named include file.
-            } elsif (&interpretspec($line, \$linecnt, $use_stdin, $fhref, $infile)) {
+            } elsif (&interpretspec($line, $linecnt, $use_stdin, $fhref, $infile)) {
                 ;       #create an include file from a variable and include it.
             } elsif (&echospec($line, $linecnt)) {
                 ;       #echo some text to stdout
@@ -611,7 +613,7 @@ sub interpret
                 #exit to shell:
                 $exit_early = 1;
                 $halt_program = 1;
-            } elsif (&definition($line, \$linecnt, $use_stdin, $fhref, $infile)) {
+            } elsif (&definition($line, $linecnt, $use_stdin, $fhref, $infile)) {
                 ;  #note that definitions() can advance the linecnt.
             } elsif (&extern_cmd($line, $linecnt)) {
                 ;
@@ -1213,7 +1215,6 @@ sub interpretspec
 #returns true if we have an %interpret <varname> spec
 {
     my ($line, $linecnt, $use_stdin, $fhref, $infile) = @_;
-        #note:  $linecnt is a reference.
 
 #printf STDERR "interpretspec: line='%s'\n", $line;
 
@@ -1270,7 +1271,7 @@ sub interpretspec
     my $tmpfile_fullpath = &write_string_to_cg_tmp_file($input_var_contents);
     if ($tmpfile_fullpath eq "NULL") {
         printf STDERR "%s[%s]: ERROR: line %d: cannot create temp file.\n",
-            $p, $token, $$linecnt unless ($QUIET);
+            $p, $token, $linecnt unless ($QUIET);
         ++ $GLOBAL_ERROR_COUNT;
         &undef_tmpvar($tmpvarname);
         return 1;   #return true because we parsed a evalmacro_spec
@@ -2323,7 +2324,7 @@ sub definition
             $eoi_tok = $xx;
             $rhs = "";   #clear rhs
         } else {
-            printf STDERR "%s: ERROR: run-away here-now string starting on line %d!\n", $p, $$linecnt;
+            printf STDERR "%s: ERROR: run-away here-now string starting on line %d!\n", $p, $linecnt;
             ++ $GLOBAL_ERROR_COUNT;
             return 1;
         }
@@ -2331,9 +2332,9 @@ sub definition
         $line = $use_stdin? <STDIN> : <$fhref>;   #get next line
         $rhs = "\n" if ($pragma_preserve_multiline_lnewline && defined($line)); #preserve left newline
         while (defined($line)) {
-            ++${$linecnt}; chomp $line; ++$LINE_CNT; ++$$LINE_CNT_REF;
-#printf STDERR "%s << %s line[%d] (%s)='%s'\n", $lhs, $eoi_tok, $$linecnt, $infile, $line;
-            printf STDERR "<< %s line[%d] (%s)='%s'\n", $eoi_tok, $$linecnt, $infile, $line if ($DDEBUG);
+            ++$linecnt; chomp $line; ++$LINE_CNT; ++$$LINE_CNT_REF;
+#printf STDERR "%s << %s line[%d] (%s)='%s'\n", $lhs, $eoi_tok, $linecnt, $infile, $line;
+            printf STDERR "<< %s line[%d] (%s)='%s'\n", $eoi_tok, $linecnt, $infile, $line if ($DDEBUG);
 
             if ($line eq $eoi_tok) {
                 #then close up this definition:
@@ -2347,7 +2348,12 @@ sub definition
     }
 
     #note - add_definition() does variable expansion:
-    return &add_definition($lhs, $rhs, $$linecnt, $is_raw, $is_append, $numop);
+    if ( !&add_definition($lhs, $rhs, $linecnt, $is_raw, $is_append, $numop) ) {
+        printf STDERR "%s: ERROR: line#%d: add definition FAILED for variable '%s', value '%s' \n", $p, $linecnt, $lhs, $rhs;
+        ++ $GLOBAL_ERROR_COUNT;
+    } 
+
+    return 1;    #we processed a definition, successful or not.
 }
 
 sub add_definition
@@ -3423,7 +3429,8 @@ sub cg_assign
     my ($numop) = 0;   #for +=, -=, /=, *= ...
 
     #now we can call normal definition parser:
-    &definition($assignment_txt, 0, \$lhs, \$rhs, \$is_multiline, \$eoi_tok, \$is_raw, \$is_append, \$numop);
+    #usage:  &definition($line, $linecnt, $use_stdin, $fhref, $infile)
+    &definition($assignment_txt, 1, 0, 0, 0, 0);
 
     return 0;
 }
