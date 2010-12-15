@@ -1,0 +1,15 @@
+#test regression in expansion
+
+tname= expansion
+tnum = 0
+
+foo=blah
+blah=bleep
+txt = {$foo}=($foo:valueof)
+%echo $txt
+
+CG_COMPARE_SPEC := {blah}=(bleep)
+result=PASSED
+%if $txt:ne	result=FAILED
+%echo $tname TEST #$tnum:incr:a $result
+
