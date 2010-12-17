@@ -1,5 +1,5 @@
 VERSION = 1.88
-VERSION_DATE = 14-Dec-2010
+VERSION_DATE = 16-Dec-2010
 COPYRIGHT_RANGE1 = 2003-2008
 COPYRIGHT_RANGE2 = 2009-2010
 
@@ -281,7 +281,7 @@ sub interpret
     #note that this could eat the whole file
     while ($STRIPTOSHARPBANG && defined($line)) {
         last if ( $line =~ /^#!/ );    #don't increment line number yet
-        chomp $line; ++$linecnt; ++$LINE_CNT; ++$$LINE_CNT_REF;
+        chomp $line; $LINE_CNT = $$LINE_CNT_REF = ++$linecnt;
 
         $line = $use_stdin? <STDIN> : <$fhref>;    #read one line of input
     }
@@ -290,28 +290,35 @@ sub interpret
     $STRIPTOSHARPBANG = 0;
 
     while (!$exit_early && defined($line)) {
-        ++$linecnt; chomp $line; ++$LINE_CNT; ++$$LINE_CNT_REF;
+        chomp $line; $LINE_CNT = $$LINE_CNT_REF = ++$linecnt;
         printf STDERR "line[%d] (%s)='%s'\n", $linecnt, $infile, $line if ($DEBUG);
 
         my ($dointerpret) = 1;  #used by %ifdef/ifndef
 
         while ($dointerpret) {
+#printf STDERR "%s: line[%d] (%s)='%s'\n", "MAIN", $linecnt, $infile, $line;
             $dointerpret = 0;   #used by %ifdef/ifndef
 
             if ($line =~ /^\s*$/ || &comment($line)) {
                 ;       #comment or blank:  SKIP
             } elsif (&includespec($line, $linecnt)) {
                 ;       #process the named include file.
-            } elsif (&interpretspec($line, $linecnt, $use_stdin, $fhref, $infile)) {
+            } elsif (&interpretspec(\$line, \$linecnt, $use_stdin, $fhref, $infile)) {
                 ;       #create an include file from a variable and include it.
             } elsif (&echospec($line, $linecnt)) {
                 ;       #echo some text to stdout
             } elsif (&ifdefspec(\$line, $linecnt, \$dointerpret)) {
                 #this may force another loop
                 printf STDERR "AFTER ifn?def: line='%s' dointerpret=%d\n", $line, $dointerpret if ($DEBUG);
+#printf STDERR "%s: line[%d] (%s)='%s' dointerpret=%d\n", "IFDEF", $linecnt, $infile, $line, $dointerpret;
+
+#NOTE:  we need to devise a mechanism to scan past a multi-line definition
+#in the event the tested condition is false.
+
             } elsif (&ifspec(\$line, $linecnt, \$dointerpret)) {
                 #this may force another loop
                 printf STDERR "AFTER if[not]: line='%s' dointerpret=%d\n", $line, $dointerpret if ($DEBUG);
+#printf STDERR "AFTER if[not]: line='%s' dointerpret=%d\n", $line, $dointerpret;
             } elsif (&shellspec($line, $linecnt)) {
                 ;       #process a shell command.
             } elsif (&foreachspec($line, $linecnt)) {
@@ -345,7 +352,7 @@ sub interpret
                 #exit to shell:
                 $exit_early = 1;
                 $halt_program = 1;
-            } elsif (&definition($line, $linecnt, $use_stdin, $fhref, $infile)) {
+            } elsif (&definition(\$line, \$linecnt, $use_stdin, $fhref, $infile)) {
                 ;  #note that definitions() can advance the linecnt.
             } elsif (&extern_cmd($line, $linecnt)) {
                 ;
@@ -948,39 +955,39 @@ sub interpretspec
 {
     my ($line, $linecnt, $use_stdin, $fhref, $infile) = @_;
 
-#printf STDERR "interpretspec: line='%s'\n", $line;
+#printf STDERR "interpretspec: line='%s'\n", $$line;
 
-    return 0 unless ($line =~ /^\s*%call/ || $line =~ /^\s*%interpret/);
+    return 0 unless ($$line =~ /^\s*%call/ || $$line =~ /^\s*%interpret/);
 
     my $token = '%interpret';
-    $token = '%call' if ($line =~ /^\s*%call/);
+    $token = '%call' if ($$line =~ /^\s*%call/);
 
-    $line =~ s/^\s*$token\s+//;
+    $$line =~ s/^\s*$token\s+//;
 
-    my ($input_var)  = $line;
+    my ($input_var)  = $$line;
     my ($tmpvarname)  = "";
 
     #check for here-now doc:
-    if ($line =~ /=\s*<</) {
+    if ($$line =~ /=\s*<</) {
         #add a tmp varname in front of assignment:
         $tmpvarname = &newtmpvarname();
-        $line = sprintf("%s %s\n", $tmpvarname, $line);
+        $$line = sprintf("%s %s\n", $tmpvarname, $$line);
         $input_var  = $tmpvarname;
 
-#printf STDERR "interpretspec: line='%s'\n", $line;
+#printf STDERR "interpretspec: line='%s'\n", $$line;
 
         if (&definition($line, $linecnt, $use_stdin, $fhref, $infile)) {
             ;
         } else {
             #processing for rhs of assignment failed:
-            printf STDERR "%s[%s]: failed to parse here-now definition: '%s'\n", $p, $token, $line;
+            printf STDERR "%s[%s]: failed to parse here-now definition: '%s'\n", $p, $token, $$line;
             ++ $GLOBAL_ERROR_COUNT;
             &undef_tmpvar($tmpvarname);
             return 1;   #return true because we parsed an interpretspec
         }
     } else {
         #not a here-now - trim trailing spaces:
-        $line =~ s/\s*$//;
+        $$line =~ s/\s*$//;
     }
 
     #expand varible refs in statement:
@@ -1003,7 +1010,7 @@ sub interpretspec
     my $tmpfile_fullpath = &write_string_to_cg_tmp_file($input_var_contents);
     if ($tmpfile_fullpath eq "NULL") {
         printf STDERR "%s[%s]: ERROR: line %d: cannot create temp file.\n",
-            $p, $token, $linecnt unless ($QUIET);
+            $p, $token, $$linecnt unless ($QUIET);
         ++ $GLOBAL_ERROR_COUNT;
         &undef_tmpvar($tmpvarname);
         return 1;   #return true because we parsed a evalmacro_spec
@@ -1586,12 +1593,14 @@ sub ifdefspec
     my $doeval = ( ($vardefined && $isifdef) || (!$vardefined && !$isifdef) );
 
     printf STDERR "%s: vardefined=%d doeval=%d\n", $token, $vardefined, $doeval if ($DEBUG);
+#printf STDERR "%s: vardefined=%d doeval=%d\n", $token, $vardefined, $doeval;
 
     return 1 unless ($doeval);     #we are done with this line.
 
     #otherwise, re-interpret the remainder of the line:
     ${$_line} = $def_expr;
     ${$_doeval} = 1;
+#printf STDERR "IFDEF return line='%s'\n", $$_line;
 
     return 1;
 }
@@ -1602,10 +1611,10 @@ sub ifspec
 #i.e., if string or variable evaluates to non-zero or non-empty, it is true
 {
     my ($_line, $linecnt, $_doeval) = @_;
-    my ($line) = ${$_line};
+    my ($line) = $$_line;
 
     #RESULT:
-    ${$_doeval} = 0;
+    $$_doeval = 0;
 
     return 0 unless ($line =~ /^\s*%(if|ifnot)\s+/);
 
@@ -1646,8 +1655,8 @@ sub ifspec
     return 1 unless ($doeval);     #we are done with this line.
 
     #otherwise, re-interpret the remainder of the line:
-    ${$_line} = $if_clause;
-    ${$_doeval} = 1;
+    $$_line = $if_clause;
+    $$_doeval = 1;
 
     return 1;
 }
@@ -2002,29 +2011,29 @@ sub istrueExpr
 
 sub definition
 #true if we see a definition.  add definition to global hash.
-# USAGE:  definition($line, \$linecnt, $use_stdin, $fhref, $infile)
+# USAGE:  definition(\$line, \$linecnt, $use_stdin, $fhref, $infile)
 {
     my ($line, $linecnt, $use_stdin, $fhref, $infile) = @_;
 
     #return early if this cannot be a definition:
-    return 0 unless ($line =~  /=/);
+    return 0 unless ($$line =~  /=/);
 
     my ($is_raw)       = 0;
     my ($is_append)    = 0;
     my ($numop)        = 0;    #if detected, we set to ord(op), where op is +,0,/,*, etc.
 
-#printf STDERR "\ndefinition:  line='%s'\n", $line;
+#printf STDERR "\ndefinition:  line='%s'\n", $$line;
 
     my ($lhs,$rhs);
-    if ($line =~ /^\s*([^\s\.=:]*)\s*\.:=\s*(.*)$/) {
+    if ($$line =~ /^\s*([^\s\.=:]*)\s*\.:=\s*(.*)$/) {
         $lhs = $1; $rhs = $2;
         $is_raw = $is_append = 1;
-#printf STDERR "T1 line='%s' lhs='%s' rhs='%s'\n", $line, $lhs, $rhs;
-    } elsif ($line =~ /^\s*([^\*\s]*)\s*\*\*=\s*(.*)$/) {
+#printf STDERR "T1 line='%s' lhs='%s' rhs='%s'\n", $$line, $lhs, $rhs;
+    } elsif ($$line =~ /^\s*([^\*\s]*)\s*\*\*=\s*(.*)$/) {
         $lhs = $1; $numop = ord('e'); $rhs = $2;  # 'e' for exponent
 #printf STDERR "T2 lhs='%s' rhs='%s' numop=%d(%s)\n", $lhs, $rhs, $numop, chr($numop);
-    } elsif ( ($line =~ /^\s*([a-zA-Z_0-9\${}:]+)\s*([:\.\/\*\+\-\%\&\|\^])=\s*(.*)$/) ||
-              ($line =~ /^\s*([a-zA-Z_0-9\${}:]+)\s+(x)=\s*(.*)$/) ) {
+    } elsif ( ($$line =~ /^\s*([a-zA-Z_0-9\${}:]+)\s*([:\.\/\*\+\-\%\&\|\^])=\s*(.*)$/) ||
+              ($$line =~ /^\s*([a-zA-Z_0-9\${}:]+)\s+(x)=\s*(.*)$/) ) {
         #note second case:  x= requires a space in front to disambiguate "xx=rhs" from "x x=rhs"
         $lhs = $1; $numop = ord($2); $rhs = $3;
         if ($numop == ord('.')) {
@@ -2035,7 +2044,7 @@ sub definition
             $numop = $numop;    #we have a valid numeric op (+=, etc)
         }
 #printf STDERR "T3 lhs='%s' rhs='%s' numop=%d(%s)\n", $lhs, $rhs, $numop, chr($numop);
-    } elsif ($line =~ /^\s*([^=\s]*)\s*=\s*(.*)$/) {
+    } elsif ($$line =~ /^\s*([^=\s]*)\s*=\s*(.*)$/) {
         $lhs = $1; $rhs = $2;
 #printf STDERR "T4 lhs='%s' rhs='%s'\n", $lhs, $rhs;
     } else {
@@ -2056,32 +2065,32 @@ sub definition
             $eoi_tok = $xx;
             $rhs = "";   #clear rhs
         } else {
-            printf STDERR "%s: ERROR: run-away here-now string starting on line %d!\n", $p, $linecnt;
+            printf STDERR "%s: ERROR: run-away here-now string starting on line %d!\n", $p, $$linecnt;
             ++ $GLOBAL_ERROR_COUNT;
             return 1;
         }
 
-        $line = $use_stdin? <STDIN> : <$fhref>;   #get next line
-        $rhs = "\n" if ($pragma_preserve_multiline_lnewline && defined($line)); #preserve left newline
-        while (defined($line)) {
-            ++$linecnt; chomp $line; ++$LINE_CNT; ++$$LINE_CNT_REF;
-#printf STDERR "%s << %s line[%d] (%s)='%s'\n", $lhs, $eoi_tok, $linecnt, $infile, $line;
-            printf STDERR "<< %s line[%d] (%s)='%s'\n", $eoi_tok, $linecnt, $infile, $line if ($DDEBUG);
 
-            if ($line eq $eoi_tok) {
+        $$line = $use_stdin? <STDIN> : <$fhref>;   #get next line
+        $rhs = "\n" if ($pragma_preserve_multiline_lnewline && defined($$line)); #preserve left newline
+        while (defined($$line)) {
+            chomp $$line; $LINE_CNT = $$LINE_CNT_REF = ++$$linecnt;
+            printf STDERR "<< %s line[%d] (%s)='%s'\n", $eoi_tok, $$linecnt, $infile, $$line if ($DDEBUG);
+
+            if ($$line eq $eoi_tok) {
                 #then close up this definition:
                 chomp $rhs if ($pragma_trim_multiline_rnewline); #trim final newline if requested
                 last;   #DONE
             } else {
-                $rhs .= "$line\n";    #put the newline back
-                $line = $use_stdin? <STDIN> : <$fhref>;   #get next line
+                $rhs .= "$$line\n";    #put the newline back
+                $$line = $use_stdin? <STDIN> : <$fhref>;   #get next line
             }
         }
     }
 
     #note - add_definition() does variable expansion:
-    if ( !&add_definition($lhs, $rhs, $linecnt, $is_raw, $is_append, $numop) ) {
-        printf STDERR "%s: ERROR: line#%d: add definition FAILED for variable '%s', value '%s' \n", $p, $linecnt, $lhs, $rhs;
+    if ( !&add_definition($lhs, $rhs, $$linecnt, $is_raw, $is_append, $numop) ) {
+        printf STDERR "%s: ERROR: line#%d: add definition FAILED for variable '%s', value '%s' \n", $p, $$linecnt, $lhs, $rhs;
         ++ $GLOBAL_ERROR_COUNT;
     } 
 
@@ -3165,8 +3174,9 @@ sub cg_assign
     my ($numop) = 0;   #for +=, -=, /=, *= ...
 
     #now we can call normal definition parser:
-    #usage:  &definition($line, $linecnt, $use_stdin, $fhref, $infile)
-    &definition($assignment_txt, 1, 0, 0, 0, 0);
+    #usage:  &definition(\$line, \$linecnt, $use_stdin, $fhref, $infile)
+    my $linecnt = 1;
+    &definition(\$assignment_txt, \$linecnt, 0, 0, 0, 0);
 
     return 0;
 }

@@ -33,7 +33,23 @@ define_foo := foo = fooiscool
 define_foo := foo = fooiscool
 
 #test with here-now doc expanded at evaluation time:
-%ifndef FOO  %call := << {
+%ifndef FOO  %call := << //
     %call define_foo
     %echo testing %ifndef %call without expansion:  foo=$foo
+//
+
+FOO = 1
+
+%if $FOO  %call = << EOF
+{
+    %echo testing %if - FOO=$FOO
 }
+EOF
+
+FOO = 0
+%ifnot $FOO  %call = << //
+{
+    %echo testing %ifnot - FOO=$FOO
+}
+//
+

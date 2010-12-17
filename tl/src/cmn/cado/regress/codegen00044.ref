@@ -10,3 +10,5 @@ a='one two three'
 ===============
 testing %ifndef %call with expansion:  foo=${foo:undef}
 testing %ifndef %call without expansion:  foo=fooiscool
+testing %if - FOO=1
+testing %ifnot - FOO=0
