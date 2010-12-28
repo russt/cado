@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.88 - 16-Dec-2010
+# @(#)cado.pl - ver 1.89 - 28-Dec-2010
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2010 Russ Tremain.  All Rights Reserved.
@@ -277,6 +277,10 @@
 #       add tests for new ant ops, :unique.  update %upush tests.
 #  14-Dec-2010 (russt) [Version 1.88]
 #       allow inline definitions for %call, %if, %foreach, %while, and variants.
+#       %call is working; conditionals need to scan forward if condition is false.
+#  28-Dec-2010 (russt) [Version 1.89]
+#       fix bug in strtospf(), whereby {$foo} on rhs was incorrectly parsed (see codegen00045 test).
+#       fixing inline defs when conditionals are false.
 #
 
 use strict;
@@ -286,8 +290,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.88",         #VERSION - the program version number.
-    "16-Dec-2010",  #VERSION_DATE - date this version was released.
+    "1.89",         #VERSION - the program version number.
+    "28-Dec-2010",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -3188,17 +3192,24 @@ sub strtospf
 
     #otherwise, create the format string and varible list:
 
-    #first, replace $var and ${var} refs with '%s':
-    my $fmt = $str;
-    $fmt =~ s/\${?[a-zA-Z_][:a-zA-Z_0-9]*}?/\%s/g;
-    push @spf, $fmt;
-
-    #next, get the var list using the match operator, which
+    #first, get the var list using the match operator, which
     #returns a list of matched expressions:
     #Q:  is there a way to avoid generating match elements with nested ()'s?
     #    if so, we can make this match more precise.  RT 9/27/04
     my @args = ($str =~ /\${?([a-zA-Z_][:a-zA-Z_0-9]*)}?/g);
     push @spf, @args;
+
+    #next create the format string by replacing each $var and ${var} ref with '%s':
+    my $fmt = $str;
+    #substitute maximal patterns first, i.e., $foo:split before $foo
+    foreach my $vv (reverse sort @args) {
+        if  ($fmt =~ /\${$vv}/) {
+            $fmt =~ s/\${$vv}/\%s/;
+        } else {
+            $fmt =~ s/\$$vv/\%s/;
+        }
+    }
+    unshift @spf, $fmt;
 
     printf STDERR "strtospf:  fmt='%s', args=(%s)\n", $fmt, join('|', @args) if ($DEBUG);
 

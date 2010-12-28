@@ -1,15 +1,80 @@
-#test regression in expansion
+#test regressions in assignment rhs expansion
 
 tname= expansion
-tnum = 0
+tnum = 00
 
+#global to this test:
 foo=blah
 blah=bleep
+
+#####
+#this is the original failure:
+%echo $tname:lnewline TEST #$tnum:incr:a ============
 txt = {$foo}=($foo:valueof)
 %echo $txt
 
 CG_COMPARE_SPEC := {blah}=(bleep)
 result=PASSED
 %if $txt:ne	result=FAILED
-%echo $tname TEST #$tnum:incr:a $result
+%echo $tname TEST #$tnum $result
+#####
+
+#####
+#what if we have the same var in separate form?
+%echo $tname:lnewline TEST #$tnum:incr:a ============
+txt = {$foo} $foo$foo$foo $foo {${foo}}
+%echo $txt
+
+CG_COMPARE_SPEC := {blah} blahblahblah blah {blah}
+result=PASSED
+%if $txt:ne	result=FAILED
+%echo $tname TEST #$tnum $result
+#####
+
+#####
+#test with operators:
+%echo $tname:lnewline TEST #$tnum:incr:a ============
+txt = {$foo:toupper} $foo{${foo}}$foo:tolower$foo:toupper$foo $foo:q:dq {${foo:q}} $foo:cgvar$foo:isint:q{$foo}${foo:antvar}$foo
+%echo $txt
+
+CG_COMPARE_SPEC := {BLAH} blah{blah}blahBLAHblah "'blah'" {'blah'} {=blah=}'0'{blah}${blah}blah
+result=PASSED
+%if $txt:ne	result=FAILED
+%echo $tname TEST #$tnum $result
+#####
+
+########
+#boiling down to simplest form:
+%echo $tname:lnewline TEST #$tnum:incr:a ============
+#%pragma debug 1
+txt = {$foo}
+#%pragma debug 0
+%echo $txt
+
+CG_COMPARE_SPEC := {blah}
+result=PASSED
+%if $txt:ne	result=FAILED
+%echo $tname TEST #$tnum $result
+########
+
+#####
+#test that % is restored correctly:
+%echo $tname:lnewline TEST #$tnum:incr:a ============
+txt = this text has some %'s in less than %44 and even less than %s except for %%%%%%%%.
+%echo $txt
+
+CG_COMPARE_SPEC := this text has some %'s in less than %44 and even less than %s except for %%%%%%%%.
+result=PASSED
+%if $txt:ne	result=FAILED
+%echo $tname TEST #$tnum $result
+
+%echo $tname:lnewline TEST #$tnum:incr:a ============
+txt = %%%%%%%%%%%%%%%%% MAIN %%%%%%%%%%%%%%%%%
+%echo $txt
+
+CG_COMPARE_SPEC := %%%%%%%%%%%%%%%%% MAIN %%%%%%%%%%%%%%%%%
+result=PASSED
+%if $txt:ne	result=FAILED
+%echo $tname TEST #$tnum $result
+#####
 

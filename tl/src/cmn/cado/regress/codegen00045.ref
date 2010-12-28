@@ -1,3 +1,25 @@
 TESTNAME is codegen00045
+
+expansion TEST #01 ============
 {blah}=(bleep)
-expansion TEST #1 PASSED
+expansion TEST #01 PASSED
+
+expansion TEST #02 ============
+{blah} blahblahblah blah {blah}
+expansion TEST #02 PASSED
+
+expansion TEST #03 ============
+{BLAH} blah{blah}blahBLAHblah "'blah'" {'blah'} {=blah=}'0'{blah}${blah}blah
+expansion TEST #03 PASSED
+
+expansion TEST #04 ============
+{blah}
+expansion TEST #04 PASSED
+
+expansion TEST #05 ============
+this text has some %'s in less than %44 and even less than %s except for %%%%%%%%.
+expansion TEST #05 PASSED
+
+expansion TEST #06 ============
+%%%%%%%%%%%%%%%%% MAIN %%%%%%%%%%%%%%%%%
+expansion TEST #06 PASSED
