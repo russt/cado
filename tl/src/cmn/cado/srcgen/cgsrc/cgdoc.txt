@@ -459,11 +459,11 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %interpret          - interpret the contents of a variable:  %interpret varname
 %call               - alias for %interpret.
 
-%echo               - echo text to stdout.
-%print              - alias for %echo.
+%echo  [-n]         - echo text to stdout.  If -n, do not add final newline.
+%print [-n]         - alias for %echo.
 
-%eecho              - echo text to stderr.
-%eprint             - alias for %eecho.
+%eecho  [-n]        - echo text to stderr.  If -n, do not add final newline.
+%eprint [-n]        - alias for %eecho.
 
 %void               - useful for evaluating postfix ops without assignment.
 
