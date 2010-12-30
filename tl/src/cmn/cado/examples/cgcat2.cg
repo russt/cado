@@ -1,0 +1,30 @@
+if [ $# -eq 0 ]; then exec cado -u -x -S $0; exit $? ; else exec cado -u -x -S $0 "$@"; exit $? ; fi
+#!/bin/cado
+#--------------------------------------------------------------
+p = $CG_INFILE:basename
+%ifndef CG_ARGV %echo Usage:  ${p}: files...
+%ifndef CG_ARGV %halt 1
+
+CG_ROOT=.
+
+cat_file := << EOF
+#cat the file in $arg.
+#this version uses %readtemplate
+{
+    theFile = $arg
+    %shift arg CG_ARGV
+
+    readable = $theFile:r
+    %ifnot $readable    CG_EXIT_STATUS = 1
+    %ifnot $readable    %return -e ${p}: cannot open '$theFile'
+
+    %readtemplate filecontent $theFile
+
+    #display file to stdout
+    %echo -n $filecontent
+}
+EOF
+
+%shift arg CG_ARGV
+%whiledef arg %call cat_file
+#--------------------------------------------------------------
