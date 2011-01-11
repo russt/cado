@@ -30,6 +30,8 @@ CG_ROOT  = $CG_TMPDIR
 CG_TEMPLATE_PATH = $CG_ROOT;$CG_TEMPLATE_PATH
 
 %pragma quiet 1
+#this is used in one of the examples, and was getting interpolated:
+foo = $foo:nameof:cgvar
 cgsrc/cgdoc.txt	/cgdoc_tmp.txt
 
 #document for template operators can not be interpolated:
