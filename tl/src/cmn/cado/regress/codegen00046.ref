@@ -1,0 +1,37 @@
+TESTNAME is codegen00046
+STUDY CLASS com.acme.roles.baker
+=======  JAVA CLASS VARS
+CG_DIRNAME=com/acme/roles
+CG_FILENAME=baker.java
+CG_CLASSNAME=baker
+CG_FULL_CLASSNAME=com.acme.roles.baker
+CG_PKGNAME=roles
+CG_FULL_PKGNAME=com.acme.roles
+
+=======  OBJECTIVE C CLASS VARS
+CG_DIRNAME=com/acme/roles
+CG_FILENAME=baker.java
+CG_CLASSNAME=baker
+CG_INTERFACE=${CG_INTERFACE:undef}
+CG_IMPLEMENTATION=${CG_IMPLEMENTATION:undef}
+
+STUDY CLASS UIKit
+=======  JAVA CLASS VARS
+CG_DIRNAME=
+CG_FILENAME=UIKit
+CG_CLASSNAME=UIKit
+CG_FULL_CLASSNAME=${CG_FULL_CLASSNAME:undef}
+CG_PKGNAME=${CG_PKGNAME:undef}
+CG_FULL_PKGNAME=${CG_FULL_PKGNAME:undef}
+
+=======  OBJECTIVE C CLASS VARS
+CG_DIRNAME=
+CG_FILENAME=UIKit
+CG_CLASSNAME=UIKit
+CG_INTERFACE=UIKit.h
+CG_IMPLEMENTATION=UIKit.m
+
+echo -> ../bld/cgtstroot/codegen00046.dir/UIKit.h
+echo -> ../bld/cgtstroot/codegen00046.dir/UIKit.m
+echo -> ../bld/cgtstroot/codegen00046.dir/foo/txt.java
+echo -> ../bld/cgtstroot/codegen00046.dir/foo.txt

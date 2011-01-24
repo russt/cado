@@ -21,10 +21,10 @@
 #
 
 #
-# @(#)cado.pl - ver 1.89 - 28-Dec-2010
+# @(#)cado.pl - ver 1.90 - 23-Jan-2011
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
-# Copyright 2009-2010 Russ Tremain.  All Rights Reserved.
+# Copyright 2009-2011 Russ Tremain.  All Rights Reserved.
 #
 # END_HEADER - DO NOT EDIT
 #
@@ -280,7 +280,8 @@
 #       %call is working; conditionals need to scan forward if condition is false.
 #  28-Dec-2010 (russt) [Version 1.89]
 #       fix bug in strtospf(), whereby {$foo} on rhs was incorrectly parsed (see codegen00045 test).
-#       fixing inline defs when conditionals are false.
+#  23-Jan-2011 (russt) [Version 1.90]
+#       add %pragma generate_objective_c, %pragma generate_java and codegen00046 to test.
 #
 
 use strict;
@@ -290,8 +291,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.89",         #VERSION - the program version number.
-    "28-Dec-2010",  #VERSION_DATE - date this version was released.
+    "1.90",         #VERSION - the program version number.
+    "23-Jan-2011",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -375,6 +376,8 @@ our (
     $pragma_filegen_notices_to_stdout,
     $pragma_clrifndef,
     $pragma_maxevaldepth,
+    $pragma_generate_java,
+    $pragma_generate_objective_c,
 ) = (
     0,              #pragma_preserve_multiline_lnewline - preserve left newline in here-now defs.
     0,              #pragma_trim_multiline_rnewline - trim final newline in here-now defs.
@@ -390,6 +393,8 @@ our (
     0,              #pragma_filegen_notices_to_stdout - send file generation (x -> y) messages to stdout, not stderr.
     0,              #pragma_clrifndef - initialize undefined variables to empty string during macro expansion.
     10,             #pragma_maxevaldepth - max depth of recursion for %evalmacro * (recursive).
+    1,              #pragma_generate_java - generate for java (default).
+    0,              #pragma_generate_objective_c - generate for objective c instead of java.
 );
 
 #these are the user names for pragmas.  internal variable is prefixed with "pragma_".
@@ -409,6 +414,8 @@ my %PRAGMAS = (
     'filegen_notices_to_stdout', 1,
     'clrifndef', 1,
     'maxevaldepth', 1,
+    'generate_java', 1,
+    'generate_objective_c', 1,
 );
 
 my @INPUT_DATA;
@@ -933,6 +940,13 @@ sub pragma_spec
         $UPDATE = $pragma_update;
     } elsif ($pragma_var eq "pragma_environment") {
         $ENV_VARS_OKAY = $pragma_environment;
+    }
+
+    #new language generation pragma deselects any other active language:
+    if ($pragma_var eq "pragma_generate_java") {
+        $pragma_generate_objective_c = 0;
+    } elsif ($pragma_var eq "pragma_generate_objective_c") {
+        $pragma_generate_java =0;
     }
 
     return 1;
@@ -1647,15 +1661,90 @@ sub filespec
 }
 
 sub gen_classvars
+#based on pragma setting, generate class-vars for designated language.
+{
+    if ($pragma_generate_objective_c) {
+        return &gen_objc_classvars(@_);
+    } elsif ($pragma_generate_java) {
+        return &gen_java_classvars(@_);
+    } else {
+        #we are not generating for a particular language:
+        return &gen_plain_classvars(@_);
+    }
+}
+
+sub gen_plain_classvars
+#if we are not generating for a particular object-oriented language, then we only use
+#a sub-set of the original (java-based) class variables.
+#INPUT:   a file/class specification, relative to CG_ROOT.
+#OUTPUT:  add vars to <cvar_ref> hash, indexed by the following keys:
+#  (DIRNAME, FILENAME)
+{
+    my ($cvar_ref, $filespec) = @_;
+
+    printf STDERR "gen_plain_classvars:  filespec='%s'\n", $filespec if ($DEBUG);
+
+    my (@parts) = split(/[\/]+/, $filespec);
+
+    #FILENAME
+    my ($filename) = $parts[$#parts];
+
+    #DIRNAME
+    my ($dirname) = join('/', @parts[0..$#parts-1]);
+
+    #####
+    #save results in caller's hash:
+    #####
+    ${$cvar_ref}{'CG_DIRNAME'}        = $dirname;
+    ${$cvar_ref}{'CG_FILENAME'}       = $filename;
+
+    return 0;       #0 => no errors
+}
+
+sub gen_objc_classvars
+#INPUT:   a file/class specification, relative to CG_ROOT.
+#         example:  com.sun.jbi.admin.packaging.unzip
+#OUTPUT:  add vars to <cvar_ref> hash, indexed by the following keys:
+#  (DIRNAME, FILENAME, INTERFACE, IMPLEMENTATION, CLASSNAME)
+{
+    my ($cvar_ref, $filespec) = @_;
+
+    printf STDERR "gen_objc_classvars:  filespec='%s'\n", $filespec if ($DEBUG);
+
+    my (@parts) = split(/[\/]+/, $filespec);
+
+    #FILENAME
+    my ($filename) = $parts[$#parts];
+
+    #DIRNAME
+    my ($dirname) = join('/', @parts[0..$#parts-1]);
+
+    #CLASSNAME
+    my ($classname) = $parts[$#parts];
+    #eliminate suffix in classname if present:
+    $classname =~ s/\.[a-zA-Z0-9_]*$//;
+
+    #####
+    #save results in caller's hash:
+    #####
+    ${$cvar_ref}{'CG_DIRNAME'}        = $dirname;
+    ${$cvar_ref}{'CG_FILENAME'}       = $filename;
+    ${$cvar_ref}{'CG_CLASSNAME'}  = $classname;
+    ${$cvar_ref}{'CG_INTERFACE'}      = "$classname.h";
+    ${$cvar_ref}{'CG_IMPLEMENTATION'} = "$classname.m";
+
+    return 0;       #0 => no errors
+}
+
+sub gen_java_classvars
 #INPUT:   a file/class specification, starting at the cado root.
 #         example:  com.sun.jbi.admin.packaging.unzip
 #OUTPUT:  add vars to <cvar_ref> hash, indexed by the following keys:
 #  (DIRNAME, FILENAME, REL_PKGNAME, FULL_PKGNAME, CLASSNAME, FULL_CLASSNAME)
 {
     my ($cvar_ref, $filespec) = @_;
-    my (%out) = (); #cvar_ref is value-result parameter
 
-    printf STDERR "genclassvars:  filespec='%s'\n", $filespec if ($DEBUG);
+    printf STDERR "gen_java_classvars:  filespec='%s'\n", $filespec if ($DEBUG);
 
     my ($isjava) = ($filespec =~ /\./ && $filespec !~ /\//);
     my (@parts);

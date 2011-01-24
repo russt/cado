@@ -1,0 +1,59 @@
+#test %pragma generate_objective_c,  %pragma generate_java 1
+
+%ifndef CG_ROOT  CG_ROOT = bld
+
+#make test repeatable:
+%shell rm -rf $CG_ROOT/$TESTNAME.dir
+CG_ROOT = $CG_ROOT/$TESTNAME.dir
+
+%pragma filegen_notices_to_stdout 1
+ECHO_TXT = nada
+
+show_objc_classvars := << //
+{
+    %echo =======  OBJECTIVE C CLASS VARS
+    %echo CG_DIRNAME=$CG_DIRNAME
+    %echo CG_FILENAME=$CG_FILENAME
+    %echo CG_CLASSNAME=$CG_CLASSNAME
+    %echo CG_INTERFACE=$CG_INTERFACE
+    %echo CG_IMPLEMENTATION=$CG_IMPLEMENTATION
+    %echo
+}
+//
+
+show_java_classvars := << //
+{
+    %echo =======  JAVA CLASS VARS
+    %echo CG_DIRNAME=$CG_DIRNAME
+    %echo CG_FILENAME=$CG_FILENAME
+    %echo CG_CLASSNAME=$CG_CLASSNAME
+    %echo CG_FULL_CLASSNAME=$CG_FULL_CLASSNAME
+    %echo CG_PKGNAME=$CG_PKGNAME
+    %echo CG_FULL_PKGNAME=$CG_FULL_PKGNAME
+    %echo
+}
+//
+
+myclass = com.acme.roles.baker
+%echo STUDY CLASS $myclass
+%void $myclass:studyclass
+%call show_java_classvars
+%call show_objc_classvars
+
+%pragma generate_objective_c 1
+
+myclass = UIKit
+%echo STUDY CLASS $myclass
+%void $myclass:studyclass
+%call show_java_classvars
+%call show_objc_classvars
+
+%pragma debug 0
+echo	UIKit.h
+echo	UIKit.m
+
+#try some plain files:
+%pragma generate_java 1
+echo	foo.txt
+%pragma generate_java 0
+echo	foo.txt

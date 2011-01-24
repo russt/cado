@@ -1,7 +1,7 @@
 
                     =========================
                     Cado Quick Reference
-                    Version 1.89, 28-Dec-2010
+                    Version 1.90, 23-Jan-2011
                     =========================
 
 {
@@ -113,7 +113,7 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
 :space              - use this to add spaces to empty string.
 :tab                - use this to add tabs to empty string.
 
-:cgvar              - wrap value as an cado template reference - e.g., $foo:nameof:cgvar -> ${foo:undef}
+:cgvar              - wrap value as an cado template reference - e.g., $foo:nameof:cgvar -> {=foo=}
 
 :quote,:q           - wrap value in single quotes.
 :dquote,:dq         - wrap value in double quotes.
@@ -304,6 +304,19 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
                     =======
 %pragma require <perl_file>   - read a <perl_file> into the current context.
                                 Can be used to add custom postfix operators.
+
+%pragma generate_java [1|0]   - if 1, rhs of file-spec is treated as a java class name unless /'s are present
+
+%pragma generate_objective_c  - if 1, rhs of file-spec is treated as an objective-c file name, and the class name is
+                      [1|0]     derived from basename of path, e.g. a/b/UIKit.h sets CG_CLASSNAME to "UIKit".
+                                Objective C generated variables are:  {CG_DIRNAME, CG_FILENAME, CG_CLASSNAME,
+                                CG_INTERFACE, CG_IMPLEMENTATION}.
+
+NOTE:  generate_java is set as a default.  To generate plain files, e.g. foo.txt instead of foo/txt.java,
+       prefix the rhs with "/" (e.g., /foo.txt), or set generate_java to 0.
+NOTE:  setting generate_java will reset generate_objective_c.  Likewise, setting generate_objective_c
+       will reset generate_java.
+
 %pragma reset_stack_delimiter - restore CG_STACK_DELIMITER to default value.
 
 %pragma echo_expands [1|0]    - if 1, auto-expand macros in %echo template argument list.
@@ -459,11 +472,11 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %interpret          - interpret the contents of a variable:  %interpret varname
 %call               - alias for %interpret.
 
-%echo               - echo text to stdout.
-%print              - alias for %echo.
+%echo  [-n]         - echo text to stdout.  If -n, do not add final newline.
+%print [-n]         - alias for %echo.
 
-%eecho              - echo text to stderr.
-%eprint             - alias for %eecho.
+%eecho  [-n]        - echo text to stderr.  If -n, do not add final newline.
+%eprint [-n]        - alias for %eecho.
 
 %void               - useful for evaluating postfix ops without assignment.
 
