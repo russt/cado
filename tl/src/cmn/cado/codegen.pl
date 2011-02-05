@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.90 - 23-Jan-2011
+# @(#)codegen.pl - ver 1.90 - 04-Feb-2011
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2011 Russ Tremain.  All Rights Reserved.
@@ -280,8 +280,10 @@
 #       %call is working; conditionals need to scan forward if condition is false.
 #  28-Dec-2010 (russt) [Version 1.89]
 #       fix bug in strtospf(), whereby {$foo} on rhs was incorrectly parsed (see codegen00045 test).
-#  23-Jan-2011 (russt) [Version 1.90]
+#  04-Feb-2011 (russt) [Version 1.90]
 #       add %pragma generate_objective_c, %pragma generate_java and codegen00046 to test.
+#       add :init_objc_ptr op, which initializes an object with type CG_OBJC_TYPE.
+#       was not cleaning up tmp file if halting from inline snippet.
 #
 
 use strict;
@@ -292,7 +294,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.90",         #VERSION - the program version number.
-    "23-Jan-2011",  #VERSION_DATE - date this version was released.
+    "04-Feb-2011",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -500,7 +502,8 @@ sub main
 
     $INPUT_FILE = &findInputFileInPath($INPUT_FILE) if ( $LOOKINPATH );
 
-    my $rval = &interpret($INPUT_FILE, 1);
+    my $halt_command = 0;
+    my $rval = &interpret($INPUT_FILE, \$halt_command, 1);
 
     #check to see if any file-descriptors have not been returned:
     printf STDERR "%s:  Allocated max of %d file-handles,  %d/%d free at program end.\n",
@@ -514,7 +517,7 @@ sub interpret
 #returns 0 if success, error count if problems.
 #read input a line at a time, parse, and execute.
 {
-    my ($infile, $return_global_status) = @_;
+    my ($infile, $halt_program, $return_global_status) = @_;
     $return_global_status = 0 if (!defined($return_global_status));  #ignore global errs
 
     my ($linecnt) = 0;
@@ -524,7 +527,6 @@ sub interpret
     my ($fhref) = undef;
     my ($fhidx) = -1;
     my ($exit_early) = 0;
-    my ($halt_program) = 0;
     my ($is_raw) = 0;     #for := assignment operator
     my ($is_append) = 0;  #for .= assignment operator
     my ($numop) = 0;   #for +=, -=, /=, *= ...
@@ -630,7 +632,7 @@ sub interpret
             } elsif (&haltcommand($line, $linecnt)) {
                 #exit to shell:
                 $exit_early = 1;
-                $halt_program = 1;
+                $$halt_program = 1;
             } elsif (&definition(\$line, \$linecnt, $use_stdin, $fhref, $infile)) {
                 ;  #note that definitions() can advance the linecnt.
             } elsif (&extern_cmd($line, $linecnt)) {
@@ -656,7 +658,7 @@ sub interpret
     $CG_USER_VARS{'CG_INFILE'} = $save_infile if ($save_infile ne "");
 
     #if we are called from %foreach, etc, ignore global errors.
-    if (!$halt_program && !$return_global_status) {
+    if (!$$halt_program && !$return_global_status) {
         return $errcnt 
     }
 
@@ -668,11 +670,6 @@ sub interpret
         #otherwise, return interpreter processing error count:
         $status =  $errcnt + $GLOBAL_ERROR_COUNT;
     }
-
-    #####
-    #exit immediately if we found a %halt or %abort:
-    #####
-    exit $status if ($halt_program);
 
     return $status;
 }
@@ -1230,7 +1227,15 @@ sub includespec
 
     printf STDERR "%s: Including definition file '%s'\n", $p, $includefn if ($VERBOSE);
 
-    ++$GLOBAL_ERROR_COUNT unless (&interpret($includefn) == 0);
+    my $halt_command = 0;
+    if (&interpret($includefn, \$halt_command) != 0) {
+        ++$GLOBAL_ERROR_COUNT;
+    }
+
+    #####
+    #exit immediately if included file called for a halt:
+    #####
+    exit $GLOBAL_ERROR_COUNT if ($halt_command);
 
     return 1;   #we found and processed an include, even if there were errors...
 }
@@ -1305,11 +1310,19 @@ sub interpretspec
     ##########
     #interpret contents of variable as if it were an %include:
     ##########
-    ++$GLOBAL_ERROR_COUNT unless (&interpret($tmpfile_fullpath) == 0);
+    my $halt_command = 0;
+    if (&interpret($tmpfile_fullpath, \$halt_command) != 0) {
+        ++$GLOBAL_ERROR_COUNT;
+    }
 
     #clean up tmp file, tmpvar:
     &undef_tmpvar($tmpvarname);
     unlink $tmpfile_fullpath;
+
+    #####
+    #exit immediately if included file called for a halt:
+    #####
+    exit $GLOBAL_ERROR_COUNT if ($halt_command);
 
     return 1;
 }
@@ -2079,9 +2092,10 @@ sub whiledefspec
     }
 
     my $cnt = 0;
+    my $halt_command = 0;
     while (&var_defined($varname)) {
         ++$cnt;
-        if (&interpret($tmpfile_fullpath) != 0) {
+        if (&interpret($tmpfile_fullpath, \$halt_command) != 0) {
             printf STDERR "%s[%s]: ERROR: line %d: fail to interpret %s clause on %dth count.\n",
                 $p, $token, $linecnt, $token, $cnt unless ($QUIET);
             ++ $GLOBAL_ERROR_COUNT;
@@ -2091,6 +2105,11 @@ sub whiledefspec
     }
 
     unlink $tmpfile_fullpath;
+
+    #####
+    #exit immediately if included file called for a halt:
+    #####
+    exit $GLOBAL_ERROR_COUNT if ($halt_command);
 
     #we processed an %whiledef statement, even if there were errors::
     return 1;
@@ -2145,9 +2164,10 @@ sub whilespec
     }
 
     my $cnt = 0;
+    my $halt_command = 0;
     while (&istrueExpr($varvalue)) {
         ++$cnt;
-        if (&interpret($tmpfile_fullpath) != 0) {
+        if (&interpret($tmpfile_fullpath, \$halt_command) != 0) {
             printf STDERR "%s[%s]: ERROR: line %d: fail to interpret %s clause on %dth count.\n",
                 $p, $token, $linecnt, $token, $cnt unless ($QUIET);
             ++ $GLOBAL_ERROR_COUNT;
@@ -2157,6 +2177,11 @@ sub whilespec
     }
 
     unlink $tmpfile_fullpath;
+
+    #####
+    #exit immediately if included file called for a halt:
+    #####
+    exit $GLOBAL_ERROR_COUNT if ($halt_command);
 
     #we processed an %while statement, even if there were errors::
     return 1;
@@ -2286,10 +2311,11 @@ sub exec_pattern_foreach
 
     #foreach value in range...
     my $ii;
+    my $halt_command = 0;
     foreach $ii (@matchvars) {
         #set iterator variable to current value in range:
         $CG_USER_VARS{$itrname} = $ii;
-        if (&interpret($tmpfile_fullpath) != 0) {
+        if (&interpret($tmpfile_fullpath, \$halt_command) != 0) {
             printf STDERR "%s[%s]: ERROR: line %d: fail to interpret %s clause '%s' for value '%s' in /%s/.\n",
                 $p, $token, $linecnt, $token, $theStatement, $ii, $vpattern unless ($QUIET);
 
@@ -2299,6 +2325,11 @@ sub exec_pattern_foreach
     }
 
     unlink $tmpfile_fullpath;
+
+    #####
+    #exit immediately if included file called for a halt:
+    #####
+    exit $errcnt if ($halt_command);
 
     return $errcnt;    #return 0 if no errors.
 }
@@ -2342,10 +2373,11 @@ sub exec_numeric_foreach
 
     #foreach value in range...
     my $ii;
+    my $halt_command = 0;
     for ($ii=0+$rglb; $ii<=$rgub; $ii++) {
         #set iterator variable to current value in range:
         $CG_USER_VARS{$itrname} = sprintf($padfmt, $ii);
-        if (&interpret($tmpfile_fullpath) != 0) {
+        if (&interpret($tmpfile_fullpath, \$halt_command) != 0) {
             printf STDERR "%s[%s]: ERROR: line %d: fail to interpret %s clause for value %d in {%s}.\n",
                 $p, $token, $linecnt, $token, $ii, $rgvalue unless ($QUIET);
 
@@ -2355,6 +2387,11 @@ sub exec_numeric_foreach
     }
 
     unlink $tmpfile_fullpath;
+
+    #####
+    #exit immediately if included file called for a halt:
+    #####
+    exit $errcnt if ($halt_command);
 
     return $errcnt;    #return 0 if no errors.
 }
@@ -6227,6 +6264,30 @@ sub isantprop_op
 
     return 1 if ( defined($ANTPROPS{$varvalue}) );
     return 0;
+}
+
+
+#
+#objective c code generation operators
+#
+
+sub init_objc_ptr_op
+#apply CG_OBJC_TYPE to initialize an obj C object pointer
+#the value of var will be used to generate the initialization.
+#example:
+#  CG_OBJC_TYPE = NSCalendarDate
+#  %echo $now:nameof:init_objc_ptr
+#will output:
+#  NSCalendarDate *now = [[NSCalendarDate alloc] init]
+{
+    my ($varvalue, $varname, $linecnt) = @_;
+
+    #if undefined, will emit and undef type:
+    my $type = &lookup_def('CG_OBJC_TYPE');
+
+    my $dcl = sprintf("%s *%s = [[%s alloc] init]", $type, $varvalue, $type);
+
+    return $dcl;
 }
 
 

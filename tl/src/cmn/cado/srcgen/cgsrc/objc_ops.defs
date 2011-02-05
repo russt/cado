@@ -1,0 +1,28 @@
+#define some specialized ops for generating objective C.
+{
+OBJC_OP_STUBS := << EOF_OPS
+#
+#objective c code generation operators
+#
+
+sub init_objc_ptr_op
+#apply CG_OBJC_TYPE to initialize an obj C object pointer
+#the value of var will be used to generate the initialization.
+#example:
+#  CG_OBJC_TYPE = NSCalendarDate
+#  %echo $now:nameof:init_objc_ptr
+#will output:
+#  NSCalendarDate *now = [[NSCalendarDate alloc] init]
+{
+    my ($varvalue, $varname, $linecnt) = @_;
+
+    #if undefined, will emit and undef type:
+    my $type = &lookup_def('CG_OBJC_TYPE');
+
+    my $dcl = sprintf("%s *%s = [[%s alloc] init]", $type, $varvalue, $type);
+
+    return $dcl;
+}
+
+EOF_OPS
+}
