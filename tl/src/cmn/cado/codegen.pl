@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.90 - 04-Feb-2011
+# @(#)codegen.pl - ver 1.91 - 07-Mar-2011
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2011 Russ Tremain.  All Rights Reserved.
@@ -284,6 +284,8 @@
 #       add %pragma generate_objective_c, %pragma generate_java and codegen00046 to test.
 #       add :init_objc_ptr op, which initializes an object with type CG_OBJC_TYPE.
 #       was not cleaning up tmp file if halting from inline snippet.
+#  07-Mar-2011 (russt) [Version 1.91]
+#       Ant parser now warns if a property value is overwritten.
 #
 
 use strict;
@@ -293,8 +295,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.90",         #VERSION - the program version number.
-    "04-Feb-2011",  #VERSION_DATE - date this version was released.
+    "1.91",         #VERSION - the program version number.
+    "07-Mar-2011",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -6192,13 +6194,15 @@ sub parse_antprops_op
 {
     my ($varvalue, $varname, $linecnt) = @_;
 
+#printf STDERR "\nparse_antprops:  varvalue='%s' varname='%s' linecnt=%d\n", $varvalue, $varname, $linecnt;
+
     #note:  varvalue contains the ant script.
 
     #strip comments:
     my ($str) = stripxmlcomments_op($varvalue);
 
     #iterate through the string and store the properties in our array:
-    $str =~ s/<property\s+name="([^"]*)"\s+(value|refid)="([^"]*)"\s*[^\/]*\/>/&store_antprop($1, $2, $3)/ge;
+    $str =~ s/<property\s+name="([^"]*)"\s+(value|refid)="([^"]*)"\s*[^\/]*\/>/&store_antprop($1, $2, $3, $linecnt)/ge;
 
     #return input for futher ops:
     return $varvalue;
@@ -6207,12 +6211,20 @@ sub parse_antprops_op
 sub store_antprop
 #store an ant property in our global ANTPROPS hash
 {
-    my ($name, $type, $value) = @_;
+    my ($name, $type, $value, $linecnt) = @_;
 
 #printf STDERR "\nstore_antprop:  name='%s' type='%s' value='%s'\n", $name, $type, $value;
 
     #note - we don't store refid's because we don't have the code to interprolate them:
-    $ANTPROPS{$name} = $value if ($type eq "value");
+    if ($type eq "value") {
+        if (defined($ANTPROPS{$name})) {
+            printf STDERR "%s: :%s [line %d]: WARNING: ignoring duplicate ant property %s='%s'\n",
+                $p, "parse_antprops", $linecnt, $name, $value unless ($QUIET);
+        }
+        
+        #assign it anyway.  we may want to add a pragma to control this behavior.  RT 3/7/11
+        $ANTPROPS{$name} = $value;
+    }
 
     #return a normalized form for the substitution op:
     return sprintf("<property name=\"%s\" %s=\"%s\"/>\n",$name, $type, $value);
