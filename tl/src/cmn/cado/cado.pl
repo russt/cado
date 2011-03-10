@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.91 - 07-Mar-2011
+# @(#)cado.pl - ver 1.91 - 10-Mar-2011
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2011 Russ Tremain.  All Rights Reserved.
@@ -284,8 +284,9 @@
 #       add %pragma generate_objective_c, %pragma generate_java and codegen00046 to test.
 #       add :init_objc_ptr op, which initializes an object with type CG_OBJC_TYPE.
 #       was not cleaning up tmp file if halting from inline snippet.
-#  07-Mar-2011 (russt) [Version 1.91]
+#  10-Mar-2011 (russt) [Version 1.91]
 #       Ant parser now warns if a property value is overwritten.
+#       Variables in %return options (%return -s $foo) were not getting expanded.
 #
 
 use strict;
@@ -296,7 +297,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.91",         #VERSION - the program version number.
-    "07-Mar-2011",  #VERSION_DATE - date this version was released.
+    "10-Mar-2011",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -1499,6 +1500,9 @@ sub returncommand
 
     my $msgtostderr = 0;
 
+    #expand definitions in text:
+    $line = &expand_macros($line);
+
     while ($line =~ /^-[es]/) {
         if ( $line =~ /^-e(\s+|$)/ ) {
             $line =~ s/^-e\s*//;
@@ -1524,9 +1528,6 @@ sub returncommand
 
     #can have exit message:
     if ($exitmessage ne "") {
-        #expand definitions in text:
-        $exitmessage = &expand_macros($exitmessage);
-
         #if still not empty...
         if ($exitmessage ne "") {
             if ($msgtostderr) {
