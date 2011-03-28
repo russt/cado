@@ -1,5 +1,5 @@
 VERSION = 1.91
-VERSION_DATE = 10-Mar-2011
+VERSION_DATE = 26-Mar-2011
 COPYRIGHT_RANGE1 = 2003-2008
 COPYRIGHT_RANGE2 = 2009-2011
 
@@ -4263,6 +4263,8 @@ CODEGEN_HEADER := << EOF
 #  10-Mar-2011 (russt) [Version 1.91]
 #       Ant parser now warns if a property value is overwritten.
 #       Variables in %return options (%return -s $foo) were not getting expanded.
+#  26-Mar-2011 (russt) [Version 1.91]
+#       Add doc for :init_objc_ptr op.
 #
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER

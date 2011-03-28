@@ -137,10 +137,30 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
 :crcfile            - return the crc of the file named by the string.
 :crcstr             - return the crc of the contents of a string.
 :freq               - get the frequency of each line.
-:method2rec         - convert a java method signature to a tab separated record.
 :studyclass         - generate CG_CLASS variables, just as if we generated a real class file.
 :stripRcsKeywords   - strip all RCS keywords from the string.
 
+                    ================================
+                    JAVA OPERATORS
+                    ================================
+                    See Also:  %pragma generate_java
+
+:method2rec         - convert a java method signature to a tab separated record.
+
+
+                    =====================
+                    OBJECTIVE C OPERATORS
+                    =====================
+:init_objc_ptr      -generate a standard objective C pointer initialization of type
+                     CG_OBJC_TYPE.  The value of the variable will become the name of
+                     the declared pointer.
+                     
+                     Example:
+                         CG_OBJC_TYPE = NSCalendarDate
+                         %echo $now:nameof:init_objc_ptr
+
+                     Will display:
+                         NSCalendarDate *now = [[NSCalendarDate alloc] init]
 
                     ==============================================
                     STACK VARIABLES.  See also: STACK MANIPULATION
@@ -392,7 +412,7 @@ $CG_COMPARE_SPEC    - Specify second value comparison operators.  See COMPARISON
 
 $CG_INDENT_STRING   - indent string for :indent operator.  default is four spaces.
 $CG_NEWLINE_BEFORE_CLASS_BRACE
-                    - set this using :newline if you want a newline before java class braces.
+                    - set this using :newline if you want a newline before class braces.
 
                     ======================
                     SET BY THE INTERPRETER

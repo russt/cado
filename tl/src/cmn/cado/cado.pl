@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.91 - 10-Mar-2011
+# @(#)cado.pl - ver 1.91 - 26-Mar-2011
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2011 Russ Tremain.  All Rights Reserved.
@@ -287,6 +287,8 @@
 #  10-Mar-2011 (russt) [Version 1.91]
 #       Ant parser now warns if a property value is overwritten.
 #       Variables in %return options (%return -s $foo) were not getting expanded.
+#  26-Mar-2011 (russt) [Version 1.91]
+#       Add doc for :init_objc_ptr op.
 #
 
 use strict;
@@ -297,7 +299,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.91",         #VERSION - the program version number.
-    "10-Mar-2011",  #VERSION_DATE - date this version was released.
+    "26-Mar-2011",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
