@@ -10,13 +10,11 @@ EOF
 %echo a='$a'
 %echo ===============
 
-%call := << //
-#this is an inline %call statement
-{
+%call := << {
+    #this is an inline %call statement
     %echo test inline call
     %echo a='$a:oneline'
 }
-//
 
 %echo ===============
 
@@ -24,32 +22,77 @@ EOF
 define_foo := foo = fooiscool
 
 #test with here-now doc expanded immediately:
-%ifndef FOO  %call = << //
+%ifndef FOO  %call = << {{{
     %call define_foo
     %echo testing %ifndef %call with expansion:  foo=$foo
-//
+}}}
 
 %undef define_foo
 define_foo := foo = fooiscool
 
 #test with here-now doc expanded at evaluation time:
-%ifndef FOO  %call := << //
+%ifndef FOO  %call := << (
     %call define_foo
     %echo testing %ifndef %call without expansion:  foo=$foo
-//
+)
 
 FOO = 1
 
-%if $FOO  %call = << EOF
+%if $FOO  %call = << ((
 {
-    %echo testing %if - FOO=$FOO
+    %echo testing %if - FOO=$FOO YOU SHOULD SEE THIS
 }
-EOF
+))
+
+%ifnot $FOO  %call = << ((
+{
+    %echo testing %ifnot with FOO=1 - YOU SHOULD NOT SEE THIS
+}
+))
 
 FOO = 0
-%ifnot $FOO  %call = << //
+%ifnot $FOO  %call = << [[
 {
-    %echo testing %ifnot - FOO=$FOO
+    %echo testing %ifnot - FOO=$FOO YOU SHOULD SEE THIS
 }
-//
+]]
 
+%if $FOO  %call = << [[
+{
+    %echo testing %if with FOO=0 - YOU SHOULD NOT SEE THIS
+}
+]]
+
+##### test forward scanning when condition is not met:
+%undef FOO
+a = FOO is undef
+%ifdef FOO a = << EOF
+one
+two
+three
+EOF
+
+%echo ===============
+%echo a='$a'
+%echo ===============
+
+%ifdef FOO    %call = << {
+    %echo this is a place where FOO is not defined and so we should not see this message
+}
+
+#now define FOO and we should see different output:
+FOO = yes
+a = FOO is undef
+%ifdef FOO a = << EOF
+one
+two
+three
+EOF
+
+%echo ===============
+%echo a='$a'
+%echo ===============
+
+%ifdef FOO    %call := << {
+    %echo this is a place where FOO IS defined.
+}

@@ -1,5 +1,5 @@
-VERSION = 1.91
-VERSION_DATE = 26-Mar-2011
+VERSION = 1.92
+VERSION_DATE = 30-Apr-2011
 COPYRIGHT_RANGE1 = 2003-2008
 COPYRIGHT_RANGE2 = 2009-2011
 
@@ -313,7 +313,7 @@ sub interpret
                 ;       #create an include file from a variable and include it.
             } elsif (&echospec($line, $linecnt)) {
                 ;       #echo some text to stdout
-            } elsif (&ifdefspec(\$line, $linecnt, \$dointerpret)) {
+            } elsif (&ifdefspec(\$line, \$linecnt, $use_stdin, $fhref, $infile, \$dointerpret)) {
                 #this may force another loop
                 printf STDERR "AFTER ifn?def: line='%s' dointerpret=%d\n", $line, $dointerpret if ($DEBUG);
 #printf STDERR "%s: line[%d] (%s)='%s' dointerpret=%d\n", "IFDEF", $linecnt, $infile, $line, $dointerpret;
@@ -321,7 +321,7 @@ sub interpret
 #NOTE:  we need to devise a mechanism to scan past a multi-line definition
 #in the event the tested condition is false.
 
-            } elsif (&ifspec(\$line, $linecnt, \$dointerpret)) {
+            } elsif (&ifspec(\$line, \$linecnt, $use_stdin, $fhref, $infile, \$dointerpret)) {
                 #this may force another loop
                 printf STDERR "AFTER if[not]: line='%s' dointerpret=%d\n", $line, $dointerpret if ($DEBUG);
 #printf STDERR "AFTER if[not]: line='%s' dointerpret=%d\n", $line, $dointerpret;
@@ -1638,13 +1638,52 @@ sub exportspec
     return 1;   #we found and processed an export/unexport, even if there were errors...
 }
 
+sub discardHereNow
+#if input has here-now starting quote, then just scan until we get to matching quote,
+#discarding input.
+{
+    my ($line, $linecnt, $use_stdin, $fhref, $infile) = @_;
+
+    #if we have a here-now doc...
+    return 1 unless ($$line =~ /=\s*<<\s*[^<]/);
+
+    my @tmp = split('<<', $$line);
+    my $eoi_tok;
+    if ($#tmp >= 0) {
+        $eoi_tok = $tmp[$#tmp];
+        $eoi_tok =~ s/\s//g;    #remove any white-space in eoi-tok
+    } else {
+        printf STDERR "%s: ERROR: run-away here-now string starting on line %d!\n", $p, $$linecnt;
+        ++ $GLOBAL_ERROR_COUNT;
+        return 1;
+    }
+
+    #special case - if eoi_tok is bracketing sequence, .. we require end quote to be correspond:
+    $eoi_tok =~ s/\{/\}/g  if ( $eoi_tok =~ /^\{+$/ );
+    $eoi_tok =~ s/\[/\]/g  if ( $eoi_tok =~ /^\[+$/ );
+    $eoi_tok =~ s/\(/\)/g  if ( $eoi_tok =~ /^\(+$/ );
+
+    $$line = $use_stdin? <STDIN> : <$fhref>;   #get next line
+    while (defined($$line)) {
+        chomp $$line; $LINE_CNT = $$LINE_CNT_REF = ++$$linecnt;
+        printf STDERR "<< %s line[%d] (%s)='%s'\n", $eoi_tok, $$linecnt, $infile, $$line if ($DDEBUG);
+
+        if ($$line eq $eoi_tok) {
+            #then close up this definition:
+            last;   #DONE
+        } else {
+            $$line = $use_stdin? <STDIN> : <$fhref>;   #get next line
+        }
+    }
+}
+
 sub ifdefspec
 #true if we see an %ifdef or %ifndef.
 #sets _do_eval to 1 if we are to evaluate modified _line
 #example:  %ifdef CG_ROOT CGROOT_BASE = $CG_ROOT
 #example:  %ifdef FOOVAR %echo FOOVAR is '$FOOVAR'
 {
-    my ($_line, $linecnt, $_doeval) = @_;
+    my ($_line, $linecnt, $use_stdin, $fhref, $infile, $_doeval) = @_;
     my ($line) = ${$_line};
 
     #RESULT:
@@ -1690,17 +1729,22 @@ sub ifdefspec
 
     my $vardefined  = &var_defined_strict($varname);
     my $doeval = ( ($vardefined && $isifdef) || (!$vardefined && !$isifdef) );
+    $$_doeval = $doeval;    #set result parameter
 
     printf STDERR "%s: vardefined=%d doeval=%d\n", $token, $vardefined, $doeval if ($DEBUG);
 #printf STDERR "%s: vardefined=%d doeval=%d\n", $token, $vardefined, $doeval;
 
-    return 1 unless ($doeval);     #we are done with this line.
-
-    #otherwise, re-interpret the remainder of the line:
-    ${$_line} = $def_expr;
-    ${$_doeval} = 1;
+    if ($doeval) {
+        #otherwise, re-interpret the remainder of the line:
+        ${$_line} = $def_expr;
 #printf STDERR "IFDEF return line='%s'\n", $$_line;
 
+        return 1;
+    }
+
+    &discardHereNow($_line, $linecnt, $use_stdin, $fhref, $infile);
+
+    #we saw and ifdef statement and processed it:
     return 1;
 }
 
@@ -1709,7 +1753,7 @@ sub ifspec
 #sets _do_eval to 1 if we are to evaluate modified _line
 #i.e., if string or variable evaluates to non-zero or non-empty, it is true
 {
-    my ($_line, $linecnt, $_doeval) = @_;
+    my ($_line, $linecnt, $use_stdin, $fhref, $infile, $_doeval) = @_;
     my ($line) = $$_line;
 
     #RESULT:
@@ -1748,15 +1792,20 @@ sub ifspec
     my $varvalue = &expand_macros($varexpr);
 
     my $doeval = ( ($isifexpr && &istrueExpr($varvalue)) || (!$isifexpr && !&istrueExpr($varvalue)) );
+    $$_doeval = $doeval;    #set result parameter
 
     printf STDERR "%s: varvalue=%d doeval=%d\n", $token, $varvalue, $doeval if ($DEBUG);
 
-    return 1 unless ($doeval);     #we are done with this line.
+    if ($doeval) {
+        #otherwise, re-interpret the remainder of the line:
+        $$_line = $if_clause;
 
-    #otherwise, re-interpret the remainder of the line:
-    $$_line = $if_clause;
-    $$_doeval = 1;
+        return 1;
+    }
 
+    &discardHereNow($_line, $linecnt, $use_stdin, $fhref, $infile);
+
+    #we saw an if statement and processed it:
     return 1;
 }
 
@@ -2193,6 +2242,10 @@ sub definition
             return 1;
         }
 
+        #special case - if eoi_tok is bracketing sequence, .. we require end quote to be correspond:
+        $eoi_tok =~ s/\{/\}/g  if ( $eoi_tok =~ /^\{+$/ );
+        $eoi_tok =~ s/\[/\]/g  if ( $eoi_tok =~ /^\[+$/ );
+        $eoi_tok =~ s/\(/\)/g  if ( $eoi_tok =~ /^\(+$/ );
 
         $$line = $use_stdin? <STDIN> : <$fhref>;   #get next line
         $rhs = "\n" if ($pragma_preserve_multiline_lnewline && defined($$line)); #preserve left newline
@@ -4228,7 +4281,7 @@ CODEGEN_HEADER := << EOF
 #       Fix a bug in external shell operators whereby trailing newlines are stripped.
 #       Correct/add tests to not compensate for extra/missing newlines.  Add test to ensure that
 #       FOO = $FOO:cat is identical to original string.
-#       Fix a bug in :hexencode, :urlencode ops - were not encoding newlines.
+#       Fix a bug in :hexencode, :urlencode ops - operators now encode newlines.
 #  25-Jul-2010 (russt) [Version 1.81]
 #       Add :s2, :s3, :s4, & :s5 ops, which performs :substitute with $CG_SUBSTITUTE_SPEC<n>.
 #       Change verbosity of :env (only squawk about undefined env. vars if -v is set).
@@ -4246,25 +4299,30 @@ CODEGEN_HEADER := << EOF
 #       Xml library was adding extra newlines due to fix introduced in vers. 1.71 of 11/21/08.
 #       Regenerated maven2 libraries to verify process with current version of cado.
 #  24-Nov-2010 (russt) [Version 1.86]
-#       add :append assignment op.
+#       Add :append assignment op.
 #  11-Dec-2010 (russt) [Version 1.87]
-#       add :unique stack op.  "%upush foostk $value" was not resulting in unique values.
-#       add :parse_antprops and associated operators.
-#       add tests for new ant ops, :unique.  update %upush tests.
+#       Add :unique stack op.  "%upush foostk $value" was not resulting in unique values.
+#       Add :parse_antprops and associated operators.
+#       Add tests for new ant ops, :unique.  update %upush tests.
 #  14-Dec-2010 (russt) [Version 1.88]
-#       allow inline definitions for %call, %if, %foreach, %while, and variants.
+#       Allow inline definitions for %call, %if, %foreach, %while, and variants.
 #       %call is working; conditionals need to scan forward if condition is false.
 #  28-Dec-2010 (russt) [Version 1.89]
-#       fix bug in strtospf(), whereby {$foo} on rhs was incorrectly parsed (see codegen00045 test).
+#       Fix bug in strtospf(), whereby {$foo} on rhs was incorrectly parsed (see codegen00045 test).
 #  04-Feb-2011 (russt) [Version 1.90]
-#       add %pragma generate_objective_c, %pragma generate_java and codegen00046 to test.
-#       add :init_objc_ptr op, which initializes an object with type CG_OBJC_TYPE.
-#       was not cleaning up tmp file if halting from inline snippet.
+#       Add %pragma generate_objective_c, %pragma generate_java and codegen00046 to test.
+#       Add :init_objc_ptr op, which initializes an object with type CG_OBJC_TYPE.
+#       Was not cleaning up tmp file if halting from inline snippet.
 #  10-Mar-2011 (russt) [Version 1.91]
 #       Ant parser now warns if a property value is overwritten.
 #       Variables in %return options (%return -s $foo) were not getting expanded.
 #  26-Mar-2011 (russt) [Version 1.91]
 #       Add doc for :init_objc_ptr op.
+#  30-Apr-2011 (russt) [Version 1.92]
+#       Allow {..}, [..], and (..) to quote here-now docs.  Allow multi-character sequences
+#       for emphasis, e.g. {{ .. }} etc.
+#       Finish implementing false condition for here-now docs in %if/%ifdef.
+#       Correct doc for CG_SPLIT_PATTERN.
 #
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER

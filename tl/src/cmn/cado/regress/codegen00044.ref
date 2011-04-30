@@ -10,5 +10,15 @@ a='one two three'
 ===============
 testing %ifndef %call with expansion:  foo=${foo:undef}
 testing %ifndef %call without expansion:  foo=fooiscool
-testing %if - FOO=1
-testing %ifnot - FOO=0
+testing %if - FOO=1 YOU SHOULD SEE THIS
+testing %ifnot - FOO=0 YOU SHOULD SEE THIS
+===============
+a='FOO is undef'
+===============
+===============
+a='one
+two
+three
+'
+===============
+this is a place where FOO IS defined.
