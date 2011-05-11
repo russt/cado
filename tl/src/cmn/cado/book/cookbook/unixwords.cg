@@ -1,0 +1,13 @@
+%readtemplate DICT /usr/share/dict/words
+
+CG_SPLIT_PATTERN = \n
+
+DICT_STACK = $DICT:split
+%echo $DICT_STACK:stacksize
+
+#have some fun with dictionary words ...
+
+#free it:
+%undef DICT_STACK
+
+#continue ...
