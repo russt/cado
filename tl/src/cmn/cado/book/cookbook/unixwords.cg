@@ -2,12 +2,18 @@
 
 CG_SPLIT_PATTERN = \n
 
-DICT_STACK = $DICT:split
-%echo $DICT_STACK:stacksize
+DICT_STACK = $DICT:trim:split
+%echo the Dictionary has $DICT_STACK:stacksize words
 
 #have some fun with dictionary words ...
 
-#free it:
-%undef DICT_STACK
+%pushv before
+%echo before $before:showstack
+
+#release the dictionary variables:
+%undef /^DICT.*/
+
+%pushv after
+%echo after $after:showstack
 
 #continue ...
