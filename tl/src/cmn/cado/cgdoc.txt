@@ -1,7 +1,7 @@
 
                     =========================
                     Cado Quick Reference
-                    Version 1.92, 30-Apr-2011
+                    Version 1.93, 19-May-2011
                     =========================
 
 {
@@ -96,6 +96,12 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
 :ltrim              - trim leading whitespace (tabs, spaces, and newlines).
 :rtrim              - trim trailing whitespace.
 :trim               - trim lead and trailing whitespace.
+
+:g                  - apply a perl grep() expression specified by $CG_GREP_SPEC
+                      Example:  add 10 to each member of a list:
+                            CG_GREP_SPEC := $_ += 10
+                            %void $foo:g:assign
+                      In perl, this translates to:  @foo = grep ($_ += 10, @foo);
 
 :substitute         - apply substitute pattern specified by $CG_SUBSTITUTE_SPEC
 :s                  - alias for :substitute

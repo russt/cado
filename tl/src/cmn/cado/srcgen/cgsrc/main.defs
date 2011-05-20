@@ -1,5 +1,5 @@
-VERSION = 1.92
-VERSION_DATE = 30-Apr-2011
+VERSION = 1.93
+VERSION_DATE = 19-May-2011
 COPYRIGHT_RANGE1 = 2003-2008
 COPYRIGHT_RANGE2 = 2009-2011
 
@@ -4323,6 +4323,8 @@ CODEGEN_HEADER := << EOF
 #       for emphasis, e.g. {{ .. }} etc.
 #       Finish implementing false condition for here-now docs in %if/%ifdef.
 #       Correct doc for CG_SPLIT_PATTERN.
+#  19-May-2011 (russt) [Version 1.93]
+#       Add :g operator (internal perl grep).
 #
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER

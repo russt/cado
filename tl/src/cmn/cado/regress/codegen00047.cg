@@ -1,0 +1,35 @@
+#codegen00047.cg - test the :g (perl grep) operator
+
+xx = 1,2,3
+xx = $xx:split
+
+%echo xx[$xx:stacksize]=$xx:showstack
+
+CG_GREP_SPEC := $_ == 2
+yy = $xx:g
+%echo yy[$yy:stacksize]=$yy:showstack
+
+#this will match 0 elements:
+CG_GREP_SPEC := 0
+yy = $xx:g
+%echo yy[$yy:stacksize]=$yy:showstack
+
+#this will match all elements:
+CG_GREP_SPEC := 1
+yy = $xx:g
+%echo yy[$yy:stacksize]=$yy:showstack
+
+#add 10 to each member of list:
+CG_GREP_SPEC := $_ += 10
+yy = $xx:g
+%echo yy[$yy:stacksize]=$yy:showstack
+
+#use simple var:
+xx = 10
+yy = $xx:g
+%echo yy[$yy:stacksize]=$yy:showstack
+
+#intentional error - but shows
+xx = ten
+yy = $xx:g
+%echo yy[$yy:stacksize]=$yy:showstack

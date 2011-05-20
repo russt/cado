@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.92 - 30-Apr-2011
+# @(#)cado.pl - ver 1.93 - 19-May-2011
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2011 Russ Tremain.  All Rights Reserved.
@@ -294,6 +294,8 @@
 #       for emphasis, e.g. {{ .. }} etc.
 #       Finish implementing false condition for here-now docs in %if/%ifdef.
 #       Correct doc for CG_SPLIT_PATTERN.
+#  19-May-2011 (russt) [Version 1.93]
+#       Add :g operator (internal perl grep).
 #
 
 use strict;
@@ -303,8 +305,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.92",         #VERSION - the program version number.
-    "30-Apr-2011",  #VERSION_DATE - date this version was released.
+    "1.93",         #VERSION - the program version number.
+    "19-May-2011",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -4584,6 +4586,42 @@ sub m_op
 #alias for :match
 {
     return &match_op(@_);
+}
+
+sub g_op
+#process :g postfix op
+#:g - will grep contents of a stack variable, applying CG_GREP_SPEC to each element
+#return 1 if match, else 0.
+{
+    my ($var) = @_;
+    my $spec = $CG_USER_VARS{'CG_GREP_SPEC'};
+
+    return 0 unless (defined($spec));
+
+    #we only operate on stack variables:
+    my @listin = split($;, $var);
+#printf "g_op: var='%s' spec='%s' listin=(%s)\n", $var, $spec, join(",", @listin);
+
+    my @listout = (); 
+
+    my $cmd = sprintf("%s = grep(%s, %s);", '@listout', $spec, '@listin');
+#printf "g_op: cmd='%s'\n", $cmd;
+
+    my $ans = eval($cmd);  #returns the number of elements operated on.
+
+    if ($@) {
+        printf STDERR "%s[:g]: ERROR: line %d: evaluation of CG_GREP_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, $@;
+        return "";
+    } elsif (!defined($ans)) {
+        #WARNING:  the $@ construct doesn't seem to work on perl 5.005_03.  RT 6/19/06
+        printf STDERR "%s[:g]: ERROR: line %d: evaluation of CG_GREP_SPEC (%s) failed: %s\n",
+            $p, $LINE_CNT, $spec, "ERROR in eval" ;
+        return "";
+    }
+
+    return join($;, @listout) if ($ans > 0);
+    return "";
 }
 
 sub match_op

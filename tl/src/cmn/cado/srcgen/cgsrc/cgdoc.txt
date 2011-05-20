@@ -97,6 +97,12 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
 :rtrim              - trim trailing whitespace.
 :trim               - trim lead and trailing whitespace.
 
+:g                  - apply a perl grep() expression specified by $CG_GREP_SPEC
+                      Example:  add 10 to each member of a list:
+                            CG_GREP_SPEC := $_ += 10
+                            %void $foo:g:assign
+                      In perl, this translates to:  @foo = grep ($_ += 10, @foo);
+
 :substitute         - apply substitute pattern specified by $CG_SUBSTITUTE_SPEC
 :s                  - alias for :substitute
 :s2,:s3,:s4,:s5     - apply substitute pattern specified by $CG_SUBSTITUTE_SPEC<n>, for n: {2..5}
