@@ -179,8 +179,10 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
                       Default split pattern is:  /[\n\t,]/
 :stacksize          - return the size of a stack created with %push.
 :stackminus         - subtract the members of CG_STACK_SPEC from current stack (as in set subtraction).
+                      duplicate elements are ignored - i.e. {a,a,b,c} - {a,b} = {c}, not {a,c}.
 :showstack          - display stack as list $CG_STACK_DELIMITER separating elements.
 :unique             - eliminate duplicate elements on a stack, preserving order.
+:dups               - eliminate unique elements on a stack, preserving only duplicated elements.
 
                     =============
                     ANT OPERATORS

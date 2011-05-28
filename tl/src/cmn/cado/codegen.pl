@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.93 - 19-May-2011
+# @(#)codegen.pl - ver 1.94 - 26-May-2011
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2011 Russ Tremain.  All Rights Reserved.
@@ -296,6 +296,8 @@
 #       Correct doc for CG_SPLIT_PATTERN.
 #  19-May-2011 (russt) [Version 1.93]
 #       Add :g operator (internal perl grep).
+#  26-May-2011 (russt) [Version 1.94]
+#       Add :dups op to show duplicate entries in a stack
 #
 
 use strict;
@@ -305,8 +307,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.93",         #VERSION - the program version number.
-    "19-May-2011",  #VERSION_DATE - date this version was released.
+    "1.94",         #VERSION - the program version number.
+    "26-May-2011",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -5058,6 +5060,7 @@ sub stacksize_op
 sub stackminus_op
 #process :stackminus postfix op
 #:stackminus - subtract the members of CG_STACK_SPEC from current stack.
+#duplicates are taken into account.
 {
     my ($var) = @_;
 
@@ -5094,6 +5097,29 @@ sub unique_op
     for (@thisStack) {
         push(@new, $_) if ($mark{$_});
         $mark{$_} = 0;
+    }
+
+#printf STDERR "thisStack=(%s)\n", join(",", @thisStack);
+#printf STDERR "new=(%s)\n", join(",", @new);
+
+    return join($;, @new);
+}
+
+sub dups_op
+#:dups - discard all elements except those that are duplicated
+{
+    my ($var) = @_;
+
+    return $var if ($var eq "");
+
+    my @thisStack = split($;, $var, -1);
+
+    my (%mark);
+    for (@thisStack) { $mark{$_}++;}
+
+    my @new = ();
+    for (@thisStack) {
+        push(@new, $_) unless ($mark{$_} == 1);
     }
 
 #printf STDERR "thisStack=(%s)\n", join(",", @thisStack);
