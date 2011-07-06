@@ -1,0 +1,26 @@
+#test the xml/maven templates to see if we can break the 00-99 limit on element generation.
+
+%pragma canonicalize_counting_vars 1
+
+simple_pom := << [
+MAVEN_PROJECT_COUNT = 	1
+MAVEN_PROJECT_BUILD_COUNT = 	1
+MAVEN_PROJECT_PACKAGING =	pom
+MAVEN_PROJECT_ARTIFACTID =	bogus
+MAVEN_PROJECT_GROUPID =	com.foo
+MAVEN_PROJECT_NAME =	$MAVEN_PROJECT_ARTIFACTID
+MAVEN_PROJECT_DESCRIPTION =	This is the $MAVEN_PROJECT_NAME project.
+]
+
+%include maven2/maven_lib.cg
+
+#set/clear the output accumulator
+MACRO_OUTPUT_ACCUMULATOR =      ECHO_TXT
+\$MACRO_OUTPUT_ACCUMULATOR =
+MAVEN_GENERATE_EMPTY_ELEMENTS = $GENERATE_EMPTY_ELEMENTS
+
+%pragma debug 1
+%call xml_header
+%call maven_project
+
+%echo \$ECHO_TXT

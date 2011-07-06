@@ -1,0 +1,34 @@
+%pragma canonicalize_counting_vars 1
+
+foo_1 = 1
+%echo  foo_1='$foo_1'
+foo_01 = 01
+%echo  foo_01='$foo_01'
+foo_001 = 001
+
+%echo  but now foo_1='$foo_1'
+%echo  but now foo_01='$foo_01'
+%echo  and foo_001='$foo_001' still
+
+%ifdef foo_00001   %echo foo_00001 is defined and is set to $foo_00001
+
+%echo foo_1:isint is $foo_1:isint
+%echo foo_00001:isint is $foo_00001:isint
+
+
+### test zero values:
+
+zero_1 = 0
+%echo  zero_1='$zero_1'
+zero_01 = 00
+%echo  zero_01='$zero_01'
+zero_001 = 000
+
+%echo  but now zero_1='$zero_1'
+%echo  but now zero_01='$zero_01'
+%echo  and zero_001='$zero_001' still
+
+%ifdef zero_00001   %echo zero_00001 is defined and is set to $zero_00001
+
+%echo zero_1:isint is $zero_1:isint
+%echo zero_00001:isint is $zero_00001:isint

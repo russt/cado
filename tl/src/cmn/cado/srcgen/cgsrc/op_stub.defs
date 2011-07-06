@@ -22,7 +22,7 @@ sub undef_op
 {
     my ($var, $varname) = @_;
     #undefine $varname
-    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    delete $CG_USER_VARS{&canonicalvarname($varname)} if (defined($CG_USER_VARS{&canonicalvarname($varname)}));
     $var = sprintf('${%s:undef}', $varname);   #same as lookup_def returns.
     return $var;
 }
@@ -695,7 +695,7 @@ sub getnextline_op
     if ($fn eq "-" || $fn =~ /stdin/i) {
         my $line = <>;
         if (!defined($line)) {
-            delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+            delete $CG_USER_VARS{&canonicalvarname($varname)} if (defined($CG_USER_VARS{&canonicalvarname($varname)}));
             return "";
         }
         chomp $line;
@@ -704,7 +704,7 @@ sub getnextline_op
         ++$CG_OFD_CURRENTLINECOUNT{'<STDIN>'};    #this keeps a tally of how many lines read from stdin
 
         #we read a line from stdin.
-        $CG_USER_VARS{$varname} = '<STDIN>';  #normalize name of stdin
+        $CG_USER_VARS{&canonicalvarname($varname)} = '<STDIN>';  #normalize name of stdin
         return $varname;
     }
 
@@ -712,7 +712,7 @@ sub getnextline_op
     my $line = <$fhref> if (defined($fhref));
 
     if (!defined($fhref) || !defined($line)) {
-        delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+        delete $CG_USER_VARS{&canonicalvarname($varname)} if (defined($CG_USER_VARS{&canonicalvarname($varname)}));
         return "";
     }
 
@@ -738,9 +738,9 @@ sub currentline_op
     return $CG_OFD_CURRENTLINE{$fn} if (defined($CG_OFD_CURRENTLINE{$fn}));
 
     #otherwise, undefine the caller's variable:
-    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    delete $CG_USER_VARS{&canonicalvarname($varname)} if (defined($CG_USER_VARS{&canonicalvarname($varname)}));
     #otherwise, undefine the caller's variable:
-    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    delete $CG_USER_VARS{&canonicalvarname($varname)} if (defined($CG_USER_VARS{&canonicalvarname($varname)}));
     return sprintf('${%s}', $varname);   #same as lookup_def returns.
 }
 
@@ -1362,11 +1362,11 @@ sub valueof_op
     my ($var, $varname, $linecnt) = @_;
 
     #show the value of the variable named by $var:
-    if (&var_defined($var)) {
-        $var = $CG_USER_VARS{$var};
+    if (&var_defined(&canonicalvarname($var))) {
+        $var = $CG_USER_VARS{&canonicalvarname($var)};
     } else {
         printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $var, "valueof" unless ($QUIET);
-        $var = sprintf("\${%s:undef}", $varname);;
+        $var = sprintf("\${%s:undef}", $varname);
     }
 
     return $var;
@@ -1384,8 +1384,8 @@ sub assign_op
     my ($var, $varname, $linecnt) = @_;
 
     #update the value of $var:
-    $CG_USER_VARS{$varname} = $var;
-    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+    $CG_USER_VARS{&canonicalvarname($varname)} = $var;
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{&canonicalvarname($varname)} if ($DEBUG);
 
     return $var;
 }
@@ -1395,9 +1395,9 @@ sub append_op
 {
     my ($var, $varname, $linecnt) = @_;
 
-    $CG_USER_VARS{$varname} = "" unless (defined($CG_USER_VARS{$varname}));
-    $CG_USER_VARS{$varname} .= $var;
-    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+    $CG_USER_VARS{&canonicalvarname($varname)} = "" unless (defined($CG_USER_VARS{&canonicalvarname($varname)}));
+    $CG_USER_VARS{&canonicalvarname($varname)} .= $var;
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{&canonicalvarname($varname)} if ($DEBUG);
 
     return $var;
 }
@@ -1407,10 +1407,10 @@ sub insert_op
 {
     my ($var, $varname, $linecnt) = @_;
 
-    $CG_USER_VARS{$varname} = "" unless (defined($CG_USER_VARS{$varname}));
-    $CG_USER_VARS{$varname} = $var . $CG_USER_VARS{$varname};
+    $CG_USER_VARS{&canonicalvarname($varname)} = "" unless (defined($CG_USER_VARS{&canonicalvarname($varname)}));
+    $CG_USER_VARS{&canonicalvarname($varname)} = $var . $CG_USER_VARS{&canonicalvarname($varname)};
 
-    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{&canonicalvarname($varname)} if ($DEBUG);
 
     return $var;
 }
@@ -1427,7 +1427,7 @@ sub clrifndef_op
 {
     my ($var, $varname, $linecnt) = @_;
 
-    if (!defined($CG_USER_VARS{$varname})) {
+    if (!defined($CG_USER_VARS{&canonicalvarname($varname)})) {
         return &assign_op("", $varname, $linecnt);
     }
 

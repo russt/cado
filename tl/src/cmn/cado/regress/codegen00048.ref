@@ -1,0 +1,17 @@
+TESTNAME is codegen00048
+foo_1='1'
+foo_01='01'
+but now foo_1='001'
+but now foo_01='001'
+and foo_001='001' still
+foo_00001 is defined and is set to 001
+foo_1:isint is 1
+foo_00001:isint is 1
+zero_1='0'
+zero_01='00'
+but now zero_1='000'
+but now zero_01='000'
+and zero_001='000' still
+zero_00001 is defined and is set to 000
+zero_1:isint is 1
+zero_00001:isint is 1

@@ -1,3 +1,9 @@
+%echo THIS SCRIPT IS DEPRECATED - use mkjregress -l NN codegen
+%echo where NN is the test number.
+%echo then:  %touch codegen<NN>.cg
+%echo then:  add codegen call to .ksh script.
+%halt 0
+
 #generate the test ksh wrappers
 #Usage:  codegen -cgroot . create_wrappers.cg
 #        do not pass -u unless you want to re-write the wrapper(s).
@@ -27,7 +33,7 @@ EOF
 
 TEST_PREFIX = codegen
 #this is the number of tests:
-TNUM = 47
+TNUM = 48
 %call emit_wrapper
 ###  just emit one test:
 %exit

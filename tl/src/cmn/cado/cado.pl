@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.94 - 26-May-2011
+# @(#)cado.pl - ver 1.95 - 02-Jul-2011
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2011 Russ Tremain.  All Rights Reserved.
@@ -298,6 +298,8 @@
 #       Add :g operator (internal perl grep).
 #  26-May-2011 (russt) [Version 1.94]
 #       Add :dups op to show duplicate entries in a stack
+#  02-Jul-2011 (russt) [Version 1.95]
+#       Add %pragma canonicalize_counting_vars.
 #
 
 use strict;
@@ -307,8 +309,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.94",         #VERSION - the program version number.
-    "26-May-2011",  #VERSION_DATE - date this version was released.
+    "1.95",         #VERSION - the program version number.
+    "02-Jul-2011",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -394,6 +396,7 @@ our (
     $pragma_maxevaldepth,
     $pragma_generate_java,
     $pragma_generate_objective_c,
+    $pragma_canonicalize_counting_vars,
 ) = (
     0,              #pragma_preserve_multiline_lnewline - preserve left newline in here-now defs.
     0,              #pragma_trim_multiline_rnewline - trim final newline in here-now defs.
@@ -411,6 +414,7 @@ our (
     10,             #pragma_maxevaldepth - max depth of recursion for %evalmacro * (recursive).
     1,              #pragma_generate_java - generate for java (default).
     0,              #pragma_generate_objective_c - generate for objective c instead of java.
+    0,              #pragma_canonicalize_counting_vars,
 );
 
 #these are the user names for pragmas.  internal variable is prefixed with "pragma_".
@@ -432,6 +436,7 @@ my %PRAGMAS = (
     'maxevaldepth', 1,
     'generate_java', 1,
     'generate_objective_c', 1,
+    'canonicalize_counting_vars', 1,
 );
 
 my @INPUT_DATA;
@@ -2562,6 +2567,13 @@ sub definition
     return 1;    #we processed a definition, successful or not.
 }
 
+sub canonicalvarname
+#return the canonical form of a counting variable iff %pragma canonicalize_counting_vars is in effect.
+{
+    $_[0] =~ s/_0*(\d+)$/_$1/ if ($pragma_canonicalize_counting_vars == 1);
+    return $_[0] ;
+}
+
 sub add_definition
 #add a definition to the global hash.
 #return true (1) if okay.
@@ -2579,6 +2591,11 @@ sub add_definition
         #we processed a definition statement, even if there were errors::
         return 1;
     }
+
+    #this requires us to equate matches regardless of zero-padding in variables ending with numeric strings
+    #ie., FOO_1 <=> FOO_01 <=> FOO_001 etc.
+    #note - slight optimization - don't call mapping routine unless pragma in force.
+    $lhs = &canonicalvarname($lhs) if ($pragma_canonicalize_counting_vars == 1);
 
     printf STDERR "add_definition: lhs_in='%s' lhs='%s' rhs='%s' israw='%d' isappend='%d'\n", $lhs_in, $lhs, $rhs, $israw, $isappend if ($DEBUG);
 
@@ -2706,21 +2723,25 @@ sub lookup_def
 
     return $undefvalue unless (defined($varname));
 
-    if ( defined($CLASS_VARS{$varname}) ) {
-        $varval = $CLASS_VARS{$varname};
-    } elsif (!defined($CG_USER_VARS{$varname}) && $pragma_clrifndef == 1) {
+    #note - slight optimization - don't call mapping routine unless pragma in force.
+    my $varnamekey = $varname;
+    $varnamekey = &canonicalvarname($varname) if ($pragma_canonicalize_counting_vars == 1);
+
+    if ( defined($CLASS_VARS{$varnamekey}) ) {
+        $varval = $CLASS_VARS{$varnamekey};
+    } elsif (!defined($CG_USER_VARS{$varnamekey}) && $pragma_clrifndef == 1) {
         #clear undefined variables if %pragma clrifndef 1
         $varval = "";
-        $CG_USER_VARS{$varname} = $varval;
-    } elsif (defined($CG_USER_VARS{$varname})) {
-        $varval = $CG_USER_VARS{$varname};
+        $CG_USER_VARS{$varnamekey} = $varval;
+    } elsif (defined($CG_USER_VARS{$varnamekey})) {
+        $varval = $CG_USER_VARS{$varnamekey};
         #if value of variable is undefined, then garbage collect variable:
-        delete $CG_USER_VARS{$varname} if (&isUndefinedVarnameValue($varname, $varval));
-    } elsif ($ENV_VARS_OKAY && defined($ENV{$varname})) {
-        $varval = $ENV{$varname};
+        delete $CG_USER_VARS{$varnamekey} if (&isUndefinedVarnameValue($varnamekey, $varval));
+    } elsif ($ENV_VARS_OKAY && defined($ENV{$varnamekey})) {
+        $varval = $ENV{$varnamekey};
     }
 
-    printf STDERR "lookup_def:  in='%s' out='%s'\n", $varname, $varval if ($DEBUG);
+    printf STDERR "lookup_def:  in='%s' key='%s' out='%s'\n", $varname, $varnamekey, $varval if ($DEBUG);
 
     return $varval;
 }
@@ -4567,7 +4588,7 @@ sub undef_op
 {
     my ($var, $varname) = @_;
     #undefine $varname
-    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    delete $CG_USER_VARS{&canonicalvarname($varname)} if (defined($CG_USER_VARS{&canonicalvarname($varname)}));
     $var = sprintf('${%s:undef}', $varname);   #same as lookup_def returns.
     return $var;
 }
@@ -5240,7 +5261,7 @@ sub getnextline_op
     if ($fn eq "-" || $fn =~ /stdin/i) {
         my $line = <>;
         if (!defined($line)) {
-            delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+            delete $CG_USER_VARS{&canonicalvarname($varname)} if (defined($CG_USER_VARS{&canonicalvarname($varname)}));
             return "";
         }
         chomp $line;
@@ -5249,7 +5270,7 @@ sub getnextline_op
         ++$CG_OFD_CURRENTLINECOUNT{'<STDIN>'};    #this keeps a tally of how many lines read from stdin
 
         #we read a line from stdin.
-        $CG_USER_VARS{$varname} = '<STDIN>';  #normalize name of stdin
+        $CG_USER_VARS{&canonicalvarname($varname)} = '<STDIN>';  #normalize name of stdin
         return $varname;
     }
 
@@ -5257,7 +5278,7 @@ sub getnextline_op
     my $line = <$fhref> if (defined($fhref));
 
     if (!defined($fhref) || !defined($line)) {
-        delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+        delete $CG_USER_VARS{&canonicalvarname($varname)} if (defined($CG_USER_VARS{&canonicalvarname($varname)}));
         return "";
     }
 
@@ -5283,9 +5304,9 @@ sub currentline_op
     return $CG_OFD_CURRENTLINE{$fn} if (defined($CG_OFD_CURRENTLINE{$fn}));
 
     #otherwise, undefine the caller's variable:
-    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    delete $CG_USER_VARS{&canonicalvarname($varname)} if (defined($CG_USER_VARS{&canonicalvarname($varname)}));
     #otherwise, undefine the caller's variable:
-    delete $CG_USER_VARS{$varname} if (defined($CG_USER_VARS{$varname}));
+    delete $CG_USER_VARS{&canonicalvarname($varname)} if (defined($CG_USER_VARS{&canonicalvarname($varname)}));
     return sprintf('${%s}', $varname);   #same as lookup_def returns.
 }
 
@@ -5907,11 +5928,11 @@ sub valueof_op
     my ($var, $varname, $linecnt) = @_;
 
     #show the value of the variable named by $var:
-    if (&var_defined($var)) {
-        $var = $CG_USER_VARS{$var};
+    if (&var_defined(&canonicalvarname($var))) {
+        $var = $CG_USER_VARS{&canonicalvarname($var)};
     } else {
         printf STDERR "%s: WARNING: line %d:  \$%s:%s is UNDEFINED\n", $p, $linecnt, $var, "valueof" unless ($QUIET);
-        $var = sprintf("\${%s:undef}", $varname);;
+        $var = sprintf("\${%s:undef}", $varname);
     }
 
     return $var;
@@ -5929,8 +5950,8 @@ sub assign_op
     my ($var, $varname, $linecnt) = @_;
 
     #update the value of $var:
-    $CG_USER_VARS{$varname} = $var;
-    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+    $CG_USER_VARS{&canonicalvarname($varname)} = $var;
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{&canonicalvarname($varname)} if ($DEBUG);
 
     return $var;
 }
@@ -5940,9 +5961,9 @@ sub append_op
 {
     my ($var, $varname, $linecnt) = @_;
 
-    $CG_USER_VARS{$varname} = "" unless (defined($CG_USER_VARS{$varname}));
-    $CG_USER_VARS{$varname} .= $var;
-    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+    $CG_USER_VARS{&canonicalvarname($varname)} = "" unless (defined($CG_USER_VARS{&canonicalvarname($varname)}));
+    $CG_USER_VARS{&canonicalvarname($varname)} .= $var;
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{&canonicalvarname($varname)} if ($DEBUG);
 
     return $var;
 }
@@ -5952,10 +5973,10 @@ sub insert_op
 {
     my ($var, $varname, $linecnt) = @_;
 
-    $CG_USER_VARS{$varname} = "" unless (defined($CG_USER_VARS{$varname}));
-    $CG_USER_VARS{$varname} = $var . $CG_USER_VARS{$varname};
+    $CG_USER_VARS{&canonicalvarname($varname)} = "" unless (defined($CG_USER_VARS{&canonicalvarname($varname)}));
+    $CG_USER_VARS{&canonicalvarname($varname)} = $var . $CG_USER_VARS{&canonicalvarname($varname)};
 
-    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{$varname} if ($DEBUG);
+    printf STDERR "eval_postfix_op:  var='%s' CG_USER_VARS{%s}='%s'\n", $var, $varname, $CG_USER_VARS{&canonicalvarname($varname)} if ($DEBUG);
 
     return $var;
 }
@@ -5972,7 +5993,7 @@ sub clrifndef_op
 {
     my ($var, $varname, $linecnt) = @_;
 
-    if (!defined($CG_USER_VARS{$varname})) {
+    if (!defined($CG_USER_VARS{&canonicalvarname($varname)})) {
         return &assign_op("", $varname, $linecnt);
     }
 

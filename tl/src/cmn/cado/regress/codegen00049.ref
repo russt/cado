@@ -1,0 +1,12 @@
+TESTNAME is codegen00049
+<?xml version="1.0" encoding="UTF-8"?>
+<project>
+    <groupId>com.foo</groupId>
+    <artifactId>bogus</artifactId>
+    <packaging>pom</packaging>
+    <name>bogus</name>
+    <description>This is the bogus project.</description>
+    <build>
+    </build>
+</project>
+
