@@ -640,6 +640,56 @@ sub pragmavalue_op
     return $pragma_val;
 }
 
+sub to_txtm
+#convert a unix time to transaction date/time format
+#Usage:
+#   $theTime = time;
+#   $yyyymmddhhmmss = &txtm::to_txtm($theTime);
+{
+    my($utime) = @_;
+
+    my(@trec) = gmtime($utime);
+
+    return sprintf("%04d%02d%02d%02d%02d%02d",
+        $trec[5] + 1900,
+        $trec[4] +1,
+        $trec[3],
+        $trec[2],
+        $trec[1],
+        $trec[0]);
+}
+
+sub modtime_op
+#return the last modified time of a file, in the form YYYYMMDDHHMMSS
+#NULL if not a file.
+{
+#record defs for stat buf:
+#$N_STATBUF = 12;
+#($DEV, $INO, $MODE, $NLINK, $UID, $GID, $RDEV, $SIZE,
+# $ATIME, $MTIME, $CTIME, $BLKSIZE, $BLOCKS) =  (0..$N_STATBUF);
+
+    my ($fn) = @_;
+    my @rec = stat($fn);
+
+#printf STDERR "modtime_op: fn='%s' rec=(%s)\n", $fn, join(',', @rec);
+
+    return "NULL" unless ($#rec >= 0);
+
+    #convert to yyyymmddhhmmss format:
+    return to_txtm($rec[9]);
+}
+
+sub createtime_op
+#return the create time of a file, in the form YYYYMMDDHHMMSS
+#NULL if not a file.
+{
+    my ($fn) = @_;
+    my @rec = stat($fn);
+
+    return "NULL" unless ($#rec >= 0);
+    return to_txtm($rec[10]);
+}
+
 sub openfile_op
 #process :openfile postfix op
 #open a file if it is open. return error string or empty if no error.

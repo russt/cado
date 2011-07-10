@@ -1,5 +1,5 @@
-VERSION = 1.95
-VERSION_DATE = 02-Jul-2011
+VERSION = 1.96
+VERSION_DATE = 09-Jul-2011
 COPYRIGHT_RANGE1 = 2003-2008
 COPYRIGHT_RANGE2 = 2009-2011
 
@@ -4348,6 +4348,8 @@ CODEGEN_HEADER := << EOF
 #       Add :dups op to show duplicate entries in a stack
 #  02-Jul-2011 (russt) [Version 1.95]
 #       Add %pragma canonicalize_counting_vars.
+#  09-Jul-2011 (russt) [Version 1.96]
+#       Add :modtime, :createtime file ops.
 #
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER

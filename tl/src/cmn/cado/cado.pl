@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.95 - 02-Jul-2011
+# @(#)cado.pl - ver 1.96 - 09-Jul-2011
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2011 Russ Tremain.  All Rights Reserved.
@@ -300,6 +300,8 @@
 #       Add :dups op to show duplicate entries in a stack
 #  02-Jul-2011 (russt) [Version 1.95]
 #       Add %pragma canonicalize_counting_vars.
+#  09-Jul-2011 (russt) [Version 1.96]
+#       Add :modtime, :createtime file ops.
 #
 
 use strict;
@@ -309,8 +311,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.95",         #VERSION - the program version number.
-    "02-Jul-2011",  #VERSION_DATE - date this version was released.
+    "1.96",         #VERSION - the program version number.
+    "09-Jul-2011",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -5204,6 +5206,56 @@ sub pragmavalue_op
 #printf STDERR "pragmavalue_op: pragma_var='%s' pragma_val='%s'\n", $pragma_var, defined($pragma_val)? $pragma_val : "undef";
 
     return $pragma_val;
+}
+
+sub to_txtm
+#convert a unix time to transaction date/time format
+#Usage:
+#   $theTime = time;
+#   $yyyymmddhhmmss = &txtm::to_txtm($theTime);
+{
+    my($utime) = @_;
+
+    my(@trec) = gmtime($utime);
+
+    return sprintf("%04d%02d%02d%02d%02d%02d",
+        $trec[5] + 1900,
+        $trec[4] +1,
+        $trec[3],
+        $trec[2],
+        $trec[1],
+        $trec[0]);
+}
+
+sub modtime_op
+#return the last modified time of a file, in the form YYYYMMDDHHMMSS
+#NULL if not a file.
+{
+#record defs for stat buf:
+#$N_STATBUF = 12;
+#($DEV, $INO, $MODE, $NLINK, $UID, $GID, $RDEV, $SIZE,
+# $ATIME, $MTIME, $CTIME, $BLKSIZE, $BLOCKS) =  (0..$N_STATBUF);
+
+    my ($fn) = @_;
+    my @rec = stat($fn);
+
+#printf STDERR "modtime_op: fn='%s' rec=(%s)\n", $fn, join(',', @rec);
+
+    return "NULL" unless ($#rec >= 0);
+
+    #convert to yyyymmddhhmmss format:
+    return to_txtm($rec[9]);
+}
+
+sub createtime_op
+#return the create time of a file, in the form YYYYMMDDHHMMSS
+#NULL if not a file.
+{
+    my ($fn) = @_;
+    my @rec = stat($fn);
+
+    return "NULL" unless ($#rec >= 0);
+    return to_txtm($rec[10]);
 }
 
 sub openfile_op

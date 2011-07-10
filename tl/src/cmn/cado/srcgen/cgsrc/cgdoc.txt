@@ -303,6 +303,12 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
 :x                  - return non-zero if file is executable.
 :z                  - return non-zero if file is zero length.
 
+                    =============
+                    FILE STAT OPS
+                    =============
+:createtime         - return create time in the form YYYYMMDDHHMMSS, or NULL if not a file.
+:modtime            - return last modification time of a file in the form YYYYMMDDHHMMSS, or NULL.
+
                     =====================
                     COMPARISON & MATCHING
                     =====================
@@ -371,6 +377,9 @@ NOTE:  setting generate_java will reset generate_objective_c.  Likewise, setting
 %pragma trim_multiline_rnewline [1|0]
                               - if 1, trim the final newline in a here-now document (normally added).
 
+%pragma canonicalize_counting_vars
+                              - if 1, map all "counting" variables to the same base variable name.
+                                That is, FOO_1 <=> FOO_01 <=> FOO_001 etc.
 
                     ================
                     PRAGMA OPERATORS
