@@ -12,4 +12,7 @@ PERL_LIBPATH="..;$PERL_LIBPATH"
 
 #test src templates:
 export CG_TEMPLATE_PATH
-CG_TEMPLATE_PATH="../templates;$CG_TEMPLATE_PATH"
+CG_TEMPLATE_PATH="../templategen/bld;../templategen;../templates;$CG_TEMPLATE_PATH"
+
+#NOTE:  ../templategen/bld/maven2 is the output of the maven template generation scripts.
+#NOTE:  ../templategen/xml is the location of the xml template marcos and operators.

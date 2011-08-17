@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.96 - 09-Jul-2011
+# @(#)cado.pl - ver 1.97 - 17-Aug-2011
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2011 Russ Tremain.  All Rights Reserved.
@@ -302,6 +302,8 @@
 #       Add %pragma canonicalize_counting_vars.
 #  09-Jul-2011 (russt) [Version 1.96]
 #       Add :modtime, :createtime file ops.
+#  17-Aug-2011 (russt) [Version 1.97]
+#       Add %pragma version X - which will halt unless the interpreter version is X or higher.
 #
 
 use strict;
@@ -311,8 +313,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.96",         #VERSION - the program version number.
-    "09-Jul-2011",  #VERSION_DATE - date this version was released.
+    "1.97",         #VERSION - the program version number.
+    "17-Aug-2011",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -399,6 +401,7 @@ our (
     $pragma_generate_java,
     $pragma_generate_objective_c,
     $pragma_canonicalize_counting_vars,
+    $pragma_version,
 ) = (
     0,              #pragma_preserve_multiline_lnewline - preserve left newline in here-now defs.
     0,              #pragma_trim_multiline_rnewline - trim final newline in here-now defs.
@@ -416,7 +419,8 @@ our (
     10,             #pragma_maxevaldepth - max depth of recursion for %evalmacro * (recursive).
     1,              #pragma_generate_java - generate for java (default).
     0,              #pragma_generate_objective_c - generate for objective c instead of java.
-    0,              #pragma_canonicalize_counting_vars,
+    0,              #pragma_canonicalize_counting_vars
+    0,              #pragma_version
 );
 
 #these are the user names for pragmas.  internal variable is prefixed with "pragma_".
@@ -439,6 +443,7 @@ my %PRAGMAS = (
     'generate_java', 1,
     'generate_objective_c', 1,
     'canonicalize_counting_vars', 1,
+    'version', 1,
 );
 
 my @INPUT_DATA;
@@ -646,8 +651,8 @@ sub interpret
                 $exit_early = 1;
             } elsif (&undefspec($line, $linecnt)) {
                 ;       #undefine a variable
-            } elsif (&pragma_spec($line, $linecnt, $infile)) {
-                ;       #process a %pragma
+            } elsif (&pragma_spec($line, $linecnt, $infile, \$exit_early)) {
+                $$halt_program = 1 if ($exit_early);
             } elsif (&exportspec($line, $linecnt)) {
                 ;       #export a variable to the environment
             } elsif (&haltcommand($line, $linecnt)) {
@@ -869,6 +874,18 @@ sub popspec
     return 1;
 }
 
+sub interpreter_version_too_low
+#return 1 if current version of interpreter is less than user requires.
+{
+    my ($version_required) = @_;
+
+    if ($VERSION < $version_required) {
+        return 1;
+    }
+
+    return 0;
+}
+
 sub pragma_spec
 #returns true if we have an %pragma spec, which looks like this:
 #    %pragma var value
@@ -877,7 +894,7 @@ sub pragma_spec
 #WARNING:  you may need to modify :pragmavalue if you add a new pragma here.
 #
 {
-    my ($line, $linecnt, $infile) = @_;
+    my ($line, $linecnt, $infile, $exit_program_ref) = @_;
     return 0 unless ($line =~ /^\s*%pragma/);
 
     my $token = '%pragma';
@@ -931,6 +948,19 @@ sub pragma_spec
         #this routine will read in the perl file specified by the user:
         &pragma_require($rhs, $linecnt, $infile);
         return 1;  #recognized and processed a %pragma
+    }
+
+    ########
+    #process the version compatibility pragma:
+    ########
+    if ($lhs eq 'version' && &interpreter_version_too_low($rhs)) {
+        #TELL INTERPRETER TO HALT PROGRAM DUE TO INCOMPATIBLE VERSION:
+        $$exit_program_ref = 1;
+        $CG_USER_VARS{'CG_EXIT_STATUS'} = 3;
+
+        printf STDERR "%s: ERROR: minimum interpreter version required for '%s' is %s (current is %s) - HALT.\n", $p, $infile, $rhs, $VERSION;
+
+        return 1;  #we recognized and processed a %pragma
     }
 
     ########

@@ -1,5 +1,45 @@
+#
+# BEGIN_HEADER - DO NOT EDIT
+#
+# The contents of this file are subject to the terms
+# of the Common Development and Distribution License
+# (the "License").  You may not use this file except
+# in compliance with the License.
+#
+# You can obtain a copy of the license at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# See the License for the specific language governing
+# permissions and limitations under the License.
+#
+# When distributing Covered Code, include this CDDL
+# HEADER in each file and include the License file at
+# https://open-esb.dev.java.net/public/CDDLv1.0.html.
+# If applicable add the following below this CDDL HEADER,
+# with the fields enclosed by brackets "[]" replaced with
+# your own identifying information: Portions Copyright
+# [year] [name of copyright owner]
+#
+#
+# @(#)xmlcg_ops.pl
+#
+# Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
+# Copyright 2009-2011 Russ Tremain.  All Rights Reserved.
+#
+# END_HEADER - DO NOT EDIT
+#
+
 #note package defaults to current package, which is already codegen.
 #codegen internal variables are protected; can only be set via function calls.
+
+#
+# xmlcg_ops.pl - some specialized ops for generating xml from indexed variables.
+#
+# Author: Russ Tremain
+#
+#  17-Aug-2011 (russt)
+#       Remove 2 digit limit for :xmlcg_default_value_range_op.
+#
+
 use strict;
 
 sub xmlcg_default_value_range_op
@@ -14,7 +54,7 @@ sub xmlcg_default_value_range_op
     my $parent_instance = 0;
     my $value_varname = "";
 
-    if ($var =~ /^(.*)_COUNT_(\d\d)$/) {
+    if ($var =~ /^(.*)_COUNT_(\d+)$/) {
         $value_varname = $1;
         $parent_instance = $2;
         my $value_varname_nn = $value_varname . "_" . "$parent_instance";
@@ -56,12 +96,12 @@ sub xmlcg_normalize_counts_op
 #printf STDERR "xmlcg_normalize_counts: ALL '%s' vars=(%s)\n", $libprefix, join(",", @varlist);
 
     #get _COUNT vars:
-    my @count_vars = grep(/_COUNT(_\d\d)?$/, @varlist);
+    my @count_vars = grep(/_COUNT(_\d+)?$/, @varlist);
 
 #printf STDERR "xmlcg_normalize_counts: count_vars=(%s)\n", join(",", @count_vars);
 
     #get _COUNT variables missing a parent suffix:
-    my @count_vars_missing_parent = grep($_ !~ /_COUNT(_\d\d)$/, @count_vars);
+    my @count_vars_missing_parent = grep($_ !~ /_COUNT(_\d+)$/, @count_vars);
 
 #printf STDERR "xmlcg_normalize_counts: count_vars_missing_parent=(%s)\n", join(",", @count_vars_missing_parent);
 
@@ -75,7 +115,7 @@ sub xmlcg_normalize_counts_op
 
 ##get list of now normalized _COUNT vars:
 #@varlist = grep(/$libprefix/, &get_user_vars());
-#@count_vars = grep(/_COUNT(_\d\d)/, @varlist);
+#@count_vars = grep(/_COUNT(_\d+)/, @varlist);
 #printf STDERR "xmlcg_normalize_counts: <NORMALIZED> count_vars=(%s)\n", join(",", @count_vars);
 
     return 1;

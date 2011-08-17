@@ -1,26 +1,64 @@
 #test the xml/maven templates to see if we can break the 00-99 limit on element generation.
 
-%pragma canonicalize_counting_vars 1
-
-simple_pom := << [
-MAVEN_PROJECT_COUNT = 	1
-MAVEN_PROJECT_BUILD_COUNT = 	1
-MAVEN_PROJECT_PACKAGING =	pom
-MAVEN_PROJECT_ARTIFACTID =	bogus
-MAVEN_PROJECT_GROUPID =	com.foo
-MAVEN_PROJECT_NAME =	$MAVEN_PROJECT_ARTIFACTID
-MAVEN_PROJECT_DESCRIPTION =	This is the $MAVEN_PROJECT_NAME project.
-]
+#require minimum version of 1.97 for this test:
+%pragma version 1.97
 
 %include maven2/maven_lib.cg
+%pragma canonicalize_counting_vars 1
+
+
+################################## TEMPLATES ###################################
+
+dep_template := << [
+MAVEN_DEPENDENCY_GROUPID_$mdc:i:a = com.bogus.$mdc
+MAVEN_DEPENDENCY_ARTIFACTID_$mdc  = bogus_$mdc
+]
+
+################################# SUBROUTINES ##################################
+
+add_dep := << {
+    %evalmacro >> DEPENDENCY_DEFS dep_template
+}
+
+generate_deps := << {
+    DEPENDENCY_DEFS =
+    iirange = 1..101
+    %foreach ii iirange    %call add_dep
+}
+
+simple_pom := << {
+    %call generate_deps
+
+    MAVEN_PROJECT_COUNT = 	1
+    MAVEN_PROJECT_BUILD_COUNT = 	1
+    MAVEN_PROJECT_PACKAGING =	pom
+    MAVEN_PROJECT_ARTIFACTID =	bogus
+    MAVEN_PROJECT_GROUPID =	com.foo
+    MAVEN_PROJECT_NAME =	$MAVEN_PROJECT_ARTIFACTID
+    MAVEN_PROJECT_DESCRIPTION =	This is the $MAVEN_PROJECT_NAME project.
+
+    mdc = 0
+
+    %call DEPENDENCY_DEFS
+
+    MAVEN_DEPENDENCY_COUNT =	$mdc
+    MAVEN_PROJECT_DEPENDENCIES_COUNT =	1
+}
+
+##################################### MAIN #####################################
 
 #set/clear the output accumulator
 MACRO_OUTPUT_ACCUMULATOR =      ECHO_TXT
 \$MACRO_OUTPUT_ACCUMULATOR =
 MAVEN_GENERATE_EMPTY_ELEMENTS = $GENERATE_EMPTY_ELEMENTS
 
-%pragma debug 1
+%pragma debug 0
 %call xml_header
+
+#generate the pom:
+%call simple_pom
+#%eecho after simple_pom, mdc=$mdc
+
 %call maven_project
 
-%echo \$ECHO_TXT
+%echo -n $ECHO_TXT
