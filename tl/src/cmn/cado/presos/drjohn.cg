@@ -1,0 +1,29 @@
+%ifndef CG_ROOT    CG_ROOT = letters
+
+letter_template := << (
+
+{=theDate=}
+
+Dear {=firstname=},
+
+I am breaking up with you.  {=theReason=}
+
+{=signoff=},
+{=myname=}
+)
+
+CG_SHELL_COMMAND_ARGS = "+%m/%d/%Y"
+theDate = $theDate:date
+myname = Miss Piggy
+
+firstname = John
+theReason = You suck!
+signoff  = I sincerely hope you rot in Hell
+%evalmacro  ECHO_TXT letter_template
+echo	/${firstname:tolower}.txt
+
+firstname = Bob
+theReason = It's not you, $firstname, it's me.
+signoff  = Regrettably
+%evalmacro  ECHO_TXT letter_template
+echo	/${firstname:tolower}.txt

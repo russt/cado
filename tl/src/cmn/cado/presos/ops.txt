@@ -1,0 +1,18 @@
+:assign, :a :append :insert :nameof :undef :valueof :zero :clr :clrifndef :env :pwd
+:decr :incr, :i :isint :pad :plus<n> :minus<n> :times<n> :div<n> :rem<n>
+:xmlcomment :xmlcommentblock :_<element_name> :stripxmlcomments
+:indent<n> :basename :dirname :suffix :root :cap :uncap :onecol
+:oneline :lnewline :rnewline :newline, :nl :fixeol :eoltrim :eolsqueeze :ltrim :rtrim :trim :g
+:substitute :s :s2,:s3,:s4,:s5 :substituteliteral :sl :lspace :rspace :space :tab :cgvar :quote,:q
+:dquote,:dq :todos :tounix :toupper :tolower :hexencode :hexdecode :urlencode :urldecode :crc :crcfile
+:crcstr :freq :studyclass :stripRcsKeywords :method2rec :init_objc_ptr
+:top :bottom :car :cdr :split :stacksize :stackminus :showstack :unique :dups
+:antvar :parse_antprops :clear_antprops :expand_antprops :showantvars :expand_antrefs :antpropvalue
+:antpropnames :isantprop :factorShSubs
+:factorShVars :factorCshVars :B
+:T :d :e :f :l :r :sz :w :x :z
+:createtime :modtime
+:eq :ne :ge :gt :le :lt :match :m
+:rangelb :rangeub
+:openfile :closefile :getnextline :currentline :currentlinenumber
+:pv :pragmavalue

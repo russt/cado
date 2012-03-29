@@ -1,0 +1,4 @@
+%pragma require mytolower.pl
+
+FOO = FOO
+%echo FOO=$FOO:mytolower
