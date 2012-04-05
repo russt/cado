@@ -1,0 +1,12 @@
+%pragma require fibonacci.pl
+
+arange = 0..3
+arange = 0..12
+#%foreach ii arange %print fibr($ii)=$ii:fibr
+
+#1476 is the largest term we can calculate before "infinity" (inf) answer.
+
+ii = 1476
+ii = 35
+#%print fibr($ii)=$ii:fibr
+%print fib($ii)=$ii:fib
