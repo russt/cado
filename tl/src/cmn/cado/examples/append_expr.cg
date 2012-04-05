@@ -1,0 +1,10 @@
+data := << (
+1 fred
+2 sam
+3 sally
+)
+
+CG_SUBSTITUTE_SPEC := s/^([0-9]+)\s+/append_op("$1+", "FOO")/emg
+output = $data:substitute
+%echo output=$output
+%echo FOO=$FOO
