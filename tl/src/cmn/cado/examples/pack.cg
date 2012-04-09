@@ -1,0 +1,27 @@
+packed := {=%perl pack('a*', "hello world");=}
+packed := {=%perl 1+2;=}
+packed := {=%perl localtime;=}
+
+packed := {=%perl pack("B8 C3 N10 B32", '00011011', (0)x12, int($LocalTime0), $LocalTime0FB);=}
+
+#this is instructive - note how the N10 (= 10x4 bytes) will pad out with zeros
+packed := {=%perl pack("B8 C3 N10", '00011011', 0, 0, 0, (-1)x12 );=}
+
+#not sure about the B32 input - it should be a binary string as before.
+packed := {=%perl {my $xx=time; pack("B8 C3 N10 B32", '00011011', (0)x12, int($xx));}=}
+
+#output to a file named packed.txt:
+%evalmacro ECHO_TXT packed
+echo /packed.txt
+
+#dump the byte stream with od:
+%od -v -t x1 packed.txt
+
+#this is to suppress the version output when we run lua:
+CG_SHELL_COMMAND_ARGS = -
+
+my_lua_prog := << (
+print "hello world"
+)
+
+%echo $my_lua_prog:lua

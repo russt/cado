@@ -1,0 +1,10 @@
+#this is to suppress the version output when we run lua:
+CG_SHELL_COMMAND_ARGS = -
+
+my_lua_prog := << (
+print "hello world"
+)
+
+%echo $my_lua_prog:lua
+
+%undef CG_SHELL_COMMAND_ARGS
