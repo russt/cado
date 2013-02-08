@@ -526,7 +526,7 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %pushv              - push variables whose name matches a pattern onto a new or existing stack.
                       E.g., "%pushv myvarstack /perl RE/".  If RE is missing, push ALL variables onto stack.
                       Pattern can also be a single variable reference, e.g., "%pushv vardefs $vpattern"
-%undef              - eliminates variables. Usage:  %undef [/pattern /] OR $undef $vpattern
+%undef              - eliminates variables. Usage:  %undef pattern OR %undef /pattern/ OR %undef $vpattern
 %export             - export a variable to the env.
 %unexport           - delete a variable from the env.
 
