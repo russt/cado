@@ -71,6 +71,8 @@ sub parse_args
             $DDEBUGFLAG = 1;
         } elsif ($flag =~ '^-v') {
             $VERBOSE = 1;
+        } elsif ($flag =~ '^-q') {
+            $QUIET = 1;
         } elsif ($flag =~ '^-h') {
             $HELPFLAG = 1;
             return &usage(0);
