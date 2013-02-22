@@ -1149,6 +1149,54 @@ sub cgvar_op
     return '{=' . $var . '=}';
 }
 
+sub pl2path_op
+#INPUT: perl module reference, e.g., Release::Build::Cmd::build
+#OUTPUT: pathname of perl script, e.g., Release/Build/Cmd/build.pl
+#NOTE:  unix only
+{
+    my ($varvalue) = @_;
+
+    $varvalue = &prlpkg2path_op($varvalue) . '.pl';
+
+    return $varvalue;
+}
+
+sub pm2path_op
+#INPUT: perl module name, e.g., Release::Build::Cmd::build
+#OUTPUT: pathname of perl module, e.g., Release/Build/Cmd/build.pm
+#NOTE:  unix only
+{
+    my ($varvalue) = @_;
+
+    $varvalue = &prlpkg2path_op($varvalue) . '.pm';
+
+    return $varvalue;
+}
+
+sub prlpkg2path_op
+#INPUT: perl package name, e.g., Release::Build::Cmd
+#OUTPUT: pathname of perl package directory, e.g., Release/Build/Cmd
+#NOTE:  unix only
+{
+    my ($varvalue) = @_;
+
+    $varvalue =~ s/::/\//g;
+
+    return $varvalue;
+}
+
+sub path2pm_op
+#INPUT: pathname with or without .pm or .pl suffix
+#OUTPUT: perl module name
+{
+    my ($varvalue, $varname, $linecnt) = @_;
+
+    $varvalue =~ s/\.p[ml]$//g;
+    $varvalue =~ s/\//::/g;
+
+    return $varvalue;
+}
+
 sub q_op
 #wrap contents of var in single quotes.
 {

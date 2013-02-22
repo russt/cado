@@ -5,7 +5,7 @@
 
 use strict;
 
-package {=PL_PACKAGE=};
+package {=$PL_PACKAGE_PREFIX:clrifndef=}{=PL_PACKAGE=};
 my $pkgname = __PACKAGE__;
 
 #imports:
@@ -39,4 +39,4 @@ sub {=PL_CONSTRUCTOR_NAME=}
 {=PL_PKG_METHODS=}
 
 1;
-} #end of {=PL_PACKAGE=}
+} #end of {=PL_PACKAGE_PREFIX=}{=PL_PACKAGE=}

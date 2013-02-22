@@ -153,6 +153,16 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
 
 :method2rec         - convert a java method signature to a tab separated record.
 
+                    ================================
+                    PERL OPERATORS
+                    ================================
+:pl2path            - convert perl package reference to .pl pathname, e.g. Foo::Bar::Impl -> Foo/Bar/Impl.pl
+:pm2path            - convert perl package reference to .pm pathname, e.g. Foo::Bar::Impl -> Foo/Bar/Impl.pm
+:prlpkg2path        - convert perl parent package reference to path, e.g. Foo::Bar -> Foo/Bar
+:path2pm            - convert perl pathname to perl module or package name, e.g.:
+                          Foo/Bar/Impl.pm -> Foo::Bar::Impl
+                          Foo/Bar/Impl.pl -> Foo::Bar::Impl
+                          Foo/Bar -> Foo::Bar
 
                     =====================
                     OBJECTIVE C OPERATORS
@@ -336,6 +346,9 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
 {                   =======
                     PRAGMAS
                     =======
+%pragma version <version>     - this is the minimum Cado version required for a script.  Starting
+                                with verison 1.97, interpreter will halt if version spec is not met.
+
 %pragma require <perl_file>   - read a <perl_file> into the current context.
                                 Can be used to add custom postfix operators.
 

@@ -21,10 +21,10 @@
 #
 
 #
-# @(#)cado.pl - ver 1.97 - 17-Aug-2011
+# @(#)cado.pl - ver 1.98 - 14-Feb-2013
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
-# Copyright 2009-2011 Russ Tremain.  All Rights Reserved.
+# Copyright 2009-2013 Russ Tremain.  All Rights Reserved.
 #
 # END_HEADER - DO NOT EDIT
 #
@@ -304,6 +304,9 @@
 #       Add :modtime, :createtime file ops.
 #  17-Aug-2011 (russt) [Version 1.97]
 #       Add %pragma version X - which will halt unless the interpreter version is X or higher.
+#  14-Feb-2013 (russt) [Version 1.98]
+#       Add perl module/path ops (:pm2path, :pmpkg2path, :path2pm).
+#       Added doc for version %pragma.
 #
 
 use strict;
@@ -313,8 +316,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.97",         #VERSION - the program version number.
-    "17-Aug-2011",  #VERSION_DATE - date this version was released.
+    "1.98",         #VERSION - the program version number.
+    "14-Feb-2013",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -5745,6 +5748,54 @@ sub cgvar_op
 {
     my ($var) = @_;
     return '{=' . $var . '=}';
+}
+
+sub pl2path_op
+#INPUT: perl module reference, e.g., Release::Build::Cmd::build
+#OUTPUT: pathname of perl script, e.g., Release/Build/Cmd/build.pl
+#NOTE:  unix only
+{
+    my ($varvalue) = @_;
+
+    $varvalue = &prlpkg2path_op($varvalue) . '.pl';
+
+    return $varvalue;
+}
+
+sub pm2path_op
+#INPUT: perl module name, e.g., Release::Build::Cmd::build
+#OUTPUT: pathname of perl module, e.g., Release/Build/Cmd/build.pm
+#NOTE:  unix only
+{
+    my ($varvalue) = @_;
+
+    $varvalue = &prlpkg2path_op($varvalue) . '.pm';
+
+    return $varvalue;
+}
+
+sub prlpkg2path_op
+#INPUT: perl package name, e.g., Release::Build::Cmd
+#OUTPUT: pathname of perl package directory, e.g., Release/Build/Cmd
+#NOTE:  unix only
+{
+    my ($varvalue) = @_;
+
+    $varvalue =~ s/::/\//g;
+
+    return $varvalue;
+}
+
+sub path2pm_op
+#INPUT: pathname with or without .pm or .pl suffix
+#OUTPUT: perl module name
+{
+    my ($varvalue, $varname, $linecnt) = @_;
+
+    $varvalue =~ s/\.p[ml]$//g;
+    $varvalue =~ s/\//::/g;
+
+    return $varvalue;
 }
 
 sub q_op

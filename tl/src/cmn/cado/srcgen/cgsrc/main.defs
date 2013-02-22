@@ -1,7 +1,7 @@
-VERSION = 1.97
-VERSION_DATE = 17-Aug-2011
+VERSION = 1.98
+VERSION_DATE = 14-Feb-2013
 COPYRIGHT_RANGE1 = 2003-2008
-COPYRIGHT_RANGE2 = 2009-2011
+COPYRIGHT_RANGE2 = 2009-2013
 
 {
 CODEGEN_PACKAGE := << EOF
@@ -4380,6 +4380,9 @@ CODEGEN_HEADER := << EOF
 #       Add :modtime, :createtime file ops.
 #  17-Aug-2011 (russt) [Version 1.97]
 #       Add %pragma version X - which will halt unless the interpreter version is X or higher.
+#  14-Feb-2013 (russt) [Version 1.98]
+#       Add perl module/path ops (:pm2path, :pmpkg2path, :path2pm).
+#       Added doc for version %pragma.
 #
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER
