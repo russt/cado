@@ -93,10 +93,13 @@ sub parse_args
 
 sub init
 {
+{=$PL_INIT_ROUTINE:clrifndef:indent=}
 }
 
 sub cleanup
 {
+{=$PL_CLEANUP_ROUTINE:clrifndef:indent=}
 }
+
 1;
 } #end of {=PL_PACKAGE=}
