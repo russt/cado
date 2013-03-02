@@ -1,0 +1,131 @@
+#
+# newobj.defs - definitions for creating a new perl object.
+# for example of how to call, see newobj.cg
+# Suggested aliases:
+#    alias newobju echo "Usage:  newobj obj_name description ..."
+#    alias newobj codegen -u -cgroot . -DOBJECT_NAME='\!^' -DOBJECT_DESCRIPTION='"\!:2-$"' '$TOOLROOT'/lib/cmn/templates/perl/newobj.cg
+# INPUTS:
+#    OBJECT_NAME         - the name of the object we are going to generate
+#    PARENT_PACKAGE      - (optional) name of the parent package, with trailing separators, eg "foo::".
+#    OBJECT_PACKAGE_VAR  - generated cg variable used to refer to object package ($OBJECT_NAME:toupper)
+#    _OBJECT_PACKAGE_VAR - generated cg variable used to refer to fully qualified object package.
+#    OBJECT_DESCRIPTION  - (defaulted) description of object
+#    BUILD_SETUP         - (defaulted) name of setup file included by all objects.
+# OUTPUTS:
+#    OUTPUT_OBJECT_DEFS  - (result) contains the object definition text
+#    OBJECT_USER_DEFS    - (value/result) accumulates object variable defs for users of object.
+#                          caller must clear if desired, as we will append to it.
+
+#return if already included:
+%ifdef NEWOBJ_INCLUDED %return
+
+#we don't write anything to files, so not to worry...
+%ifndef CG_ROOT    CG_ROOT = .
+
+newobj_create_one_object := << //
+{
+    #default any needed variables if not set by user:
+    %ifndef OBJECT_NAME           OBJECT_NAME = theObject
+    %ifndef PARENT_PACKAGE        PARENT_PACKAGE =
+    %ifndef OBJECT_DESCRIPTION    OBJECT_DESCRIPTION = the description
+    %ifndef BUILD_SETUP           BUILD_SETUP = ../build_setup.defs
+
+    OBJECT_PACKAGE_VAR = ${OBJECT_NAME:toupper}_PACKAGE
+    _OBJECT_PACKAGE_VAR = _${OBJECT_PACKAGE_VAR}
+
+    #expand user vars in header but not in body:
+    %evalmacro OUTPUT_OBJECT_DEFS object_header_template
+    OUTPUT_OBJECT_DEFS .= $object_body_template
+
+    #accumulate user defs (typically added to global definition file for consumers of object):
+    %evalmacro >> OBJECT_USER_DEFS package_def_template
+}
+//
+
+newobj_clear_template_vars := << //
+#clear all input/output template vars
+{
+    %undef OBJECT_NAME
+    %undef OBJECT_PACKAGE_VAR
+    %undef _OBJECT_PACKAGE_VAR
+    %undef OBJECT_DESCRIPTION
+    %undef BUILD_SETUP
+    %undef OUTPUT_OBJECT_DEFS
+    #do not clear user-supplied vars:
+    #%undef OBJECT_USER_DEFS
+    #%undef PARENT_PACKAGE
+}
+//
+
+package_def_template := << [
+#{=OBJECT_NAME=} object:
+{=OBJECT_PACKAGE_VAR=}  = {=OBJECT_NAME=}
+_{=OBJECT_PACKAGE_VAR=} = {=PARENT_PACKAGE=}${{=OBJECT_PACKAGE_VAR=}}
+
+]
+
+object_header_template := << [
+#
+#{=OBJECT_NAME=}.defs -  definitions for {=OBJECT_NAME=} object.
+#
+
+#allows us to run stand-alone:
+%ifndef CG_ROOT %include {=BUILD_SETUP=}
+
+{ ## header section
+PL_PACKAGE = ${=OBJECT_PACKAGE_VAR=}
+PL_PACKAGE_DESCRIPTION = {=OBJECT_DESCRIPTION=}
+
+#not a base class - use standard constuctor name:
+PL_CONSTRUCTOR_NAME = new
+
+PL_PKG_IMPORTS := << (
+)
+%evalmacro PL_PKG_IMPORTS PL_PKG_IMPORTS
+
+PL_PKG_ATTRIBUTES := << (
+)
+%evalmacro PL_PKG_ATTRIBUTES PL_PKG_ATTRIBUTES
+}
+]
+
+object_body_template := << [
+{ ## constructor section
+PL_CONSTRUCTOR_BODY := << (
+)
+%evalmacro PL_CONSTRUCTOR_BODY PL_CONSTRUCTOR_BODY
+
+PL_OBJ_ATTRIBUTES := << (
+)
+%evalmacro PL_OBJ_ATTRIBUTES PL_OBJ_ATTRIBUTES
+
+#this is for further initialzation of attributes, since hash init cannot be self-referential:
+PL_POST_ATTRIBUTE_INIT := << (
+)
+%evalmacro PL_POST_ATTRIBUTE_INIT PL_POST_ATTRIBUTE_INIT
+}
+
+{ ## class methods
+
+#clear standard accessor accumulator:
+getset_methods =
+
+#generate read/write (get/set) accessors:
+#PL_ATTRIBUTE_NAME = XX
+#%evalmacro >> getset_methods pl_getsetlist
+
+#generate read-only attributes:
+#PL_ATTRIBUTE_NAME = YY
+#%evalmacro >> getset_methods pl_attr_method
+
+PL_PKG_METHODS := << (
+
+{=getset_methods=}
+)
+
+%evalmacro PL_PKG_METHODS PL_PKG_METHODS
+}
+]
+
+#tell sub-sections we have been initialized:
+NEWOBJ_INCLUDED = 1

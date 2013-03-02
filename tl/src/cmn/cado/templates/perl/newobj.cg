@@ -1,95 +1,12 @@
 #run this script to generate skeleton for a new perl object
 #output goes to stdout so we don't accidentally destroy existing code.
 
-%pragma quiet 1
+%include perl/newobj.defs
 
-emit_template := << EOF
-{
-    CG_ROOT = .
+%call newobj_create_one_object
 
-    #these variables should be set by user:
-    %ifndef OBJECT_NAME                OBJECT_NAME = theObject
-    %ifndef OBJECT_PACKAGE_NAME_VAR    OBJECT_PACKAGE_NAME_VAR = ${OBJECT_NAME:toupper}_PACKAGE
-    %ifndef OBJECT_DESCRIPTION         OBJECT_DESCRIPTION = the description
-    %ifndef BUILD_SETUP                BUILD_SETUP = ../build_setup.defs
+%echo ============  OUTPUT_OBJECT_DEFS
+%echo -n $OUTPUT_OBJECT_DEFS
 
-    #expand user vars in header but not in body:
-    %evalmacro header header
-
-    #echo defs:
-    %echo $header$body
-
-    message = << EOF2
-don't forget to add:
-    $OBJECT_PACKAGE_NAME_VAR = $OBJECT_NAME
-to $BUILD_SETUP
-EOF2
-
-    %eecho $message
-}
-EOF
-
-header := << EOF_TEMPLATE
-#
-#{=OBJECT_NAME=}.defs -  definitions for {=OBJECT_NAME=} object.
-#
-
-#allows us to run stand-alone:
-%ifndef CG_ROOT %include {=BUILD_SETUP=}
-
-{ ## header section
-PL_PACKAGE = ${=OBJECT_PACKAGE_NAME_VAR=}
-PL_PACKAGE_DESCRIPTION = {=OBJECT_DESCRIPTION=}
-
-#not a base class - use standard constuctor name:
-PL_CONSTRUCTOR_NAME = new
-
-PL_PKG_IMPORTS := << EOF
-EOF
-#%evalmacro PL_PKG_IMPORTS PL_PKG_IMPORTS
-
-PL_PKG_ATTRIBUTES := << EOF
-EOF
-#%evalmacro PL_PKG_ATTRIBUTES PL_PKG_ATTRIBUTES
-}
-EOF_TEMPLATE
-
-body := << EOF_TEMPLATE
-{ ## constructor section
-PL_CONSTRUCTOR_BODY := << EOF
-EOF
-#%evalmacro PL_CONSTRUCTOR_BODY PL_CONSTRUCTOR_BODY
-
-PL_OBJ_ATTRIBUTES := << EOF
-EOF
-#%evalmacro PL_OBJ_ATTRIBUTES PL_OBJ_ATTRIBUTES
-
-#this is for further initialzation of attributes, since hash init cannot be self-referential:
-PL_POST_ATTRIBUTE_INIT := << EOF
-EOF
-#%evalmacro PL_POST_ATTRIBUTE_INIT PL_POST_ATTRIBUTE_INIT
-}
-
-{ ## class methods
-
-#clear standard accessor accumulator:
-getset_methods =
-
-#generate read/write (get/set) accessors:
-#PL_ATTRIBUTE_NAME = XX
-#%evalmacro >> getset_methods pl_getsetlist
-
-#generate read-only attributes:
-#PL_ATTRIBUTE_NAME = YY
-#%evalmacro >> getset_methods pl_attr_method
-
-PL_PKG_METHODS := << EOF
-
-{=getset_methods=}
-EOF
-
-%evalmacro PL_PKG_METHODS PL_PKG_METHODS
-}
-EOF_TEMPLATE
-
-%call emit_template
+%echo ============  OBJECT_USER_DEFS
+%echo -n $OBJECT_USER_DEFS
