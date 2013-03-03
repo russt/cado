@@ -5,6 +5,7 @@ getset.ptpl                 lib/$TARGET_OS/templates/perl/getset.ptpl           
 getsetlist.ptpl             lib/$TARGET_OS/templates/perl/getsetlist.ptpl           0444
 newobj.cg                   lib/$TARGET_OS/templates/perl/newobj.cg                 0444
 newobj.defs                 lib/$TARGET_OS/templates/perl/newobj.defs               0444
+genattr.defs                lib/$TARGET_OS/templates/perl/genattr.defs              0444
 prlobj.ptpl                 lib/$TARGET_OS/templates/perl/prlobj.ptpl               0444
 prlskel.ptpl                lib/$TARGET_OS/templates/perl/prlskel.ptpl              0444
 reset_template_vars.ptpl    lib/$TARGET_OS/templates/perl/reset_template_vars.ptpl  0444

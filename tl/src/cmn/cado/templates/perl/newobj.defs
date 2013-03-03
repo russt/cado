@@ -15,12 +15,82 @@
 #    OUTPUT_OBJECT_DEFS  - (result) contains the object definition text
 #    OBJECT_USER_DEFS    - (value/result) accumulates object variable defs for users of object.
 #                          caller must clear if desired, as we will append to it.
+#
+#Alternatively, you can pass in OBJECTLIST and call newobj_create_objects.
+#
+# INPUTS for newobj_create_objects:
+#     OBJECTLIST  - tab separated list of the form:
+#         object_name1<tab>object description1
+#         object_name2<tab>object description2
+#         ...
+#     PARENT_PACKAGE      - (optional) name of the parent package, with trailing separators, eg "foo::".
+#
+# OUTPUT from newobj_create_objects:
+#     $CG_ROOT/$OBJECT_NAME.defs       - definition file for object, to be customized, one per object.
+#     $CG_ROOT/setup_snippet.defs      - names of each generated package.  _<package> is the fully qualified name
+#     $CG_ROOT/new_objects.cg          - call to create each object, using cg variable names defined in setup snippet.
+#     $CG_ROOT/create_final_objects.cg - generate call to create each object using generate_a_module
+#    
+#
 
 #return if already included:
 %ifdef NEWOBJ_INCLUDED %return
 
-#we don't write anything to files, so not to worry...
-%ifndef CG_ROOT    CG_ROOT = .
+%ifndef CG_ROOT    CG_ROOT = ./bld/objects
+
+newobj_create_objects := << //
+{
+    #stackify OBJECTLIST:
+    CG_SPLIT_PATTERN = /\n/
+    OBJECTLIST = $OBJECTLIST:trim:split
+
+    #defensive:
+    %call newobj_clear_template_vars
+
+    #accumulator for calls to generate final objects:
+    CREATE_ACTUAL_OBJECTS =
+
+    #accumulator for example code to construct our new objects:
+    NEW_OBJ_EXAMPLES =
+
+    # loop split pattern:
+    CG_SPLIT_PATTERN = /\t/
+    loopstack = $OBJECTLIST
+    arange = 01..$loopstack:stacksize
+    %foreach ii arange %call generate_one_object_definition
+
+    #append generate_module routine to user setup definitions:
+    OBJECT_USER_DEFS .= $GENERATE_MODULE:lnewline
+}
+//
+
+generate_one_object_definition := << //
+{
+    %shift theObj loopstack
+
+    #split theObj into (objname, objdesc):
+    theObj = $theObj:split
+    %shift OBJECT_NAME theObj
+    %shift OBJECT_DESCRIPTION theObj
+
+    #######
+    #create the object definition:
+    #######
+    %call newobj_create_one_object
+
+    #create call to generate actual object (this goes in ecdump.cg):
+    %evalmacro >> CREATE_ACTUAL_OBJECTS gen_actual_obj_template
+
+    #create example of how to create our new object:
+    %evalmacro >> NEW_OBJ_EXAMPLES obj_create_statement_template
+
+    ECHO_TXT = $OUTPUT_OBJECT_DEFS
+    echo	/$OBJECT_NAME.defs
+
+    #clear defs for next object:
+    %call newobj_clear_template_vars
+}
+//
 
 newobj_create_one_object := << //
 {
@@ -57,6 +127,53 @@ newobj_clear_template_vars := << //
 }
 //
 
+################################## TEMPLATES ##################################
+
+#aux. templates used by create_new_objects:
+{
+#template for examples of how to create each of our new objects:
+obj_create_statement_template := << [
+my ${=$OBJECT_NAME=} = new {=$_OBJECT_PACKAGE_VAR:cgvar=}();
+
+]
+
+gen_actual_obj_template := << [
+{
+    #{=OBJECT_NAME=}
+    PL_PACKAGE = ${=OBJECT_PACKAGE_VAR=}
+    _PL_PACKAGE = $_{=OBJECT_PACKAGE_VAR=}
+    module_defs = $PL_PACKAGE.defs
+    %call generate_a_module
+}
+]
+
+GENERATE_MODULE := << [
+generate_a_module := << //
+#user-level macro to generate a single module and append to single module
+{
+#%echo generate_a_module module_defs=$module_defs PL_PACKAGE=$PL_PACKAGE GEN_ONE_MODULE=$GEN_ONE_MODULE
+    %ifndef  perl_template       perl_template = perl/prlobj.ptpl
+    %ifndef  perl_outputfn       perl_outputfn = $_PL_PACKAGE:pm2path
+
+    %ifndef   PL_PACKAGE_PREFIX    PL_PACKAGE_PREFIX = ${DEFAULT_PACKAGE}::
+    %include  $module_defs
+    %if       $GEN_ONE_MODULE    $perl_template >>    /$ONE_MODULE
+    %include  perl/reset_template_vars.ptpl
+
+    %include  $module_defs
+    %ifnot    $GEN_ONE_MODULE    $perl_template       lib/$perl_outputfn
+    %include  perl/reset_template_vars.ptpl
+
+    %undef  module_defs
+    %undef  perl_template
+    %undef  perl_outputfn
+    %undef  PL_PACKAGE_PREFIX
+}
+//
+]
+
+}
+
 package_def_template := << [
 #{=OBJECT_NAME=} object:
 {=OBJECT_PACKAGE_VAR=}  = {=OBJECT_NAME=}
@@ -84,8 +201,24 @@ PL_PKG_IMPORTS := << (
 %evalmacro PL_PKG_IMPORTS PL_PKG_IMPORTS
 
 PL_PKG_ATTRIBUTES := << (
+#standard debugging attributes:
+my ($VERBOSE, $DEBUG, $DDEBUG, $QUIET) = (0,0,0,0);
 )
 %evalmacro PL_PKG_ATTRIBUTES PL_PKG_ATTRIBUTES
+
+####
+#add to ATTRIBUTE_LIST as required.
+#templates are: (r/w) pl_getset, pl_getsetlist; (r/o) pl_attr_method, pl_attrlist_method
+####
+ATTRIBUTE_LIST := << (
+Debug	pl_getset	0
+DDebug	pl_getset	0
+Verbose	pl_getset	0
+Quiet	pl_getset	0
+)
+#generate attribute accessors (this creates class_attribute_dcls, getset_methods):
+%include perl/genattr.defs
+%call generate_attribute_accessors
 }
 ]
 
@@ -96,31 +229,38 @@ PL_CONSTRUCTOR_BODY := << (
 %evalmacro PL_CONSTRUCTOR_BODY PL_CONSTRUCTOR_BODY
 
 PL_OBJ_ATTRIBUTES := << (
+{=class_attribute_dcls=}
 )
 %evalmacro PL_OBJ_ATTRIBUTES PL_OBJ_ATTRIBUTES
 
 #this is for further initialzation of attributes, since hash init cannot be self-referential:
 PL_POST_ATTRIBUTE_INIT := << (
+
+#cache initial debugging and vebosity values in local package variables:
+update_static_class_attributes();
 )
 %evalmacro PL_POST_ATTRIBUTE_INIT PL_POST_ATTRIBUTE_INIT
 }
 
+PL_UPDATE_CLASS_STATIC_ATTRIBUTES := << (
+$DEBUG   = $self->getDebug();
+$DDEBUG  = $self->getDDebug();
+$QUIET   = $self->getQuiet();
+$VERBOSE = $self->getVerbose();
+)
+
 { ## class methods
-
-#clear standard accessor accumulator:
-getset_methods =
-
-#generate read/write (get/set) accessors:
-#PL_ATTRIBUTE_NAME = XX
-#%evalmacro >> getset_methods pl_getsetlist
-
-#generate read-only attributes:
-#PL_ATTRIBUTE_NAME = YY
-#%evalmacro >> getset_methods pl_attr_method
 
 PL_PKG_METHODS := << (
 
 {=getset_methods=}
+
+sub update_static_class_attributes
+#static class method to update package level attributess as required
+#used to set verbosity and debugging for all objects of the class post-instantiation.
+{
+{=$PL_UPDATE_CLASS_STATIC_ATTRIBUTES:indent=}
+}
 )
 
 %evalmacro PL_PKG_METHODS PL_PKG_METHODS

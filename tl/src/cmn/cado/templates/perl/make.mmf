@@ -6,4 +6,4 @@ DEST    =  ${BASE}/${PKG}/${TARGET_OS}/templates/perl
 MODE    =  0444
 
 FILES  = get.ptpl getlist.ptpl getset.ptpl getsetlist.ptpl prlobj.ptpl prlskel.ptpl\
-         reset_template_vars.ptpl newobj.cg newobj.defs
+         reset_template_vars.ptpl newobj.cg newobj.defs genattr.defs

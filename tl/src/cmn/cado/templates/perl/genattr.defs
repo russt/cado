@@ -1,0 +1,147 @@
+#
+# perl/genattr.defs - collect attribute accessor templates into variables.
+#
+# provides generate_attribute_accessors utility
+# for generating accessors and constructor definition snippet
+#
+# INPUT:
+#     ATTRIBUTE_LIST - defines attribute name, accessor template, and initial value, one per line, tab separated:
+#     FooAttr1<tab>one of: {pl_getset, pl_getsetlist, pl_attr_method, pl_attrlist_method}<tab>initial_value
+#     ...
+# OUTPUT:
+#     class_attribute_dcls - attribute declaration in blessed hash
+#     getset_methods       - attribute accessors to be included as methods of the class
+#
+
+#return if already included:
+%ifdef GENATTR_INCLUDED %return
+
+generate_attribute_accessors := << //
+{
+    #return error if ATTRIBUTE_LIST is undefined:
+    %ifndef ATTRIBUTE_LIST    return -e "generate_attribute_accessors:  you must define ATTRIBUTE_LIST"
+
+    #set results:
+    #these go into the the blessed hash:
+    class_attribute_dcls =
+    getset_methods =
+
+    #return if ATTRIBUTE_LIST is empty (not an error)::
+    %ifnot $ATTRIBUTE_LIST    return
+
+    #create stack from ATTRIBUTE_LIST:
+    CG_SPLIT_PATTERN = /\n/
+    ATTRIBUTE_LIST = $ATTRIBUTE_LIST:trim:split
+
+    # set split pattern for loop:
+    CG_SPLIT_PATTERN = /\t/
+    _gaa_loopstack = $ATTRIBUTE_LIST
+    arange = 01..$_gaa_loopstack:stacksize
+    %foreach ii arange %call generate_one_attribute_accessor
+
+    #clean up trailing newlines:
+    %void $class_attribute_dcls:trim:a $getset_methods:trim:a
+}
+//
+
+generate_one_attribute_accessor := << //
+{
+    %shift _gaa_theDef _gaa_loopstack
+
+    #split def line into (attribute, template, initial value):
+    _gaa_theDef = $_gaa_theDef:split
+    %shift PL_ATTRIBUTE_NAME _gaa_theDef
+    %shift _gaa_attrTemplate _gaa_theDef
+    %shift _gaa_attrInitalValue _gaa_theDef
+
+    %evalmacro >> getset_methods       $_gaa_attrTemplate
+    %evalmacro >> class_attribute_dcls attribute_blessed_hash_definition_template
+}
+//
+
+################################## TEMPLATES ##################################
+
+attribute_blessed_hash_definition_template := << [
+'m{=PL_ATTRIBUTE_NAME=}' => {=_gaa_attrInitalValue=},
+
+]
+
+{
+####
+#r/o attributes are named after attribute (no get/set prefix):
+####
+#scalar r/o attributs:
+pl_attr_method := << [
+
+sub {=$PL_ATTRIBUTE_NAME:uncap=}
+#return value of m{=PL_ATTRIBUTE_NAME=}
+{
+    my ($self) = @_;
+    return $self->{'m{=PL_ATTRIBUTE_NAME=}'};
+}
+
+]
+
+#list r/o attributs:
+pl_attrlist_method := << [
+
+sub {=$PL_ATTRIBUTE_NAME:uncap=}
+#return m{=PL_ATTRIBUTE_NAME=} list
+{
+    my ($self) = @_;
+    return @{$self->{'m{=PL_ATTRIBUTE_NAME=}'}};
+}
+
+]
+}
+
+{
+####
+#r/w attributes are prefixed by get/set.
+####
+
+#scalar r/w attributs:
+pl_getset := << [
+
+sub get{=PL_ATTRIBUTE_NAME=}
+#return value of {=PL_ATTRIBUTE_NAME=}
+{
+    my ($self) = @_;
+    return $self->{'m{=PL_ATTRIBUTE_NAME=}'};
+}
+
+sub set{=PL_ATTRIBUTE_NAME=}
+#set value of {=PL_ATTRIBUTE_NAME=} and return value.
+{
+    my ($self, $value) = @_;
+    $self->{'m{=PL_ATTRIBUTE_NAME=}'} = $value;
+    update_static_class_attributes();
+    return $self->{'m{=PL_ATTRIBUTE_NAME=}'};
+}
+
+]
+
+#list r/w attributs:
+pl_getsetlist := << [
+
+sub get{=PL_ATTRIBUTE_NAME=}
+#return value of @{=PL_ATTRIBUTE_NAME=}
+{
+    my ($self) = @_;
+    return @{$self->{'m{=PL_ATTRIBUTE_NAME=}'}};
+}
+
+sub set{=PL_ATTRIBUTE_NAME=}
+#set value of {=PL_ATTRIBUTE_NAME=} and return value.
+{
+    my ($self, @value) = @_;
+    $self->{'m{=PL_ATTRIBUTE_NAME=}'} = \@value;
+    update_static_class_attributes();
+    return @{$self->{'m{=PL_ATTRIBUTE_NAME=}'}};
+}
+
+]
+}
+
+#tell sub-sections we have been initialized:
+GENATTR_INCLUDED = 1
