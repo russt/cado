@@ -571,7 +571,8 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
 %while <expr> <statement>
                     - execute <statement> only while <expr> evaluates to non-zero or non-null (not empty string).
 
-%foreach            - %foreach iterator_var {range_var|range_var_ptr} statement
+%foreach            - %foreach iterator {range|list|vpattern} statement
+                      %foreach iterator {$rangevar|$listvar|$vpatternvar} statement
                       example 1:  arange = 01..05
                                   %foreach ii arange %call loop
                       example 2:  ptr = $arange
@@ -580,7 +581,10 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                                   %foreach var vpattern %echo var=$var
                       example 4:  CG_FOREACH_SPLIT_PATTERN = /,/
                                   listvalues = one,two,three
-                                  %foreach val listvalues %call loop
+                                  %foreach val listvalues %echo $val
+                      example 5:  CG_STACK_DELIMITER = ,
+                                  %push mystack one,two,three
+                                  %foreach val mystack %echo $val
 
                     ===========
                     ERRORS/EXIT

@@ -72,14 +72,14 @@ tname=%foreach listvalue
 #####
 
 #test default pattern:
-listvalues = << [
+oneperlinelist = << [
 red
 white
 blue
 ]
 %print
 %print $tname TEST #${tnum:incr:assign}
-%foreach val listvalues %print val=$val
+%foreach val oneperlinelist %print val=$val
 
 CG_FOREACH_SPLIT_PATTERN = /,/
 listvalues = one,two,three
@@ -93,3 +93,33 @@ listvalues = 1|2|3
 %print
 %print $tname TEST #${tnum:incr:assign}, listvalues=$listvalues
 %foreach val listvalues %print val=$val
+
+#test CG_FOREACH_SPLIT_PATTERN is reverted after undef:
+%print
+%print $tname TEST #${tnum:incr:assign}, undef CG_FOREACH_SPLIT_PATTERN
+%undef CG_FOREACH_SPLIT_PATTERN
+%foreach val oneperlinelist %print val=$val
+
+####### test stack iteration form #######
+
+#####
+tnum = 0
+tname=%foreach stackvar
+#####
+
+CG_STACK_DELIMITER = ,
+
+%print
+mystack=
+%print $tname TEST #${tnum:incr:assign}, empty stack
+%foreach val mystack %print val=$val
+
+%print
+%push mystack one
+%print $tname TEST #${tnum:incr:assign}, one element
+%foreach val mystack %print val=$val
+
+%print
+%push mystack two,three
+%print $tname TEST #${tnum:incr:assign}, mystack=$mystack:showstack
+%foreach val mystack %print val=$val

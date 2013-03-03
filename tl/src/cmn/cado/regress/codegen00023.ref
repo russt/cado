@@ -48,3 +48,18 @@ val=three
 val=1
 val=2
 val=3
+
+%foreach listvalue TEST #4, undef CG_FOREACH_SPLIT_PATTERN
+val=red
+val=white
+val=blue
+
+%foreach stackvar TEST #1, empty stack
+
+%foreach stackvar TEST #2, one element
+val=one
+
+%foreach stackvar TEST #3, mystack=one,two,three
+val=one
+val=two
+val=three

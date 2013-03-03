@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)codegen.pl - ver 1.99 - 02-Mar-2013
+# @(#)codegen.pl - ver 1.99 - 03-Mar-2013
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2013 Russ Tremain.  All Rights Reserved.
@@ -307,8 +307,8 @@
 #  14-Feb-2013 (russt) [Version 1.98]
 #       Add perl module/path ops (:pm2path, :pmpkg2path, :path2pm).
 #       Added doc for version %pragma.
-#  02-Mar-2013 (russt) [Version 1.99]
-#       %foreach can now iterate though lists directly.
+#  03-Mar-2013 (russt) [Version 1.99]
+#       Added list form of %foreach - can now auto-split text and iterate though stacks directly.
 #
 
 use strict;
@@ -319,7 +319,7 @@ my (
     $VERSION_DATE,
 ) = (
     "1.99",         #VERSION - the program version number.
-    "02-Mar-2013",  #VERSION_DATE - date this version was released.
+    "03-Mar-2013",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -2302,8 +2302,8 @@ sub foreachspec
 #name to use to provide the range.  The iterator
 #variable is expected to be a simple variable name.
 #
-#added 6/24/06 - range variable can now be a pattern,
-#enclosed in "/<pattern/".
+#added 6/24/06 - range variable can now be a pattern, enclosed in "/<pattern/".
+#added 3/02/13 - can now loop directly via lists or stacks
 {
     my ($line, $linecnt) = @_;
 
@@ -2398,17 +2398,19 @@ sub foreachspec
 }
 
 sub exec_listvalue_foreach
-#execute the list-value form of %foreach.
+#execute the list-value form:  %foreach itr list statement
 #returns number of errors encountered.
 {
     my ($line, $linecnt, $token, $theStatement, $itrname, $rgname, $valuelist) = @_;
     my $errcnt = 0;
 
-    #eliminate / chars at beginning and end of pattern (pattern has already been checked):
-    $valuelist = $1 if ( $valuelist =~ /^\/(.*)\/$/ );
-
     &reset_foreach_split_pattern() unless (&var_defined('CG_FOREACH_SPLIT_PATTERN'));
-    my $fepattern = get_foreach_split_pattern();
+
+    #set split pattern for stack var:
+    my $fepattern = $; ;
+
+    #set pattern to autosplit if we don't have a stack var:
+    $fepattern = get_foreach_split_pattern() unless ($valuelist =~ /$;/);
 
     #get list of values:
     my @valuelist = split($fepattern, $valuelist);
