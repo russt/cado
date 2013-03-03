@@ -195,9 +195,14 @@ PL_PACKAGE_DESCRIPTION = {=OBJECT_DESCRIPTION=}
 #not a base class - use standard constuctor name:
 PL_CONSTRUCTOR_NAME = new
 
-PL_PKG_IMPORTS := << (
+{
+PL_EXTERN_PKG_IMPORTS = << (
 )
-%evalmacro PL_PKG_IMPORTS PL_PKG_IMPORTS
+PL_PKG_IMPORTS = << (
+)
+%if    $GEN_ONE_MODULE   PL_PKG_IMPORTS = $PL_EXTERN_PKG_IMPORTS
+%ifnot $GEN_ONE_MODULE   PL_PKG_IMPORTS = $PL_EXTERN_PKG_IMPORTS$PL_PKG_IMPORTS
+}
 
 PL_PKG_ATTRIBUTES := << (
 #standard debugging attributes:
@@ -212,8 +217,8 @@ my ($VERBOSE, $DEBUG, $DDEBUG, $QUIET) = (0,0,0,0);
 ATTRIBUTE_LIST := << (
 Debug	pl_getset	0
 DDebug	pl_getset	0
-Verbose	pl_getset	0
 Quiet	pl_getset	0
+Verbose	pl_getset	0
 )
 #generate attribute accessors (this creates class_attribute_dcls, getset_methods):
 %include perl/genattr.defs
@@ -236,7 +241,7 @@ PL_OBJ_ATTRIBUTES := << (
 PL_POST_ATTRIBUTE_INIT := << (
 
 #cache initial debugging and vebosity values in local package variables:
-update_static_class_attributes();
+$self->update_static_class_attributes();
 )
 %evalmacro PL_POST_ATTRIBUTE_INIT PL_POST_ATTRIBUTE_INIT
 }
@@ -258,6 +263,7 @@ sub update_static_class_attributes
 #static class method to update package level attributess as required
 #used to set verbosity and debugging for all objects of the class post-instantiation.
 {
+    my ($self) = @_;
 {=$PL_UPDATE_CLASS_STATIC_ATTRIBUTES:indent=}
 }
 )
