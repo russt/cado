@@ -41,7 +41,6 @@ tnum = 0
 tname=%foreach pattern
 #####
 
-
 ii=00
 FOO_VAR_$ii:incr:a = $ii
 FOO_VAR_$ii:incr:a = $ii
@@ -64,3 +63,33 @@ varptr = vpattern
 %print
 %print $tname TEST #${tnum:incr:assign}, variable names of pattern varptr=$varptr, varptr:valueof=$varptr:valueof
 %foreach ss $varptr %print ss=$ss
+
+####### test listvalue form #######
+
+#####
+tnum = 0
+tname=%foreach listvalue
+#####
+
+#test default pattern:
+listvalues = << [
+red
+white
+blue
+]
+%print
+%print $tname TEST #${tnum:incr:assign}
+%foreach val listvalues %print val=$val
+
+CG_FOREACH_SPLIT_PATTERN = /,/
+listvalues = one,two,three
+%print
+%print $tname TEST #${tnum:incr:assign}, listvalues=$listvalues
+%foreach val listvalues %print val=$val
+
+#test without /'s:
+CG_FOREACH_SPLIT_PATTERN = \|
+listvalues = 1|2|3
+%print
+%print $tname TEST #${tnum:incr:assign}, listvalues=$listvalues
+%foreach val listvalues %print val=$val

@@ -33,3 +33,18 @@ ss=03
 ss=FOO_VAR_01
 ss=FOO_VAR_02
 ss=FOO_VAR_03
+
+%foreach listvalue TEST #1
+val=red
+val=white
+val=blue
+
+%foreach listvalue TEST #2, listvalues=one,two,three
+val=one
+val=two
+val=three
+
+%foreach listvalue TEST #3, listvalues=1|2|3
+val=1
+val=2
+val=3

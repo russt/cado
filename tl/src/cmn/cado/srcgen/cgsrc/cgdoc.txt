@@ -435,10 +435,17 @@ $CG_SHELL_COMMAND_ARGS
 $CG_STACK_DELIMITER - Input delimiter character for creating stacks with %push.  Default is "\t".
 $CG_SPLIT_PATTERN   - Split pattern for creating stack variables.  default pattern is:  /[\t,]/
 
+CG_FOREACH_SPLIT_PATTERN
+                    - Split pattern for looping through a list of values.  default pattern is:  /\n/
+
+$CG_COMPARE_SPEC    - Specify value for comparison operators.  See COMPARISON & MATCHING operators.
 $CG_MATCH_SPEC      - Specify pattern for :match operator.
+
 $CG_SUBSTITUTE_SPEC - Specify substitute/replace pattern for :substitute operator.
 $CG_SUBSTITUTE_SPEC2- Specify substitute/replace pattern for secondary substitute (:s2) operator.
-$CG_COMPARE_SPEC    - Specify second value comparison operators.  See COMPARISON & MATCHING operators.
+$CG_SUBSTITUTE_SPEC3- Specify substitute/replace pattern for secondary substitute (:s3) operator.
+$CG_SUBSTITUTE_SPEC4- Specify substitute/replace pattern for secondary substitute (:s4) operator.
+$CG_SUBSTITUTE_SPEC5- Specify substitute/replace pattern for secondary substitute (:s5) operator.
 
 $CG_INDENT_STRING   - indent string for :indent operator.  default is four spaces.
 $CG_NEWLINE_BEFORE_CLASS_BRACE
@@ -571,6 +578,9 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                                   %foreach ii $ptr %call loop
                       example 3:  vpattern := /^FOO_VAR_.*/
                                   %foreach var vpattern %echo var=$var
+                      example 4:  CG_FOREACH_SPLIT_PATTERN = /,/
+                                  listvalues = one,two,three
+                                  %foreach val listvalues %call loop
 
                     ===========
                     ERRORS/EXIT

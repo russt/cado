@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.98 - 14-Feb-2013
+# @(#)cado.pl - ver 1.99 - 02-Mar-2013
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2013 Russ Tremain.  All Rights Reserved.
@@ -307,6 +307,8 @@
 #  14-Feb-2013 (russt) [Version 1.98]
 #       Add perl module/path ops (:pm2path, :pmpkg2path, :path2pm).
 #       Added doc for version %pragma.
+#  02-Mar-2013 (russt) [Version 1.99]
+#       %foreach can now iterate though lists directly.
 #
 
 use strict;
@@ -316,8 +318,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.98",         #VERSION - the program version number.
-    "14-Feb-2013",  #VERSION_DATE - date this version was released.
+    "1.99",         #VERSION - the program version number.
+    "02-Mar-2013",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -353,6 +355,7 @@ my (
     $LOOKINPATH,
     $CG_STACK_DELIMITER_DEFAULT_VALUE,
     $CG_SPLIT_PATTERN_DEFAULT_VALUE,
+    $CG_FOREACH_SPLIT_PATTERN_DEFAULT_VALUE,
 ) = (
     $main::p,       #program name inherited from prlskel caller.
     0,              #VERBOSE
@@ -381,6 +384,7 @@ my (
     0,              #LOOKINPATH - true if we have a -S option
     "\t",           #CG_STACK_DELIMITER_DEFAULT_VALUE
     '/[\n\t,]/',    #CG_SPLIT_PATTERN_DEFAULT_VALUE
+    "\n",           #CG_FOREACH_SPLIT_PATTERN_DEFAULT_VALUE
 );
 
 #these are global variables that we share within the eval context of postfix ops, for example.
@@ -2370,18 +2374,82 @@ sub foreachspec
 
     #get the value of the range variable:
     my $rgvalue = &lookup_def($rgname);
+    my @rgcheck = split('\.\.', $rgvalue);    #looking for a list of exactly 2 elements
 
     #if range value is a pattern...
     if ($rgvalue =~ /^\// && $rgvalue =~ /\/$/) {
+#printf STDERR "foreach CASE I itrname='%s' rgname='%s' rgvalue='%s'\n", $itrname, $rgname, $rgvalue;
         $GLOBAL_ERROR_COUNT
             += &exec_pattern_foreach($line, $linecnt, $token, $theStatement, $itrname, $rgname, $rgvalue);
-    } else {
+    } elsif ($#rgcheck == 1) {
+#printf STDERR "foreach CASE II itrname='%s' rgname='%s' rgvalue='%s'\n", $itrname, $rgname, $rgvalue;
+        #if range value is a numeric range...
         $GLOBAL_ERROR_COUNT
             += &exec_numeric_foreach($line, $linecnt, $token, $theStatement, $itrname, $rgname, $rgvalue);
+    } else {
+        #assume we have a listvalue:
+#printf STDERR "foreach CASE III itrname='%s' rgname='%s' rgvalue='%s' #rgcheck=%d\n", $itrname, $rgname, $rgvalue, $#rgcheck;
+        $GLOBAL_ERROR_COUNT
+            += &exec_listvalue_foreach($line, $linecnt, $token, $theStatement, $itrname, $rgname, $rgvalue);
     }
 
     #we processed an %foreach statement, even if there were errors::
     return 1;
+}
+
+sub exec_listvalue_foreach
+#execute the list-value form of %foreach.
+#returns number of errors encountered.
+{
+    my ($line, $linecnt, $token, $theStatement, $itrname, $rgname, $valuelist) = @_;
+    my $errcnt = 0;
+
+    #eliminate / chars at beginning and end of pattern (pattern has already been checked):
+    $valuelist = $1 if ( $valuelist =~ /^\/(.*)\/$/ );
+
+    &reset_foreach_split_pattern() unless (&var_defined('CG_FOREACH_SPLIT_PATTERN'));
+    my $fepattern = get_foreach_split_pattern();
+
+    #get list of values:
+    my @valuelist = split($fepattern, $valuelist);
+
+    printf STDERR "exec_listvalue_foreach: pat='%s' input='%s' list=(%s)\n", $fepattern, $valuelist, join(",", @valuelist)
+        if ($DEBUG);
+
+    #return if no variables match:
+    return $errcnt if ($#valuelist < 0);
+
+    #otherwise, write command to file and process the file foreach value in list:
+    my $tmpfile_fullpath = &write_string_to_cg_tmp_file($theStatement);
+    if ($tmpfile_fullpath eq "NULL") {
+        printf STDERR "%s[%s]: ERROR: line %d: cannot create temp file.\n",
+            $p, $token, $linecnt unless ($QUIET);
+
+        return ++$errcnt;
+    }
+
+    #foreach value in range...
+    my $halt_command = 0;
+    for my $vv (@valuelist) {
+        #set iterator variable to current list element:
+        $CG_USER_VARS{$itrname} = $vv;
+        if (&interpret($tmpfile_fullpath, \$halt_command) != 0) {
+            printf STDERR "%s[%s]: ERROR: line %d: fail to interpret %s clause '%s' for value '%s' in /%s/.\n",
+                $p, $token, $linecnt, $token, $theStatement, $vv, $valuelist unless ($QUIET);
+
+            ++$errcnt;
+            last;
+        }
+    }
+
+    unlink $tmpfile_fullpath;
+
+    #####
+    #exit immediately if included file called for a halt:
+    #####
+    exit $errcnt if ($halt_command);
+
+    return $errcnt;    #return 0 if no errors.
 }
 
 sub exec_pattern_foreach
@@ -4205,8 +4273,26 @@ sub init_spec_vars
     $CG_USER_VARS{'CG_LINE_NUMBER'} = 0;
     &reset_stack_delimiter();  #input/output stack display delimiter:
     &reset_split_pattern();    #split pattern for :split op
+    &reset_foreach_split_pattern();    #split pattern for listvalues version of %foreach
     $LINE_CNT_REF = \$CG_USER_VARS{'CG_LINE_NUMBER'};
 }
+
+sub reset_foreach_split_pattern
+#split pattern for listvalues version of %foreach
+{
+    $CG_USER_VARS{'CG_FOREACH_SPLIT_PATTERN'} = $CG_FOREACH_SPLIT_PATTERN_DEFAULT_VALUE;
+}
+
+sub get_foreach_split_pattern
+#escape meta-characters for foreach split pattern
+{
+    my $pat = $CG_USER_VARS{'CG_FOREACH_SPLIT_PATTERN'};
+    #/xx/ -> xx
+    $pat =~ s|^/||;
+    $pat =~ s|/$||;
+    return $pat;
+}
+
 
 sub reset_split_pattern
 #split pattern for :split op
