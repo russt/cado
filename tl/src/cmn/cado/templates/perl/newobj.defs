@@ -36,6 +36,9 @@
 #return if already included:
 %ifdef NEWOBJ_INCLUDED %return
 
+#use new %foreach form:
+%pragma version 1.99
+
 %ifndef CG_ROOT    CG_ROOT = ./bld/objects
 
 newobj_create_objects := << //
@@ -55,9 +58,7 @@ newobj_create_objects := << //
 
     # loop split pattern:
     CG_SPLIT_PATTERN = /\t/
-    loopstack = $OBJECTLIST
-    arange = 01..$loopstack:stacksize
-    %foreach ii arange %call generate_one_object_definition
+    %foreach theObj OBJECTLIST %call generate_one_object_definition
 
     #append generate_module routine to user setup definitions:
     OBJECT_USER_DEFS .= $GENERATE_MODULE:lnewline
@@ -66,8 +67,6 @@ newobj_create_objects := << //
 
 generate_one_object_definition := << //
 {
-    %shift theObj loopstack
-
     #split theObj into (objname, objdesc):
     theObj = $theObj:split
     %shift OBJECT_NAME theObj

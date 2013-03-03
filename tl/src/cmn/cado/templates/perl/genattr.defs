@@ -16,6 +16,9 @@
 #return if already included:
 %ifdef GENATTR_INCLUDED %return
 
+#use new %foreach form:
+%pragma version 1.99
+
 generate_attribute_accessors := << //
 {
     #return error if ATTRIBUTE_LIST is undefined:
@@ -35,9 +38,7 @@ generate_attribute_accessors := << //
 
     # set split pattern for loop:
     CG_SPLIT_PATTERN = /\t/
-    _gaa_loopstack = $ATTRIBUTE_LIST
-    arange = 01..$_gaa_loopstack:stacksize
-    %foreach ii arange %call generate_one_attribute_accessor
+    %foreach _gaa_theDef ATTRIBUTE_LIST %call generate_one_attribute_accessor
 
     #clean up trailing newlines:
     %void $class_attribute_dcls:trim:a $getset_methods:trim:a
@@ -46,8 +47,6 @@ generate_attribute_accessors := << //
 
 generate_one_attribute_accessor := << //
 {
-    %shift _gaa_theDef _gaa_loopstack
-
     #split def line into (attribute, template, initial value):
     _gaa_theDef = $_gaa_theDef:split
     %shift PL_ATTRIBUTE_NAME _gaa_theDef
