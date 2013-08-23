@@ -146,36 +146,43 @@ sub striptextheader_op
 
     my ($hasheader) = checkforexistingheader_op($var);
 
+
     if ($hasheader eq "YES") {
-      $var = removeexistingheader_op($var);
+        $var = removeexistingheader_op($var);
     }
 
     my @tmp = split($eolpat, $var);
     my @tmp2 = @tmp;
-
-    my ($include) = 0;
-
+    my ($foundhashbang) = 0;
     my ($ntokens) = $#tmp; 
     
-    my ($i) = 0;
-    for ( $i=0; $i <= $ntokens; $i++)
-    {
-      my ($current_line) = $tmp2[$i]; 
-      if ($current_line =~ /^#!\//) {
-        $include = 1; 
-        last;
-      }
+
+    my ($ii) = 0;
+    for ($ii=0; $ii <= $ntokens; $ii++) {
+        my ($current_line) = $tmp2[$ii]; 
+        if ($current_line =~ /^#!\//) {
+            $foundhashbang = 1; 
+            last;
+        }
     }
 
-    if ($include == 1) {
-      my ($return_text) = "";
-      my ($k) = 0;
-      for ($k=0; $k <= $i; $k++)
-      {
-       $return_text = $return_text . shift(@tmp) . $eolpat;
-      }
-      return $return_text . "{=$headervar=}" . $eolpat . join($eolpat, @tmp . $eolpat);
+#printf "T10 hasheader=%s ntokens=%d, foundhashbang=%d ii=%d tmp=(%s)\n", $hasheader, $ntokens, $foundhashbang, $ii, join(',', @tmp);
+
+    if ($foundhashbang) {
+        my ($return_text) = "";
+        my ($kk) = 0;
+        for ($kk=0; $kk <= $ii; $kk++) {
+            $return_text = $return_text . shift(@tmp) . $eolpat;
+        }
+
+        $return_text .=  "{=$headervar=}" . $eolpat . join($eolpat, @tmp) . $eolpat;
+
+#printf "T16 return_text='%s'\n\n", $return_text;
+
+        return $return_text;
     }
+
+printf "T20 return_text='%s'\n\n";
 
     return "{=$headervar=}" . $eolpat . join($eolpat, @tmp) . $eolpat;
 }
