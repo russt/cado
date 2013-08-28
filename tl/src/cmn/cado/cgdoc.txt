@@ -79,9 +79,6 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
 :suffix             - return suffix of input var
 :root               - return root (var without suffix) of input var
 
-:cap                - this op capitalizes the first letter of a string.
-:uncap              - uncapitalize the first letter of a string.
-
 :onecol             - split lines on whitespace, resulting in a single column of data.
 :oneline            - replace \s*EOL\s* sequences with a single space, and trim result.
                       (mashes multi-line input to one line).
@@ -97,8 +94,8 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
 :rtrim              - trim trailing whitespace.
 :trim               - trim lead and trailing whitespace.
 
-:g                  - apply a perl grep() expression specified by $CG_GREP_SPEC
-                      Example:  add 10 to each member of a list:
+:g                  - apply a perl grep() expression specified by $CG_GREP_SPEC to a stack.
+                      Example:  add 10 to each member of a stack:
                             CG_GREP_SPEC := $_ += 10
                             %void $foo:g:assign
                       In perl, this translates to:  @foo = grep ($_ += 10, @foo);
@@ -129,6 +126,9 @@ afile <- alink      - create "alink" file pointing to "afile", which doesn't hav
 
 :toupper            - capitalize letters in a string.
 :tolower            - uncapitalize letters in a string.
+
+:cap                - this op capitalizes the first letter of a string.
+:uncap              - uncapitalize the first letter of a string.
 
 :hexencode          - encode a regular string as a hex string, prefixed by 'HEX_'.
 :hexdecode          - decode a HEX_ encoded string to its regular form.
@@ -526,8 +526,16 @@ $varexpr = rhs      - expand $varexpr, which must result in a variable name, and
                           %evalmacro OUT OUT
 
 %include            - process include.
-%interpret          - interpret the contents of a variable:  %interpret varname
-%call               - alias for %interpret.
+%interpret          - interpret the contents of a plain variable or variable pointer.
+%call               - alias for %interpret.  Examples:
+                      These are equivalent:
+                          varptr = simple
+                          %call simple
+                          %call $varptr
+                      Example %foreach loop:
+                          rr = 01..03
+                          %foreach ii rr %call sr_$ii
+
 
 %echo  [-n]         - echo text to stdout.  If -n, do not add final newline.
 %print [-n]         - alias for %echo.
