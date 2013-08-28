@@ -1,0 +1,21 @@
+#test that rhs of %call statement is expanded properly.
+
+gensr := << (
+theSubDef = << [
+sr_$ii := << //
+{
+    %echo you called sr_$ii
+}
+//
+]
+
+#this defines the subroutine to the interpreter:
+%interpret theSubDef
+)
+
+rr = 01..03
+#generate some "subroutines":
+%foreach ii rr %call gensr
+
+#call the subroutines we just generated:
+%foreach ii rr %call sr_$ii
