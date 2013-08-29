@@ -437,6 +437,8 @@ $CG_SPLIT_PATTERN   - Split pattern for creating stack variables.  default patte
 
 CG_FOREACH_SPLIT_PATTERN
                     - Split pattern for looping through a list of values.  default pattern is:  /\n/
+                      Note: stack variables are detected automatically, and will not be split.
+                      See examples under %foreach section.
 
 $CG_COMPARE_SPEC    - Specify value for comparison operators.  See COMPARISON & MATCHING operators.
 $CG_MATCH_SPEC      - Specify pattern for :match operator.
