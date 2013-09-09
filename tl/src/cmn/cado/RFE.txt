@@ -5,6 +5,14 @@ Requests for Enhancements to codegen
 *******************
 
 -------------------
+09-Sep-2013 (russt)
+
+o add -<integer> (e.g., -2) to %echo and %eecho.  prepend that many empty lines before message.
+  perhaps %echo -1,1  would prepend one line, and append one line.
+  I.e., %echo -1 <=> %echo -1,0
+o incorporate %bldmsg as native statement.  (or perhaps %msg).
+
+-------------------
 30-Sep-2008 (russt)
 
 o add doc for %return, %halt, %exit, and STATUS variables
@@ -30,6 +38,12 @@ o add %pragma echo_leading_space to preserve leading space in %echo statements.
   Currently, you have to add a non-whitespace char to align output, e.g.:
 
       %echo .    some string
+
+  Workaround:  use PAD_SPEC, and then:
+
+      %echo $msg:pad
+
+  still have to create $msg, however, or could have a special $ECHO_PAD_SPEC.
 
 -------------------
 05-Apr-2006 (russt)
