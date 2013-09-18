@@ -336,10 +336,23 @@ CG_CSHVARVAL_LIST   - stack of generated variable-value names for variables fact
                     ==========
                     FILE INPUT
                     ==========
-:openfile           - open a file if it is open. return error string or empty if no error.
-:closefile          - close a file if it is open. set $var to error or empty if no error.
-:getnextline        - get the next line of a file if it is open.
-:currentline        - return the current input line of a file, or undef varname if file is closed
+
+    File input example - print each line from a file named "foo.txt":
+
+        fn = foo.txt
+        %if $fn:openfile    %eecho cannot open file "$fn", error is "$fn:openfile".
+        %whiledef $fn:getnextline  %echo line [$fn:currentlinenumber]=$fn:currentline
+        %void $fn:closefile
+
+    Note that the variable name (fn in this example) will be undefined after the loop.
+
+:openfile           - open the file named by a variable.  Return empty string if successful,
+                      otherwise return error string and undefine variable.
+:closefile          - close a file if it is open.  Return error string if unsuccessful.
+:getnextline        - get the next line of a file if it is open.  Return ${varname} and
+                      undefine variable if unsuccessful.
+:currentline        - return the current input line of a file.  Return ${varname} literal and
+                      undefine variable if unsuccessful.
 :currentlinenumber  - (1..nlines), 0 => file closed
 }
 
