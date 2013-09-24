@@ -5,6 +5,34 @@ Requests for Enhancements to codegen
 *******************
 
 -------------------
+21-Sep-2013 (russt)
+
+o interpret numeric suffix after :eq, :ne, like :plus<n>, :minus<n> ops.
+
+    %if $foo:eq0 ...
+    %if $foo:ne1 ...
+    %if $foo:eq1000742 ...
+
+  This would allow us to avoid setting CG_COMPARE_SPEC for trivial numeric compares.
+  Another approach would to be to have hardcode ops only for 0, :eq0, :ne0, etc., since
+  this covers simple boolean ops.
+
+  I noticed that :eq & friends return null string or 1, but not sure why.  Here is the code:
+    return ($var == $spec) if (&is_number($var) && &is_number($spec));
+    return ($var eq $spec);
+  I think it should return an explicit zero or one.  Bug?  Or is it because of the logic in
+  %if, %ifdef?  I remember that match *does* return explicit 0.  Note this comment:
+
+    #  04-Aug-2005 (russt) [Version 1.41]
+    #       changed semantics of %if, %ifnot:  false <==> zero or empty string, true <==> !false
+
+  Which indicates that :eq could return 0 instead of "".  note also that I added :eq ops a few days later:
+
+    #  11-Aug-2005 (russt) [Version 1.42]
+    #       add match, compare operators:
+    #           :eq, :ne, :gt, :lt, :ge, :le - will compare against CG_COMPARE_SPEC
+
+-------------------
 09-Sep-2013 (russt)
 
 o add -<integer> (e.g., -2) to %echo and %eecho.  prepend that many empty lines before message.
