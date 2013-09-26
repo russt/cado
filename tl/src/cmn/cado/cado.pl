@@ -21,7 +21,7 @@
 #
 
 #
-# @(#)cado.pl - ver 1.99 - 03-Mar-2013
+# @(#)cado.pl - ver 1.100 - 26-Sep-2013
 #
 # Copyright 2003-2008 Sun Microsystems, Inc.  All Rights Reserved.
 # Copyright 2009-2013 Russ Tremain.  All Rights Reserved.
@@ -309,6 +309,9 @@
 #       Added doc for version %pragma.
 #  03-Mar-2013 (russt) [Version 1.99]
 #       Added list form of %foreach - can now auto-split text and iterate though stacks directly.
+#  26-Sep-2013 (russt) [Version 1.100]
+#       The :eq, :ne etc operators were returning nonsense.  Now they explicitly
+#       return 1 if true, and 0 if false or undefined.
 #
 
 use strict;
@@ -318,8 +321,8 @@ my (
     $VERSION,
     $VERSION_DATE,
 ) = (
-    "1.99",         #VERSION - the program version number.
-    "03-Mar-2013",  #VERSION_DATE - date this version was released.
+    "1.100",         #VERSION - the program version number.
+    "26-Sep-2013",  #VERSION_DATE - date this version was released.
 );
 
 require "path.pl";
@@ -4979,8 +4982,8 @@ sub eq_op
 
     my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
     return 0 unless (defined($spec));
-    return ($var == $spec) if (&is_number($var) && &is_number($spec));
-    return ($var eq $spec);
+    return (($var == $spec)?1:0) if (&is_number($var) && &is_number($spec));
+    return (($var eq $spec)?1:0);
 }
 
 sub ne_op
@@ -4991,8 +4994,8 @@ sub ne_op
 
     my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
     return 0 unless (defined($spec));
-    return ($var != $spec) if (&is_number($var) && &is_number($spec));
-    return ($var ne $spec);
+    return (($var != $spec)?1:0) if (&is_number($var) && &is_number($spec));
+    return (($var ne $spec)?1:0);
 }
 
 sub gt_op
@@ -5003,8 +5006,8 @@ sub gt_op
 
     my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
     return 0 unless (defined($spec));
-    return ($var > $spec) if (&is_number($var) && &is_number($spec));
-    return ($var gt $spec);
+    return (($var > $spec)?1:0) if (&is_number($var) && &is_number($spec));
+    return (($var gt $spec)?1:0);
 }
 
 sub ge_op
@@ -5015,8 +5018,8 @@ sub ge_op
 
     my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
     return 0 unless (defined($spec));
-    return ($var >= $spec) if (&is_number($var) && &is_number($spec));
-    return ($var ge $spec);
+    return (($var >= $spec)?1:0) if (&is_number($var) && &is_number($spec));
+    return (($var ge $spec)?1:0);
 }
 
 sub lt_op
@@ -5027,8 +5030,8 @@ sub lt_op
 
     my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
     return 0 unless (defined($spec));
-    return ($var < $spec) if (&is_number($var) && &is_number($spec));
-    return ($var lt $spec);
+    return (($var < $spec)?1:0) if (&is_number($var) && &is_number($spec));
+    return (($var lt $spec)?1:0);
 }
 
 sub le_op
@@ -5039,8 +5042,8 @@ sub le_op
 
     my $spec = $CG_USER_VARS{'CG_COMPARE_SPEC'};
     return 0 unless (defined($spec));
-    return ($var <= $spec) if (&is_number($var) && &is_number($spec));
-    return ($var le $spec);
+    return (($var <= $spec)?1:0) if (&is_number($var) && &is_number($spec));
+    return (($var le $spec)?1:0);
 }
 
 sub basename_op

@@ -1,5 +1,5 @@
-VERSION = 1.99
-VERSION_DATE = 03-Mar-2013
+VERSION = 1.100
+VERSION_DATE = 26-Sep-2013
 COPYRIGHT_RANGE1 = 2003-2008
 COPYRIGHT_RANGE2 = 2009-2013
 
@@ -4471,6 +4471,9 @@ CODEGEN_HEADER := << EOF
 #       Added doc for version %pragma.
 #  03-Mar-2013 (russt) [Version 1.99]
 #       Added list form of %foreach - can now auto-split text and iterate though stacks directly.
+#  26-Sep-2013 (russt) [Version 1.100]
+#       The :eq, :ne etc operators were returning nonsense.  Now they explicitly
+#       return 1 if true, and 0 if false or undefined.
 #
 EOF
 %evalmacro CODEGEN_HEADER CODEGEN_HEADER
