@@ -1,0 +1,8 @@
+# directories built by toolsBuild (makedrv -c mmf)
+tl/src/cmn/cado
+tl/src/cmn/cado/templategen/maven
+tl/src/cmn/cado/templategen/maven2
+tl/src/cmn/cado/templategen/xml
+tl/src/cmn/cado/templates
+tl/src/cmn/cado/templates/licenses
+tl/src/cmn/cado/templates/perl
